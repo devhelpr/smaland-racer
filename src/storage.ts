@@ -16,7 +16,7 @@ export function loadProgress(storage: StorageLike|null, locale='en'): Progress {
       const r=data.records?.[course.id];
       if(!r||!validNumber(r.elapsed)||!validNumber(r.damage)||r.damage>=100||!Number.isInteger(r.recoveries)||r.recoveries<0||!validNumber(r.total)||!['none','bronze','silver','gold'].includes(r.medal)||!Array.isArray(r.splits)||!r.splits.every(validNumber)) continue;
       if(Math.abs(r.total-(r.elapsed+r.damage*.2+r.recoveries*5))>0.01) continue;
-      // Recompute medals from the current course targets instead of trusting saved unlocks.
+      // Recompute medals from the current course targets when loading saved records.
       r.medal=r.total<=course.medals.gold?'gold':r.total<=course.medals.silver?'silver':r.total<=course.medals.bronze?'bronze':'none';
       result.records[course.id]=r;
     }
@@ -26,10 +26,8 @@ export function loadProgress(storage: StorageLike|null, locale='en'): Progress {
 export function saveProgress(storage: StorageLike|null, progress: Progress): boolean {
   try { if(!storage) return false; storage.setItem(key,JSON.stringify(progress)); return true; } catch { return false; }
 }
-export function isUnlocked(progress: Progress,index: number): boolean {
-  if(index===0) return true;
-  for(let i=0;i<index;i++) if(!progress.records[courses[i].id]||progress.records[courses[i].id].medal==='none') return false;
-  return true;
+export function isCourseAvailable(index: number): boolean {
+  return Number.isInteger(index) && index >= 0 && index < courses.length;
 }
 export function recordResult(progress: Progress, courseId: string, result: RaceResult): boolean {
   const current=progress.records[courseId];

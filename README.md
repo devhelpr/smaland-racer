@@ -15,7 +15,7 @@ Open Vite's local URL in a desktop browser with WebGL 2 and hardware acceleratio
 
 ## Play
 
-The title screen leads to six courses across three landscapes. Each landscape has a distinct one-lap circuit and a start-to-finish rally stage. Only the first course is initially unlocked; earn **bronze** to open the next. You can replay unlocked courses to improve your personal best, or choose **Free drive** to practice without saving results.
+The title screen leads to six courses across three landscapes. Each landscape has a distinct one-lap circuit and a start-to-finish rally stage. All six courses are available immediately in both rally and free drive, without earning medals first. You can replay any course to improve your personal best, or choose **Free drive** to practice without saving results.
 
 | Key | Action |
 | --- | --- |
@@ -40,7 +40,7 @@ The game pauses automatically when the window loses focus or the tab is hidden. 
 
 English, Dutch and Swedish are available from the title screen and pause menu. Language changes preserve the current run. On first use the browser language is selected when supported, with English as fallback.
 
-Personal bests, medals, unlocks and language are saved in this browser's local storage under `smaland-racer:v1`. There is no account or server. Clearing browser site data removes this progress. Invalid saves fall back safely, and blocked storage does not prevent playing (a notice explains when progress cannot be saved).
+Personal bests, medals and language are saved in this browser's local storage under `smaland-racer:v1`. There is no account or server. Clearing browser site data removes this progress. Invalid saves fall back safely, and blocked storage does not prevent playing (a notice explains when progress cannot be saved).
 
 ## Checks and production
 

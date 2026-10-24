@@ -1,18 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { courses, Course } from '../src/track.ts';
-import { detectLanguage, isUnlocked, loadProgress, recordResult, saveProgress } from '../src/storage.ts';
+import { detectLanguage, isCourseAvailable, loadProgress, recordResult, saveProgress } from '../src/storage.ts';
 import { dictionaries } from '../src/i18n.ts';
 import { wildlifePlan } from '../src/wildlife.ts';
 import type { RaceResult } from '../src/race.ts';
 
 const result:RaceResult={elapsed:20,damage:10,recoveries:1,total:27,medal:'gold',splits:[10,27]};
-test('records improve only, bronze unlocks the next route and saves reload',()=> {
+test('all courses are available immediately; records improve only and saves reload',()=> {
   let data='';const storage={getItem:()=>data,setItem:(_key:string,value:string)=>{data=value;}};
-  const progress=loadProgress(storage,'nl-NL');assert.equal(progress.language,'nl');assert.ok(isUnlocked(progress,0));assert.ok(!isUnlocked(progress,1));
-  assert.ok(recordResult(progress,courses[0].id,result));assert.ok(isUnlocked(progress,1));assert.ok(!isUnlocked(progress,2));
+  const progress=loadProgress(storage,'nl-NL');assert.equal(progress.language,'nl');assert.ok(isCourseAvailable(0));assert.ok(isCourseAvailable(1));
+  for(let i=0;i<courses.length;i++)assert.ok(isCourseAvailable(i));
+  for(const index of [-1,6,NaN,1.5])assert.equal(isCourseAvailable(index),false);
+  assert.ok(recordResult(progress,courses[0].id,result));assert.ok(isCourseAvailable(1));assert.ok(isCourseAvailable(2));
   assert.ok(!recordResult(progress,courses[0].id,{...result,total:30}));assert.equal(progress.records[courses[0].id].total,27);
-  assert.ok(saveProgress(storage,progress));const restored=loadProgress(storage,'sv');assert.equal(restored.language,'nl');assert.equal(restored.records[courses[0].id].total,27);assert.ok(isUnlocked(restored,1));
+  assert.ok(saveProgress(storage,progress));const restored=loadProgress(storage,'sv');assert.equal(restored.language,'nl');assert.equal(restored.records[courses[0].id].total,27);assert.ok(isCourseAvailable(1));
 });
 
 test('corrupt, outdated and inaccessible saves never prevent play',()=> {
@@ -41,16 +43,16 @@ test('wildlife is reproducible with a seed, variable across attempts and starts 
   }
 });
 
-test('bronze campaign progression opens all six courses and survives a reload',async()=> {
+test('all six course records survive a reload without restricting selection',async()=> {
   const {Race}=await import('../src/race.ts');
   const progress=loadProgress(null,'en');
   for(let i=0;i<courses.length;i++) {
-    assert.ok(isUnlocked(progress,i));if(i<courses.length-1)assert.ok(!isUnlocked(progress,i+1));
+    assert.ok(isCourseAvailable(i));
     const course=new Course(courses[i]),race=new Race(course);race.start();race.elapse(3);race.elapse(courses[i].medals.bronze-2);
     for(const gate of course.checkpoints.slice(1))race.observe(gate.point.clone().addScaledVector(gate.tangent,-1),gate.point.clone().addScaledVector(gate.tangent,1),0);
     assert.equal(race.state,'finished');assert.equal(race.result!.medal,'bronze');recordResult(progress,courses[i].id,race.result!);
   }
   let saved='';saveProgress({getItem:()=>saved,setItem:(_key,value)=>{saved=value;}},progress);
   const restored=loadProgress({getItem:()=>saved,setItem:()=>{}},'en');
-  assert.equal(Object.keys(restored.records).length,6);assert.ok(isUnlocked(restored,5));
+  assert.equal(Object.keys(restored.records).length,6);assert.ok(isCourseAvailable(5));
 });

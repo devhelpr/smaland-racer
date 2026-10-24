@@ -10,7 +10,7 @@ import { Race } from './race.ts';
 import { CollisionWorld } from './collision.ts';
 import { Wildlife } from './wildlife.ts';
 import { disposeGroup } from './dispose.ts';
-import { detectLanguage, isUnlocked, loadProgress, recordResult, saveProgress } from './storage.ts';
+import { detectLanguage, isCourseAvailable, loadProgress, recordResult, saveProgress } from './storage.ts';
 import type { Language, StorageLike } from './storage.ts';
 import { formatTime, text } from './i18n.ts';
 import type { TextKey } from './i18n.ts';
@@ -40,7 +40,6 @@ function start(): void {
   let toastKey:TextKey='recovered';
   let personalBest=false;
   let previousBest:number|null=null;
-  let unlockedNext=false;
   let storageUnavailable=false;
   const menus=el('menus');
   const languageSelect=el<HTMLSelectElement>('language');
@@ -51,7 +50,7 @@ function start(): void {
   function announce(key:TextKey): void {toastKey=key;toastUntil=performance.now()+2200;el('toast').textContent=t(key);el('toast').hidden=false;}
 
   function loadCourse(index:number): void {
-    if(!isUnlocked(progress,index)) return;
+    if(!isCourseAvailable(index)) return;
     input.clear(); accumulator=0;
     disposeGroup(group);
     selected=index;course=new Course(courses[index]);world=new CollisionWorld();group=new THREE.Group();scene.add(group);
@@ -59,7 +58,7 @@ function start(): void {
     car=new Vehicle(course);group.add(car.mesh);
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
-    race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;unlockedNext=false;
+    race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
     addGates();updateMap();follow(car,0,true);
     scene.background=new THREE.Color(course.definition.region==='hills'?'#c1d2cd':'#c8d9cf');
     if(scene.fog instanceof THREE.Fog) scene.fog.color.copy(scene.background);
@@ -137,16 +136,16 @@ function start(): void {
       menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — 06 / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${t('controls')}</summary><p>${t('controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
       menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—06</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">← ${t('back')}</button></div><div class="course-grid">${courses.map((def,i)=> {
-        const unlocked=isUnlocked(progress,i);const record=progress.records[def.id];
+        const record=progress.records[def.id];
         const preview=new Course(def);const xs=preview.points.map(p=>p.x),zs=preview.points.map(p=>p.z);const x=Math.min(...xs)-20,z=Math.min(...zs)-20,size=Math.max(Math.max(...xs)-x,Math.max(...zs)-z)+20;
         const path=preview.points.filter((_,j)=>j%5===0).map((p,j)=>`${j?'L':'M'}${p.x},${p.z}`).join(' ')+(def.closed?'Z':'');
-        return `<button class="course-tile ${i===selected?'selected':''} ${unlocked?'':'locked'}" data-course="${i}" ${unlocked?'':'disabled'} aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${unlocked?(record?t(record.medal):'↗'):'◇'}</span></div><svg viewBox="${x} ${z} ${size} ${size}" aria-hidden="true"><path d="${path}"/></svg><h2>${def.name}</h2><span class="course-type">${t(def.closed?'circuit':'stage')} · ${(preview.length/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${unlocked?(record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')):t('unlock')}</div></button>`;
+        return `<button class="course-tile ${i===selected?'selected':''}" data-course="${i}" aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${record?t(record.medal):'↗'}</span></div><svg viewBox="${x} ${z} ${size} ${size}" aria-hidden="true"><path d="${path}"/></svg><h2>${def.name}</h2><span class="course-type">${t(def.closed?'circuit':'stage')} · ${(preview.length/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')}</div></button>`;
       }).join('')}</div><div class="selection-bottom"><div><h3>${course.definition.name}</h3>${targets()}</div><div class="selection-actions">${button('practice','practice')}${button('start','play',true)}<small>${t('practiceNote')}</small></div></div></section>`;
     } else if(state==='paused') {
       menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t('controlInfo')}</p></section>`;
     } else if(state==='finished') {
       const result=race.result!;
-      menus.innerHTML=`<section class="dialog-panel result-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${course.definition.name} / ${t(result.medal)}</span><h1 id="dialog-title">${t('finished')}</h1>${personalBest?`<div class="record-badge">${t('newRecord')}</div>`:''}<div class="result-time">${time(result.total)}</div><dl class="result-breakdown"><div><dt>${t('drivingTime')}</dt><dd>${time(result.elapsed)}</dd></div><div><dt>${t('damagePenalty')} (${result.damage.toLocaleString(language,{maximumFractionDigits:1})})</dt><dd>+${time(result.damage*.2)}</dd></div><div><dt>${t('recoveryPenalty')} (${result.recoveries})</dt><dd>+${time(result.recoveries*5)}</dd></div>${previousBest!==null?`<div><dt>${t('improvement')}</dt><dd>${time(previousBest)}</dd></div>`:''}</dl>${targets()}${unlockedNext?`<p class="unlock-note">${t('unlocked')}</p>`:result.medal==='none'?`<p>${t('noMedalInfo')}</p>`:''}<div class="dialog-actions">${button('retry','restart',true)}${selected<courses.length-1&&isUnlocked(progress,selected+1)?button('next','next'):''}${button('select','menu')}</div></section>`;
+      menus.innerHTML=`<section class="dialog-panel result-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${course.definition.name} / ${t(result.medal)}</span><h1 id="dialog-title">${t('finished')}</h1>${personalBest?`<div class="record-badge">${t('newRecord')}</div>`:''}<div class="result-time">${time(result.total)}</div><dl class="result-breakdown"><div><dt>${t('drivingTime')}</dt><dd>${time(result.elapsed)}</dd></div><div><dt>${t('damagePenalty')} (${result.damage.toLocaleString(language,{maximumFractionDigits:1})})</dt><dd>+${time(result.damage*.2)}</dd></div><div><dt>${t('recoveryPenalty')} (${result.recoveries})</dt><dd>+${time(result.recoveries*5)}</dd></div>${previousBest!==null?`<div><dt>${t('improvement')}</dt><dd>${time(previousBest)}</dd></div>`:''}</dl>${targets()}${result.medal==='none'?`<p>${t('noMedalInfo')}</p>`:''}<div class="dialog-actions">${button('retry','restart',true)}${selected<courses.length-1&&isCourseAvailable(selected+1)?button('next','next'):''}${button('select','menu')}</div></section>`;
     } else if(state==='crashed') {
       menus.innerHTML=`<section class="dialog-panel crash-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${course.definition.name} / ${t('condition')} 0%</span><h1 id="dialog-title">${t('crashed')}</h1><p>${t('crashInfo')}</p><div class="result-time">${time(race.elapsed)}</div><div class="dialog-actions">${button('retry','restart',true)}${button('select','menu')}</div></section>`;
     } else menus.innerHTML='';
@@ -157,7 +156,7 @@ function start(): void {
   menus.addEventListener('click',event=> {
     const target=(event.target as HTMLElement).closest<HTMLButtonElement>('button');if(!target)return;
     if(target.dataset.course!==undefined) {
-      const index=Number(target.dataset.course);if(!isUnlocked(progress,index))return;
+      const index=Number(target.dataset.course);if(!isCourseAvailable(index))return;
       loadCourse(index);race.state='select';renderMenus();return;
     }
     switch(target.dataset.action) {
@@ -167,7 +166,7 @@ function start(): void {
       case 'practice':begin(true);break;
       case 'retry':begin(race.practice);break;
       case 'resume':resume();break;
-      case 'next':if(isUnlocked(progress,selected+1)) {loadCourse(selected+1);race.state='select';renderMenus();}break;
+      case 'next':if(isCourseAvailable(selected+1)) {loadCourse(selected+1);race.state='select';renderMenus();}break;
     }
     target.blur();
   });
@@ -228,9 +227,7 @@ function start(): void {
     } else accumulator=0;
     if(race.state==='finished'&&before!=='finished') {
       const result=race.result!;previousBest=progress.records[course.definition.id]?.total??null;
-      const wasUnlocked=selected<courses.length-1&&isUnlocked(progress,selected+1);
       personalBest=recordResult(progress,course.definition.id,result);persist();
-      unlockedNext=!wasUnlocked&&selected<courses.length-1&&isUnlocked(progress,selected+1);
     }
     if(lastState!==race.state) {renderMenus();lastState=race.state;}
     if(race.state==='countdown')el('countdown').innerHTML=`<span>${t('ready')}</span><strong>${Math.ceil(race.countdown)}</strong>`;

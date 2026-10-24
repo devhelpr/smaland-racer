@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open Vite's local URL in a desktop browser with WebGL 2 and hardware acceleration enabled.
+Open Vite's local URL in a browser with WebGL 2 and hardware acceleration enabled. Keyboard and touchscreens are supported.
 
 ## Play
 
@@ -25,6 +25,21 @@ The title screen leads to six courses across three landscapes. Each landscape ha
 | Space | Handbrake / slide |
 | R | Recover at your last passed checkpoint (+5 seconds; damage remains) |
 | Escape | Pause / resume |
+
+### Touchscreen controls
+
+Drive by dragging anywhere on the game view, with no on-screen steering, pedal or handbrake buttons:
+
+| Gesture | Action |
+| --- | --- |
+| Drag up and hold | Accelerate |
+| Drag down and hold | Brake, then reverse |
+| Drag left / right | Steer proportionally; diagonal drags combine steering and gas/brake |
+| Lift your finger | Release gas and steering; the car coasts |
+| Hold a second finger | Handbrake, while the first finger keeps steering |
+| Double tap | Recover at the last checkpoint (+5 seconds; damage remains) |
+
+Each drag starts from wherever you touch, so no fixed control zone is needed. Move farther for stronger input. Small finger movements are ignored. The pause menu remains available in the header. Menus keep normal touch scrolling, while the game canvas suppresses browser pan/zoom gestures. Pause, focus loss, pointer cancellation and resizing clear held input. Touch hints are available in all three languages and replace the keyboard HUD when using touch.
 
 Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints are tracked invisibly and shown on the minimap. Grass reduces grip and speed. Trees, rocks, cottages, wildlife and A-traktors have collision geometry. Each route now has 9–15 roadside cottages and 4–7 lakes, with open verges so the houses and water are visible from the road. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
 
@@ -53,7 +68,7 @@ npm run build
 npm run preview
 ```
 
-`dist/` contains the production website. Tests cover all six courses, checkpoint and scoring rules, pause/resume, recovery and damage, swept collisions, road clearance, wildlife behavior, traffic and overtaking, roadside placement, save handling, translations and disposal of graphics resources. Reference drives exercise each course; medal targets are calibrated against conservative and faster clean runs. Wildlife adds variation to scored attempts.
+`dist/` contains the production website. Tests cover all six courses, checkpoint and scoring rules, pause/resume, recovery and damage, swept collisions, road clearance, wildlife behavior, traffic and overtaking, touch gestures and cancellation, roadside placement, save handling, translations and disposal of graphics resources. Reference drives exercise each course; medal targets are calibrated against conservative and faster clean runs. Wildlife adds variation to scored attempts.
 
 ## Architecture
 
@@ -65,7 +80,8 @@ npm run preview
 - `traffic.ts`: slow A-traktors, lane following, queuing and moving collision geometry.
 - `snow-poles.ts`: flexible roadside snow markers and impact-driven falling animations.
 - `storage.ts`, `i18n.ts`: validated local saves and typed translation dictionaries.
-- `main.ts`: application orchestration, menus, HUD and input bindings.
+- `input.ts`, `gestures.ts`: keyboard/pointer bindings, analog drag gestures, handbrake, double-tap recovery and interruption handling.
+- `main.ts`: application orchestration, menus and adaptive HUD.
 - `rendering.ts`, `dispose.ts`: reusable renderer, camera, lighting and graphics-resource lifecycle.
 
-The game targets desktop keyboard play. Multiplayer, AI opponents, online leaderboards, vehicle upgrades, audio and touch controls are outside this version.
+The game supports desktop keyboard play and mobile/touchscreen gestures. Multiplayer, AI opponents, online leaderboards, vehicle upgrades and audio are outside this version.

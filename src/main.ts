@@ -25,7 +25,7 @@ function start(): void {
   const t=(key:TextKey)=>text(language,key);
   const time=(value:number)=>formatTime(value,language);
   const {renderer,scene,camera,follow}=createRendering(el('viewport'));
-  const input=new Input();
+  const input=new Input(renderer.domElement);
   let group=new THREE.Group();
   let selected=0;
   let course:Course;
@@ -110,9 +110,13 @@ function start(): void {
 
   function updateLabels(): void {
     document.documentElement.lang=language;
+    el('app').classList.toggle('touch-input',input.usingTouch);
+    el('keyboard-controls').hidden=input.usingTouch;
+    el('touch-controls').hidden=!input.usingTouch;
+    el('touch-controls').innerHTML=`<span>${t('touchHint')}</span><span>${t('touchExtras')}</span>`;
     languageSelect.value=language;languageSelect.setAttribute('aria-label',t('language'));el('language-label').textContent=t('language');
-    el('home').setAttribute('aria-label',t('homeLabel'));el('viewport').setAttribute('aria-label',t('gameLabel'));
-    renderer.domElement.setAttribute('aria-label',t('gameLabel'));
+    el('home').setAttribute('aria-label',t('homeLabel'));el('viewport').setAttribute('aria-label',t(input.usingTouch?'gameLabelTouch':'gameLabel'));
+    renderer.domElement.setAttribute('aria-label',t(input.usingTouch?'gameLabelTouch':'gameLabel'));
     el('route-map').setAttribute('aria-label',t('mapLabel'));
     el('countdown').setAttribute('aria-label',t('countdownLabel'));
     el('pause-button').textContent=t('pause');
@@ -132,11 +136,12 @@ function start(): void {
   const languageOptions=()=>`<label class="language pause-language"><span>${t('language')}</span><select data-language aria-label="${t('language')}">${(['en','nl','sv'] as const).map(code=>`<option value="${code}" ${code===language?'selected':''}>${{en:'English',nl:'Nederlands',sv:'Svenska'}[code]}</option>`).join('')}</select></label>`;
   function renderMenus(): void {
     const state=race.state;
+    input.setDrivingEnabled(state==='racing'||state==='countdown');
     el('race-hud').hidden=!['racing','countdown','paused'].includes(state);
     el('countdown').hidden=state!=='countdown';
     menus.className=state==='title'?'title-menu':state==='select'?'selection-menu':state==='paused'||state==='finished'||state==='crashed'?'center-menu':'';
     if(state==='title') {
-      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — 06 / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${t('controls')}</summary><p>${t('controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
+      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — 06 / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
       menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—06</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">← ${t('back')}</button></div><div class="course-grid">${courses.map((def,i)=> {
         const record=progress.records[def.id];
@@ -145,7 +150,7 @@ function start(): void {
         return `<button class="course-tile ${i===selected?'selected':''}" data-course="${i}" aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${record?t(record.medal):'↗'}</span></div><svg viewBox="${x} ${z} ${size} ${size}" aria-hidden="true"><path d="${path}"/></svg><h2>${def.name}</h2><span class="course-type">${t(def.closed?'circuit':'stage')} · ${(preview.length/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')}</div></button>`;
       }).join('')}</div><div class="selection-bottom"><div><h3>${course.definition.name}</h3>${targets()}</div><div class="selection-actions">${button('practice','practice')}${button('start','play',true)}<small>${t('practiceNote')}</small></div></div></section>`;
     } else if(state==='paused') {
-      menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t('controlInfo')}</p></section>`;
+      menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t(input.usingTouch?'touchInfo':'controlInfo')}</p></section>`;
     } else if(state==='finished') {
       const result=race.result!;
       menus.innerHTML=`<section class="dialog-panel result-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${course.definition.name} / ${t(result.medal)}</span><h1 id="dialog-title">${t('finished')}</h1>${personalBest?`<div class="record-badge">${t('newRecord')}</div>`:''}<div class="result-time">${time(result.total)}</div><dl class="result-breakdown"><div><dt>${t('drivingTime')}</dt><dd>${time(result.elapsed)}</dd></div><div><dt>${t('damagePenalty')} (${result.damage.toLocaleString(language,{maximumFractionDigits:1})})</dt><dd>+${time(result.damage*.2)}</dd></div><div><dt>${t('recoveryPenalty')} (${result.recoveries})</dt><dd>+${time(result.recoveries*5)}</dd></div>${previousBest!==null?`<div><dt>${t('improvement')}</dt><dd>${time(previousBest)}</dd></div>`:''}</dl>${targets()}${result.medal==='none'?`<p>${t('noMedalInfo')}</p>`:''}<div class="dialog-actions">${button('retry','restart',true)}${selected<courses.length-1&&isCourseAvailable(selected+1)?button('next','next'):''}${button('select','menu')}</div></section>`;
@@ -202,6 +207,7 @@ function start(): void {
   renderer.domElement.addEventListener('webglcontextlost',event=> {
     event.preventDefault();renderer.setAnimationLoop(null);el('error').hidden=false;el('error').textContent=t('contextLost');
   });
+  input.onModeChange=()=>renderMenus();
   loadCourse(0);persist();renderMenus();
   let lastTime=performance.now();
   renderer.setAnimationLoop(now=> {

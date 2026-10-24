@@ -56,6 +56,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   groundGeometry.computeVertexNormals();
   const terrain = new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }));
+  terrain.userData.seasonalSurface='grass';
   terrain.receiveShadow = true; scene.add(terrain);
   const shoulder = new THREE.Mesh(roadRibbon(ROAD_WIDTH + 1.8, 0.075), new THREE.MeshStandardMaterial({ color: '#a69c75', vertexColors: true, roughness: 1, side: THREE.DoubleSide }));
   const gravelPixels = new Uint8Array(128 * 128 * 4);
@@ -69,10 +70,12 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   gravelTexture.magFilter = THREE.LinearFilter; gravelTexture.minFilter = THREE.LinearMipmapLinearFilter;
   gravelTexture.generateMipmaps = true; gravelTexture.anisotropy = 4; gravelTexture.needsUpdate = true;
   const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, 0.13), new THREE.MeshStandardMaterial({ color: '#e4d1ad', map: gravelTexture, vertexColors: true, roughness: 1, side: THREE.DoubleSide }));
+  shoulder.userData.seasonalSurface=road.userData.seasonalSurface='gravel';
   shoulder.receiveShadow = true; road.receiveShadow = true; scene.add(shoulder, road);
 
   for (const lake of lakes) {
     const water = new THREE.Mesh(new THREE.CircleGeometry(1, 64), new THREE.MeshStandardMaterial({ color: '#6fabb2', metalness: 0.25, roughness: 0.3 }));
+    water.userData.seasonalSurface='water';
     water.rotation.x = -Math.PI / 2; water.scale.set(lake.rx, lake.rz, 1); water.position.set(lake.x, lake.level, lake.z); scene.add(water);
     // Thin broken highlights suggest calm water without textures or a water shader.
     const material = new THREE.MeshBasicMaterial({ color: '#bdd7cf', transparent: true, opacity: 0.38 });
@@ -122,6 +125,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
       dummy.position.y = base + [4.7, 6.6, 8.3][j] * tree.scale; dummy.updateMatrix(); tier.setMatrixAt(i, dummy.matrix); tier.setColorAt(i, color);
     });
   });
+  for(const tier of tiers)tier.userData.seasonalSurface='evergreen';
   for (const mesh of [trunk, ...tiers]) { mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); }
 
   const rockPositions: THREE.Vector3[] = [];
@@ -134,6 +138,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     dummy.position.copy(p); dummy.rotation.set(random(), random() * 6, random()); dummy.scale.set(0.6 + random() * 1.7, 0.4 + random(), 0.6 + random() * 1.5); dummy.updateMatrix(); rocks.setMatrixAt(i, dummy.matrix);
     collisions.add({id:`rock-${i}`,x:p.x,z:p.z,radius:Math.max(dummy.scale.x,dummy.scale.z),kind:'rock'});
   });
+  rocks.userData.seasonalSurface='stone';
   rocks.castShadow = true; rocks.receiveShadow = true; scene.add(rocks);
 
   for (const site of cottageSites) {

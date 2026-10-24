@@ -121,7 +121,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
       const px=positions.getX(i)+x,pz=positions.getZ(i)+z;
       positions.setXYZ(i,px,course.height(px,pz)+.07,pz);
     }
-    geometry.computeVertexNormals();const yard=new THREE.Mesh(geometry,gravel);yard.receiveShadow=true;scene.add(yard);
+    geometry.computeVertexNormals();const yard=new THREE.Mesh(geometry,gravel);yard.userData.seasonalSurface='gravel';yard.receiveShadow=true;scene.add(yard);
   }
   for(const [index,road] of holmahultSideRoads.entries()) {
     const curve=new THREE.CatmullRomCurve3(road.points.map(([x,z])=>new THREE.Vector3(x,0,z)),false,'centripetal');
@@ -135,7 +135,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
       if(i<count){const a=i*2;indices.push(a,a+2,a+1,a+1,a+2,a+3);}
     }
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
-    const mesh=new THREE.Mesh(geometry,road.asphalt?asphalt:gravel);mesh.name=`holmahult-side-road-${index}`;mesh.receiveShadow=true;scene.add(mesh);
+    const mesh=new THREE.Mesh(geometry,road.asphalt?asphalt:gravel);mesh.name=`holmahult-side-road-${index}`;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
   }
 
   const random=randomGenerator(250519);
@@ -154,6 +154,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     dummy.position.copy(p);dummy.rotation.set(random()*.5,random()*6,random()*.3);dummy.scale.set(.6+random()*.2,.4+random()*.2,.5+random()*.2);dummy.updateMatrix();walls.setMatrixAt(i,dummy.matrix);
     collisions.add({id:`holmahult-wall-${i}`,x:p.x,z:p.z,radius:.7,kind:'rock'});
   });
+  walls.userData.seasonalSurface='stone';
   walls.castShadow=true;walls.receiveShadow=true;scene.add(walls);
 
   // Birch and broadleaf trees along field boundaries and in the gardens.
@@ -165,6 +166,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   const clear=sites.filter(([x,z])=>course.nearest(x,z).distance>course.definition.width/2+4&&!holmahultBuildings.some(b=>Math.hypot(x-b.x,z-b.z)<Math.hypot(b.width,b.depth)/2+2));
   const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.2,.3,6,5),white,clear.length);
   const crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshStandardMaterial({color:'#79945b',roughness:1,flatShading:true}),clear.length);
+  crowns.userData.seasonalSurface='deciduous';
   clear.forEach(([x,z],i)=>{
     const base=course.height(x,z),s=.85+random()*.5;dummy.rotation.set(0,random()*6,0);
     dummy.position.set(x,base+3*s,z);dummy.scale.set(s,s,s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);

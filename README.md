@@ -63,11 +63,17 @@ Number 25 is modeled from the supplied oblique front photograph: two full storie
 
 The setting is a stylized interpretation traced from aerial imagery and the supplied photograph, rather than a measured reconstruction. Building heights, facade details, vegetation and some outlying farm positions are approximate; the gravel lane is widened to 6.2 m for playable overtaking. No map imagery or external textures are shipped. The route has its own save ID, so records from the previous forest stage do not transfer; the other five courses retain their records.
 
+## Seasons and golden hour
+
+Choose **Spring, Summer, Autumn or Winter** on the title screen; the existing scene updates immediately and the choice is remembered locally. Every course uses warm, low golden-hour sunlight with long shadows. Seasonal palettes recolor terrain, gravel, water, rocks, pine foliage and broadleaf trees. Winter's pale ground and foliage are color changes only: there is no snow geometry, frozen-water physics or altered grip.
+
+Course layouts, checkpoints, building models and paint, vehicles, wildlife, collisions and handling stay the same. Changing seasons does not rebuild the scene or reroll traffic/wildlife. All seasons share the same personal records. Existing saves default to summer.
+
 ## Languages and saves
 
 English, Dutch and Swedish are available from the title screen and pause menu. Language changes preserve the current run. On first use the browser language is selected when supported, with English as fallback.
 
-Personal bests, medals and language are saved in this browser's local storage under `smaland-racer:v1`. There is no account or server. Clearing browser site data removes this progress. Invalid saves fall back safely, and blocked storage does not prevent playing (a notice explains when progress cannot be saved).
+Personal bests, medals, language and season are saved in this browser's local storage under `smaland-racer:v1`. There is no account or server. Clearing browser site data removes this progress. Invalid saves fall back safely, and blocked storage does not prevent playing (a notice explains when progress cannot be saved).
 
 ## Checks and production
 
@@ -93,6 +99,7 @@ npm run preview
 - `storage.ts`, `i18n.ts`: validated local saves and typed translation dictionaries.
 - `input.ts`, `gestures.ts`: keyboard/pointer bindings, analog drag gestures, handbrake, double-tap recovery and interruption handling.
 - `main.ts`: application orchestration, menus and adaptive HUD.
+- `seasons.ts`: environmental color palettes, reversible tinting and saved season validation.
 - `rendering.ts`, `dispose.ts`: reusable renderer, camera, lighting and graphics-resource lifecycle.
 
 The game supports desktop keyboard play and mobile/touchscreen gestures. Multiplayer, AI opponents, online leaderboards, vehicle upgrades and audio are outside this version.

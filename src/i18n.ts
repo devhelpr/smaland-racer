@@ -1,6 +1,7 @@
 import type { Language } from './storage.ts';
 const en={
   country:'Sweden',
+  season:'Season',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter',goldenHour:'Golden hour · every season',
   escape:'The gravel escape.', eyebrow:'A LITTLE FURTHER FROM EVERYDAY', subtitle:'Six roads. Three landscapes. Your next personal best.',
   choose:'Choose a route', play:'Start rally', practice:'Free drive', practiceNote:'Practice without medals or records.', back:'Back', title:'Title screen', language:'Language',
   forest:'Pine woods', lakes:'Lake country', hills:'Småland highlands', circuit:'Circuit · 1 lap', stage:'Rally stage', route:'Route', routes:'The road ahead',
@@ -30,6 +31,7 @@ const en={
 export type TextKey=keyof typeof en;
 const nl: Record<TextKey,string>={
   country:'Zweden',
+  season:'Seizoen',spring:'Lente',summer:'Zomer',autumn:'Herfst',winter:'Winter',goldenHour:'Het gouden uurtje · elk seizoen',
   escape:'Even helemaal weg.',eyebrow:'VERDER WEG VAN ALLEDAG',subtitle:'Zes routes. Drie landschappen. Jouw volgende record.',
   choose:'Kies een parcours',play:'Start rally',practice:'Vrij rijden',practiceNote:'Oefen zonder medailles of records.',back:'Terug',title:'Titelscherm',language:'Taal',
   forest:'Dennenbossen',lakes:'Merengebied',hills:'Smålandse heuvels',circuit:'Circuit · 1 ronde',stage:'Rally-etappe',route:'Parcours',routes:'De weg voor je',
@@ -58,6 +60,7 @@ const nl: Record<TextKey,string>={
 };
 const sv: Record<TextKey,string>={
   country:'Sverige',
+  season:'Årstid',spring:'Vår',summer:'Sommar',autumn:'Höst',winter:'Vinter',goldenHour:'Gyllene timmen · alla årstider',
   escape:'Bortom vardagen.',eyebrow:'LITE LÄNGRE FRÅN VARDAGEN',subtitle:'Sex vägar. Tre landskap. Ditt nästa personbästa.',
   choose:'Välj en bana',play:'Starta rally',practice:'Fri körning',practiceNote:'Träna utan medaljer eller rekord.',back:'Tillbaka',title:'Titelskärm',language:'Språk',
   forest:'Tallskog',lakes:'Sjöriket',hills:'Småländska höjder',circuit:'Rundbana · 1 varv',stage:'Rallysträcka',route:'Bana',routes:'Vägen framför dig',

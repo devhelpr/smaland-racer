@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import './style.css';
+import { applySeason, isSeason, seasons, seasonPalettes } from './seasons.ts';
 import { createRendering } from './rendering.ts';
 import { createScenery } from './scenery.ts';
 import type { SnowPoles } from './snow-poles.ts';
@@ -24,7 +25,7 @@ function start(): void {
   let language=progress.language;
   const t=(key:TextKey)=>text(language,key);
   const time=(value:number)=>formatTime(value,language);
-  const {renderer,scene,camera,follow}=createRendering(el('viewport'));
+  const {renderer,scene,camera,follow,setSeason}=createRendering(el('viewport'));
   const input=new Input(renderer.domElement);
   let group=new THREE.Group();
   let selected=0;
@@ -63,8 +64,7 @@ function start(): void {
     traffic=new Traffic(course,world,group);
     race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
     addGates();updateMap();follow(car,0,true);
-    scene.background=new THREE.Color(course.definition.region==='hills'?'#c1d2cd':'#c8d9cf');
-    if(scene.fog instanceof THREE.Fog) scene.fog.color.copy(scene.background);
+    applySeason(group,progress.season);setSeason(progress.season);
   }
 
   function addGates(): void {
@@ -141,7 +141,7 @@ function start(): void {
     el('countdown').hidden=state!=='countdown';
     menus.className=state==='title'?'title-menu':state==='select'?'selection-menu':state==='paused'||state==='finished'||state==='crashed'?'center-menu':'';
     if(state==='title') {
-      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — 06 / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
+      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p><fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div><p>${t('goldenHour')}</p></fieldset><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — 06 / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
       menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—06</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">← ${t('back')}</button></div><div class="course-grid">${courses.map((def,i)=> {
         const record=progress.records[def.id];
@@ -163,6 +163,11 @@ function start(): void {
 
   menus.addEventListener('click',event=> {
     const target=(event.target as HTMLElement).closest<HTMLButtonElement>('button');if(!target)return;
+    if(isSeason(target.dataset.season)) {
+      progress.season=target.dataset.season;applySeason(group,progress.season);setSeason(progress.season);persist();
+      menus.querySelectorAll<HTMLButtonElement>('[data-season]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.season===progress.season)));
+      return;
+    }
     if(target.dataset.course!==undefined) {
       const index=Number(target.dataset.course);if(!isCourseAvailable(index))return;
       loadCourse(index);race.state='select';renderMenus();return;

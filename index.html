@@ -4,17 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#203c32" />
-    <meta name="description" content="A little gravel escape through the forests and lakes of Småland. A playable Three.js rally prototype." />
-    <title>Småland Racer — The gravel escape</title>
+    <meta name="description" content="Six gravel rallies through the forests, lakes and highlands of Småland. Beat your best and watch for wildlife." />
+    <title>Småland Racer</title>
   </head>
   <body>
     <div id="app">
-      <header class="masthead"><a class="wordmark" href="./" aria-label="Småland Racer home">SMÅLAND<span>RACER</span></a><div class="edition"><span class="live-dot"></span> FREE DRIVE <span class="edition-divider">/</span> VOL. 001</div></header>
-      <main id="viewport" aria-label="3D driving game"></main>
-      <section class="location"><div class="eyebrow">A LITTLE FURTHER FROM EVERYDAY</div><h1>The gravel escape.</h1><p>Småland, Sweden <span>·</span> 56°52′ N 14°48′ E</p></section>
-      <aside class="route-card"><div class="route-heading"><span>01 / FOREST LOOP</span><span id="surface">GRAVEL</span></div><svg id="route-map" viewBox="-135 -135 270 270" role="img" aria-label="Forest loop route"><path id="map-track"/><circle id="map-car" r="5"/></svg><div class="route-footer"><span id="route-length"></span><span>TAKE THE LONG WAY</span></div></aside>
-      <div class="drive-hint" id="drive-hint"><span>↑</span> THE ROAD IS YOURS <small>Press W or ↑ to head out</small></div>
-      <footer class="dashboard"><div class="controls"><span><kbd>W A S D</kbd> / <kbd>↑ ← ↓ →</kbd> DRIVE</span><span><kbd>SPACE</kbd> HANDBRAKE</span><button id="reset" type="button"><kbd>R</kbd> RESET CAR</button></div><div class="speedometer"><span id="gear">N</span><strong id="speed">000</strong><span class="speed-unit">KM/H<span>GRAVEL CLUB</span></span></div></footer>
+      <main id="viewport"></main>
+      <header class="masthead"><button id="home" class="wordmark">SMÅLAND<span>RACER</span></button><div class="header-right"><span id="mode-label" class="edition"></span><label class="language"><span id="language-label"></span><select id="language"><option value="en">English</option><option value="nl">Nederlands</option><option value="sv">Svenska</option></select></label><button id="pause-button" class="quiet"></button></div></header>
+      <div id="menus"></div>
+      <section id="race-hud" hidden>
+        <aside class="timing"><span id="time-label" class="eyebrow"></span><strong id="race-time">0:00.00</strong><div id="split"></div><div class="checkpoint-line"><span id="checkpoint-label"></span><span id="checkpoint-count"></span></div><div class="progress-track"><i id="progress-fill"></i></div></aside>
+        <aside class="route-card"><div class="route-heading"><span id="course-name"></span><span id="surface"></span></div><svg id="route-map" role="img"><path id="map-track"/><g id="map-gates"></g><circle id="map-car" r="5"/></svg><div class="route-footer"><span id="route-length"></span><span id="route-type"></span></div></aside>
+        <footer class="dashboard"><div class="drive-tools"><div class="condition-heading"><span id="condition-label"></span><strong id="condition-value"></strong></div><div class="condition-track"><i id="condition-fill"></i></div><div class="controls"><span><kbd>WASD / ↑←↓→</kbd><span id="drive-label"></span></span><span><kbd>SPACE</kbd><span id="handbrake-label"></span></span><button id="recover-button"><kbd>R</kbd><span id="recover-label"></span></button></div></div><div class="speedometer"><span id="gear">N</span><strong id="speed">000</strong><span class="speed-unit">KM/H<span>GRAVEL CLUB</span></span></div></footer>
+      </section>
+      <div id="countdown" hidden aria-live="assertive"></div>
+      <div id="toast" role="status" hidden></div>
+      <div id="impact-flash"></div>
+      <div id="storage-warning" role="status" hidden></div>
       <div id="error" role="alert" hidden></div>
     </div>
     <script type="module" src="/src/main.ts"></script>

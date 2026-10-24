@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { terrainHeight } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 
 export function createRendering(container: HTMLElement) {
@@ -21,10 +20,11 @@ export function createRendering(container: HTMLElement) {
   function follow(vehicle: Vehicle, dt: number, snap = false) {
     const forward = new THREE.Vector3(Math.sin(vehicle.heading), 0, Math.cos(vehicle.heading));
     desired.copy(vehicle.position).addScaledVector(forward, -10.5 - Math.abs(vehicle.forwardSpeed) * 0.065); desired.y += 6.8;
-    desired.y = Math.max(desired.y, terrainHeight(desired.x, desired.z) + 2.5);
+    desired.y = Math.max(desired.y, vehicle.course.height(desired.x, desired.z) + 2.5);
     target.copy(vehicle.position).addScaledVector(forward, 7); target.y += 1.1;
     camera.position.lerp(desired, snap ? 1 : 1 - Math.exp(-5 * dt));
     lookAt.lerp(target, snap ? 1 : 1 - Math.exp(-7 * dt)); camera.lookAt(lookAt);
+    if(vehicle.impact>0) {camera.position.x+=Math.sin(performance.now()*.08)*vehicle.impact*.08; camera.position.y+=Math.cos(performance.now()*.065)*vehicle.impact*.06;}
     sun.position.copy(vehicle.position).add(new THREE.Vector3(-90, 130, -60)); sun.target.position.copy(vehicle.position); sun.target.updateMatrixWorld();
   }
   return { renderer, scene, camera, follow };

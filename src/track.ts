@@ -1,96 +1,128 @@
 import * as THREE from 'three';
 
-export const ROAD_WIDTH = 10;
-export const WORLD_SIZE = 850;
+export interface Lake { x: number; z: number; rx: number; rz: number; level: number }
+export interface CourseDefinition {
+  id: string;
+  region: 'forest' | 'lakes' | 'hills';
+  name: string;
+  closed: boolean;
+  width: number;
+  seed: number;
+  points: [number, number][];
+  lakes: Lake[];
+  hills: number;
+  treeDensity: number;
+  wildlifeCount: number;
+  medals: { gold: number; silver: number; bronze: number };
+}
 
-export const lakes = [
-  { x: -5, z: -5, rx: 47, rz: 37, level: 0.4 },
-  { x: 207, z: 20, rx: 48, rz: 75, level: 0.1 },
+export const courses: CourseDefinition[] = [
+  { id: 'forest-loop', region: 'forest', name: 'Tallskogen', closed: true, width: 11, seed: 481,
+    points: [[-80,-105],[5,-120],[90,-85],[112,-15],[80,60],[15,110],[-65,100],[-112,35],[-110,-35]],
+    lakes: [{x:-5,z:-5,rx:38,rz:29,level:0.4}], hills: 1, treeDensity: 2700, wildlifeCount: 2,
+    medals: {gold: 37, silver: 49, bronze: 68} },
+  { id: 'forest-stage', region: 'forest', name: 'Älgstigen', closed: false, width: 10, seed: 519,
+    points: [[-255,180],[-225,105],[-245,20],[-190,-45],[-110,-20],[-75,-100],[5,-145],[65,-105],[110,-25],[195,-60],[250,-135]],
+    lakes: [{x:15,z:110,rx:52,rz:36,level:0.2}], hills: 1.15, treeDensity: 3100, wildlifeCount: 3,
+    medals: {gold: 50, silver: 65, bronze: 90} },
+  { id: 'lake-loop', region: 'lakes', name: 'Sjövarvet', closed: true, width: 10, seed: 736,
+    points: [[-150,-95],[-50,-130],[65,-115],[145,-60],[155,30],[80,105],[-15,130],[-125,80],[-165,0]],
+    lakes: [{x:0,z:0,rx:87,rz:64,level:0.2},{x:270,z:90,rx:48,rz:85,level:-0.2}], hills: 0.65, treeDensity: 1800, wildlifeCount: 3,
+    medals: {gold: 45, silver: 60, bronze: 83} },
+  { id: 'lake-stage', region: 'lakes', name: 'Strandvägen', closed: false, width: 9, seed: 809,
+    points: [[-285,160],[-255,70],[-180,35],[-115,65],[-60,15],[-95,-60],[-50,-125],[45,-150],[125,-100],[150,-25],[220,0],[280,-80]],
+    lakes: [{x:-190,z:-55,rx:43,rz:47,level:-0.4},{x:55,z:-20,rx:46,rz:55,level:0.1},{x:205,z:140,rx:57,rz:66,level:0.2}], hills: 0.75, treeDensity: 1800, wildlifeCount: 4,
+    medals: {gold: 55, silver: 72, bronze: 100} },
+  { id: 'hill-loop', region: 'hills', name: 'Höjdrundan', closed: true, width: 9.5, seed: 901,
+    points: [[-170,-125],[-75,-160],[10,-110],[90,-145],[170,-75],[130,10],[175,95],[70,150],[-15,95],[-115,140],[-180,60],[-135,-25]],
+    lakes: [{x:0,z:0,rx:35,rz:30,level:-1}], hills: 2.8, treeDensity: 2400, wildlifeCount: 4,
+    medals: {gold: 70, silver: 86, bronze: 112} },
+  { id: 'hill-stage', region: 'hills', name: 'Smålandsprovet', closed: false, width: 9, seed: 1027,
+    points: [[-280,235],[-250,155],[-160,120],[-95,170],[-15,130],[0,50],[-85,5],[-175,30],[-240,-40],[-170,-120],[-70,-95],[0,-155],[95,-190],[165,-120],[140,-35],[205,35],[280,-30],[300,-140]],
+    lakes: [{x:70,z:230,rx:42,rz:28,level:0.2}], hills: 3.2, treeDensity: 2700, wildlifeCount: 5,
+    medals: {gold: 90, silver: 116, bronze: 155} },
 ];
 
-export function terrainHeight(x: number, z: number): number {
-  let height = Math.sin(x * 0.013) * 2.4 + Math.cos(z * 0.017) * 1.8 + Math.sin((x + z) * 0.009) * 1.4;
-  for (const lake of lakes) {
-    const radius = Math.hypot((x - lake.x) / lake.rx, (z - lake.z) / lake.rz);
-    const blend = THREE.MathUtils.smoothstep(radius, 0.78, 1.08);
-    const shoreline = 1 - THREE.MathUtils.smoothstep(radius, 1.08, 1.3);
-    const bank = THREE.MathUtils.lerp(height, Math.max(height, lake.level + 0.6), shoreline);
-    height = THREE.MathUtils.lerp(lake.level - 2.5, bank, blend);
+export interface RoadSample { point: THREE.Vector3; tangent: THREE.Vector3; distance: number; progress: number }
+export interface Checkpoint { point: THREE.Vector3; tangent: THREE.Vector3; progress: number }
+export const WORLD_SIZE = 850;
+
+export class Course {
+  readonly definition: CourseDefinition;
+  readonly points: THREE.Vector3[];
+  readonly curve: THREE.CatmullRomCurve3;
+  readonly length: number;
+  readonly checkpoints: Checkpoint[];
+
+  constructor(definition: CourseDefinition) {
+    this.definition = definition;
+    this.curve = new THREE.CatmullRomCurve3(definition.points.map(([x,z]) => new THREE.Vector3(x, 0, z)), definition.closed, 'catmullrom', 0.5);
+    this.length = this.curve.getLength();
+    const count = Math.ceil(this.length / 1.5);
+    this.points = this.curve.getSpacedPoints(count).map(p => { p.y = this.height(p.x, p.z); return p; });
+    const gates = Math.ceil(this.length / 40);
+    this.checkpoints = Array.from({length: gates + 1}, (_, i) => this.sample(i / gates));
   }
-  return height;
+
+  height(x: number, z: number): number {
+    let height = (Math.sin(x * 0.013) * 2.4 + Math.cos(z * 0.017) * 1.8 + Math.sin((x + z) * 0.009) * 1.4) * this.definition.hills;
+    for (const lake of this.definition.lakes) {
+      const radius = Math.hypot((x-lake.x)/lake.rx, (z-lake.z)/lake.rz);
+      const blend = THREE.MathUtils.smoothstep(radius, 0.78, 1.08);
+      const shoreline = 1 - THREE.MathUtils.smoothstep(radius, 1.08, 1.3);
+      const bank = THREE.MathUtils.lerp(height, Math.max(height, lake.level + 0.6), shoreline);
+      height = THREE.MathUtils.lerp(lake.level - 2.5, bank, blend);
+    }
+    return height;
+  }
+
+  sample(progress: number): Checkpoint {
+    const t = THREE.MathUtils.clamp(progress, 0, 1);
+    const point = this.curve.getPointAt(t);
+    point.y = this.height(point.x, point.z);
+    const tangent = this.curve.getTangentAt(t).setY(0).normalize();
+    return {point, tangent, progress: t};
+  }
+
+  nearest(x: number, z: number): RoadSample {
+    let best = Infinity; let index = 0; let fraction = 0;
+    for (let i = 0; i < this.points.length - 1; i++) {
+      const a = this.points[i]; const b = this.points[i+1];
+      const dx = b.x-a.x; const dz = b.z-a.z;
+      const t = THREE.MathUtils.clamp(((x-a.x)*dx+(z-a.z)*dz)/(dx*dx+dz*dz), 0, 1);
+      const d = (x-a.x-dx*t)**2+(z-a.z-dz*t)**2;
+      if (d < best) { best=d; index=i; fraction=t; }
+    }
+    const a = this.points[index]; const b = this.points[index+1];
+    const point = a.clone().lerp(b, fraction); point.y=this.height(point.x, point.z);
+    return { point, tangent: b.clone().sub(a).setY(0).normalize(), distance: Math.sqrt(best), progress: (index+fraction)/(this.points.length-1) };
+  }
+
+  inWater(x: number, z: number): boolean {
+    return this.definition.lakes.some(l => Math.hypot((x-l.x)/l.rx,(z-l.z)/l.rz)<0.98 && this.height(x,z)<l.level);
+  }
+
+  ribbon(width: number, elevation: number): THREE.BufferGeometry {
+    const positions: number[]=[]; const colors: number[]=[]; const uvs: number[]=[]; const indices: number[]=[];
+    for (let i=0;i<this.points.length;i++) {
+      const p=this.points[i];
+      const tangent = this.sample(i/(this.points.length-1)).tangent;
+      for (const sign of [-1,1]) {
+        const x=p.x-tangent.z*width/2*sign; const z=p.z+tangent.x*width/2*sign;
+        positions.push(x,this.height(x,z)+elevation,z);
+        const shade=0.94+Math.sin(i*2.71)*0.035; colors.push(shade,shade,shade);
+        uvs.push(sign<0?0:width/3,i/(this.points.length-1)*this.length/3);
+      }
+      if (i<this.points.length-1) { const n=i*2; indices.push(n,n+2,n+1,n+1,n+2,n+3); }
+    }
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+    geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2)); geometry.setIndex(indices); geometry.computeVertexNormals();
+    return geometry;
+  }
 }
 
-const controlPoints = [
-  [-80, -105], [5, -120], [90, -85], [112, -15], [80, 60],
-  [15, 110], [-65, 100], [-112, 35], [-110, -35],
-].map(([x, z]) => new THREE.Vector3(x, terrainHeight(x, z), z));
-
-export const trackCurve = new THREE.CatmullRomCurve3(controlPoints, true, 'catmullrom', 0.45);
-export const trackPoints = trackCurve.getSpacedPoints(640).slice(0, -1).map(p => {
-  p.y = terrainHeight(p.x, p.z);
-  return p;
-});
-export const trackLength = trackCurve.getLength();
-
-export interface RoadSample {
-  point: THREE.Vector3;
-  tangent: THREE.Vector3;
-  distance: number;
-  progress: number;
-}
-
-/** Segment projection keeps surface checks and recovery on the rendered centerline. */
-export function nearestRoad(x: number, z: number): RoadSample {
-  let bestDistanceSq = Infinity;
-  let bestIndex = 0;
-  let bestT = 0;
-  for (let i = 0; i < trackPoints.length; i++) {
-    const a = trackPoints[i];
-    const b = trackPoints[(i + 1) % trackPoints.length];
-    const dx = b.x - a.x;
-    const dz = b.z - a.z;
-    const t = THREE.MathUtils.clamp(((x - a.x) * dx + (z - a.z) * dz) / (dx * dx + dz * dz), 0, 1);
-    const distanceSq = (x - a.x - dx * t) ** 2 + (z - a.z - dz * t) ** 2;
-    if (distanceSq < bestDistanceSq) {
-      bestDistanceSq = distanceSq;
-      bestIndex = i;
-      bestT = t;
-    }
-  }
-  const a = trackPoints[bestIndex];
-  const b = trackPoints[(bestIndex + 1) % trackPoints.length];
-  const point = a.clone().lerp(b, bestT);
-  point.y = terrainHeight(point.x, point.z);
-  return { point, tangent: b.clone().sub(a).setY(0).normalize(), distance: Math.sqrt(bestDistanceSq), progress: (bestIndex + bestT) / trackPoints.length };
-}
-
-export function roadRibbon(width: number, elevation: number): THREE.BufferGeometry {
-  const positions: number[] = [];
-  const colors: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-  for (let i = 0; i <= trackPoints.length; i++) {
-    const point = trackPoints[i % trackPoints.length];
-    const tangent = trackPoints[(i + 1) % trackPoints.length].clone().sub(trackPoints[(i + trackPoints.length - 1) % trackPoints.length]).normalize();
-    const side = new THREE.Vector3(-tangent.z, 0, tangent.x);
-    for (const sign of [-1, 1]) {
-      const x = point.x + side.x * width * 0.5 * sign;
-      const z = point.z + side.z * width * 0.5 * sign;
-      positions.push(x, terrainHeight(x, z) + elevation, z);
-      uvs.push(sign < 0 ? 0 : width / 3, i / trackPoints.length * trackLength / 3);
-      const shade = 0.92 + Math.sin(i * 2.71) * 0.045;
-      colors.push(shade, shade, shade);
-    }
-    if (i < trackPoints.length) {
-      const n = i * 2;
-      indices.push(n, n + 2, n + 1, n + 1, n + 2, n + 3);
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
+export function randomGenerator(seed: number): () => number {
+  return () => { seed=(Math.imul(1664525,seed)+1013904223)|0; return (seed>>>0)/4294967296; };
 }

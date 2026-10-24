@@ -7,7 +7,8 @@ export class Input {
 
   constructor() {
     window.addEventListener('keydown', event => {
-      if (!this.codes.has(event.code) || event.target instanceof HTMLButtonElement) return;
+      const tag = (event.target as HTMLElement | null)?.tagName;
+      if (!this.codes.has(event.code) || ['BUTTON', 'SELECT', 'INPUT', 'TEXTAREA'].includes(tag ?? '')) return;
       event.preventDefault();
       this.keys.add(event.code);
       if (event.code === 'KeyR' && !event.repeat) this.resetRequested = true;

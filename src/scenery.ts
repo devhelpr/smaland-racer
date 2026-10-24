@@ -1,12 +1,14 @@
 import * as THREE from 'three';
-import { lakes, nearestRoad, ROAD_WIDTH, roadRibbon, terrainHeight, trackPoints, WORLD_SIZE } from './track.ts';
+import { Course, randomGenerator, WORLD_SIZE } from './track.ts';
+import { CollisionWorld } from './collision.ts';
 
-function randomGenerator(seed: number): () => number {
-  return () => { seed = (Math.imul(1664525, seed) + 1013904223) | 0; return (seed >>> 0) / 4294967296; };
-}
-
-export function createScenery(scene: THREE.Scene): void {
-  const random = randomGenerator(481);
+export function createScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld): void {
+  const random = randomGenerator(course.definition.seed);
+  const {lakes, width: ROAD_WIDTH} = course.definition;
+  const trackPoints = course.points;
+  const terrainHeight = (x: number,z: number) => course.height(x,z);
+  const nearestRoad = (x: number,z: number) => course.nearest(x,z);
+  const roadRibbon = (width: number,elevation: number) => course.ribbon(width,elevation);
   const groundGeometry = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, 200, 200);
   groundGeometry.rotateX(-Math.PI / 2);
   const vertices = groundGeometry.getAttribute('position');
@@ -51,14 +53,24 @@ export function createScenery(scene: THREE.Scene): void {
     scene.add(glints);
   }
 
-  const cottageSites = [{ x: -62, z: -68, angle: 0.3 }, { x: 139, z: -62, angle: -1.1 }, { x: -142, z: 60, angle: 1.8 }];
+  const cottageSites: {x: number;z: number;angle: number}[]=[];
+  for(const t of [.14,.52,.82]) {
+    const sample=course.sample(t);
+    for(const sign of [-1,1]) {
+      const x=sample.point.x-sample.tangent.z*26*sign;
+      const z=sample.point.z+sample.tangent.x*26*sign;
+      if(nearestRoad(x,z).distance>17&&!lakes.some(l=>Math.hypot((x-l.x)/l.rx,(z-l.z)/l.rz)<1.4)) {
+        cottageSites.push({x,z,angle:Math.atan2(sample.tangent.x,sample.tangent.z)}); break;
+      }
+    }
+  }
   const clearScenery = (x: number, z: number, clearance: number) => {
     if (nearestRoad(x, z).distance < ROAD_WIDTH / 2 + clearance) return false;
     if (lakes.some(l => Math.hypot((x - l.x) / l.rx, (z - l.z) / l.rz) < 1.2)) return false;
     return !cottageSites.some(c => Math.hypot(x - c.x, z - c.z) < 15);
   };
   const treePositions: { x: number; z: number; scale: number; rotation: number }[] = [];
-  for (let i = 0; i < 4300; i++) {
+  for (let i = 0; i < course.definition.treeDensity; i++) {
     const x = (random() - 0.5) * 740; const z = (random() - 0.5) * 740;
     if (clearScenery(x, z, 6)) treePositions.push({ x, z, scale: 0.7 + random() * 1.25, rotation: random() * Math.PI * 2 });
   }
@@ -68,6 +80,7 @@ export function createScenery(scene: THREE.Scene): void {
   const dummy = new THREE.Object3D();
   treePositions.forEach((tree, i) => {
     const base = terrainHeight(tree.x, tree.z);
+    collisions.add({id:`tree-${i}`,x:tree.x,z:tree.z,radius:.35*tree.scale,kind:'tree'});
     dummy.rotation.set(0, tree.rotation, 0); dummy.scale.setScalar(tree.scale);
     dummy.position.set(tree.x, base + 2.75 * tree.scale, tree.z); dummy.updateMatrix(); trunk.setMatrixAt(i, dummy.matrix);
     const color = new THREE.Color().setHSL(0.37 + random() * 0.035, 0.24 + random() * 0.16, 0.18 + random() * 0.13);
@@ -85,6 +98,7 @@ export function createScenery(scene: THREE.Scene): void {
   const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: '#8a8b7e', roughness: 1, flatShading: true }), rockPositions.length);
   rockPositions.forEach((p, i) => {
     dummy.position.copy(p); dummy.rotation.set(random(), random() * 6, random()); dummy.scale.set(0.6 + random() * 1.7, 0.4 + random(), 0.6 + random() * 1.5); dummy.updateMatrix(); rocks.setMatrixAt(i, dummy.matrix);
+    collisions.add({id:`rock-${i}`,x:p.x,z:p.z,radius:Math.max(dummy.scale.x,dummy.scale.z),kind:'rock'});
   });
   rocks.castShadow = true; rocks.receiveShadow = true; scene.add(rocks);
 
@@ -108,6 +122,7 @@ export function createScenery(scene: THREE.Scene): void {
     const roof = new THREE.Mesh(new THREE.ExtrudeGeometry(roofShape, { depth: 7, bevelEnabled: false }), roofMaterial); roof.position.set(0, 4.8, -3.5); roof.castShadow = true; cottage.add(roof);
     part(0.75, 2.3, 0.8, 2, 6.3, -0.8, roofMaterial);
     cottage.position.set(site.x, terrainHeight(site.x, site.z), site.z); cottage.rotation.y = site.angle; scene.add(cottage);
+    const collider: import('./collision.ts').BoxCollider={id:`cottage-${site.x}`,x:site.x,z:site.z,radius:5.8,kind:'building',halfX:4.5,halfZ:3.5,angle:site.angle}; collisions.add(collider);
   }
 
   // Small reflector posts make the road readable through the trees.

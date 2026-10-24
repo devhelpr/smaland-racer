@@ -59,7 +59,9 @@ Course **01 — Holmahult** is the default selection and replaces Älgstigen wit
 
 The fixed scenery includes the green home with white trim and a number 25 plaque, the long red barn and northern barn complex, red neighboring houses, sheds, gravel yards and driveways, stone field boundaries, broadleaf garden trees, open meadows and the neighboring paved road. This course has no generated lakes or random cottages. Detailed buildings batch their repeated parts to limit draw calls, and have collision footprints.
 
-This is a stylized interpretation traced from aerial imagery and the supplied building colors, rather than a measured reconstruction. Building heights, facade details, vegetation and some outlying farm positions are approximate; the gravel lane is widened to 6.2 m for playable overtaking. No map imagery or external textures are shipped. The route has its own save ID, so records from the previous forest stage do not transfer; the other five courses retain their records.
+Number 25 is modeled from the supplied oblique front photograph: two full stories, horizontal green cladding, white divided-light windows, a long dark tiled roof and a centered veranda between the ground-floor windows, with a sloping canopy and white railing. Its entrance faces approaching drivers.
+
+The setting is a stylized interpretation traced from aerial imagery and the supplied photograph, rather than a measured reconstruction. Building heights, facade details, vegetation and some outlying farm positions are approximate; the gravel lane is widened to 6.2 m for playable overtaking. No map imagery or external textures are shipped. The route has its own save ID, so records from the previous forest stage do not transfer; the other five courses retain their records.
 
 ## Languages and saves
 
@@ -81,7 +83,7 @@ npm run preview
 ## Architecture
 
 - `track.ts`: course definitions, terrain, lake basins, road geometry and projection.
-- `holmahult-data.ts`, `holmahult-scenery.ts`: authored real-location route, fields, farmyards, buildings and surrounding lanes.
+- `holmahult-data.ts`, `holmahult-scenery.ts`, `holmahult-home.ts`: authored real-location route, fields, farmyards, buildings and surrounding lanes.
 - `race.ts`: state machine, directional checkpoints, splits, medals and penalties.
 - `vehicle.ts`: procedural car, fixed-step arcade handling, impact response and visible damage.
 - `collision.ts`: spatial grid, swept circle / oriented-box tests and damage calculation.

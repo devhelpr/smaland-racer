@@ -41,6 +41,17 @@ test('the green home and red farm buildings have bounded render geometry and mat
     assert.ok(painted.length>0,`${building.id}: painted walls missing`);
     assert.ok(drawCalls<=8,`${building.id}: decorative details must be batched`);
   }
+  const home=holmahultBuildings.find(building=>building.id==='holmahult-25')!;
+  // The veranda is centered between the two ground-floor windows.
+  // It must still stop a car, after rotating the entrance towards arriving drivers.
+  const verandaEdge=new THREE.Vector3(2.1,0,home.depth/2+2.1)
+    .applyAxisAngle(new THREE.Vector3(0,1,0),home.angle)
+    .add(new THREE.Vector3(home.x,0,home.z));
+  assert.equal(world.sweep(verandaEdge,verandaEdge)?.collider.id,'holmahult-25-porch');
+  const rightWindowApproach=new THREE.Vector3(4.05,0,home.depth/2+2.1)
+    .applyAxisAngle(new THREE.Vector3(0,1,0),home.angle)
+    .add(new THREE.Vector3(home.x,0,home.z));
+  assert.equal(world.sweep(rightWindowApproach,rightWindowApproach),null);
   disposeGroup(group);
 });
 

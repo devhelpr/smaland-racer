@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createHolmahultHome } from './holmahult-home.ts';
 import { Course, randomGenerator } from './track.ts';
 import { CollisionWorld, type BoxCollider } from './collision.ts';
 import { holmahultBuildings, holmahultSideRoads, holmahultWalls, type HolmahultBuilding } from './holmahult-data.ts';
@@ -31,55 +32,59 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     group.position.set(site.x,course.height(site.x,site.z),site.z);group.rotation.y=site.angle;scene.add(group);
     const {width:w,depth:d,height:h,roofHeight:rh}=site;
     const paint=new THREE.MeshStandardMaterial({color:site.color,roughness:1});
-    box(group,w+.2,.4,d+.2,0,.08,0,stone);
-    box(group,w,h,d,0,h/2,0,paint);
-    // Painted gables sit below two thin roof slopes, leaving visible timber at both ends.
-    gable(group,w,d,rh,h,paint);
-    const slope=Math.atan2(rh,w/2),length=Math.hypot(w/2+.45,rh+.15);
-    for(const side of [-1,1]) {
-      const panel=box(group,length,.18,d+.9,side*(w/4+.2),h+rh/2,0,roof);
-      panel.rotation.z=-side*slope;
-      const fascia=box(group,length,.18,.18,side*(w/4+.2),h+rh/2,d/2+.47,white);fascia.rotation.z=-side*slope;
-      const back=fascia.clone();back.position.z=-d/2-.47;group.add(back);
-    }
-    for(const x of [-w/2,w/2])for(const z of [-d/2,d/2])box(group,.18,h+.1,.18,x,h/2,z,white);
-    box(group,w+.15,.16,d+.15,0,.38,0,white);
-    if(site.kind==='home') {
-      for(const z of [-d/2-.08,d/2+.08]) {
-        const facing=z>0?0:Math.PI;
-        for(const x of [-w*.3,w*.3])window(group,x,h*.59,z,facing);
-        window(group,0,h+rh*.38,z,facing,1.0,1.0);
-      }
-      for(const side of [-1,1])for(const z of [-d*.27,d*.27])window(group,side*(w/2+.08),h*.59,z,side*Math.PI/2);
-      box(group,1.5,2.55,.18,0,1.28,d/2+.07,white);
-      box(group,1.22,2.36,.20,0,1.20,d/2+.13,timber);
-      box(group,.78,.72,.08,0,1.81,d/2+.27,glass);
-      box(group,.7,2,1, w*.21,h+rh*.74,-d*.16,roof);
-      if(site.porch) {
-        box(group,3.8,.24,2.5,0,.15,d/2+1.1,stone);
-        box(group,4.1,.22,2.7,0,2.85,d/2+1.1,roof);
-        for(const x of [-1.7,1.7])box(group,.15,2.8,.15,x,1.5,d/2+2.15,white);
-        // Small geometric number plaque; no text texture or external asset is needed.
-        const plaque=new THREE.Group();plaque.position.set(1.5,1.95,d/2+.17);group.add(plaque);
-        box(plaque,.65,.42,.06,0,0,0,white);
-        const segments=[[0,.12,.13,.025],[.065,.065,.025,.1],[0,0,.13,.025],[-.065,-.065,.025,.1],[0,-.12,.13,.025]];
-        for(const [digit,mirror] of [[-.15,1],[.15,-1]])for(const [x,y,sw,sh] of segments)box(plaque,sw,sh,.025,digit+x*mirror,y,.05,timber);
-      }
+    if(site.id==='holmahult-25') {
+      createHolmahultHome(group,site,box,{white,roof,glass,stone,paint});
     } else {
-      const doorWidth=Math.min(w*.55,4.6),doorHeight=Math.min(h-.3,3.5);
-      box(group,doorWidth+.24,doorHeight+.18,.18,0,doorHeight/2,d/2+.08,white);
-      box(group,doorWidth,doorHeight,.2,0,doorHeight/2,d/2+.17,timber);
-      box(group,.08,doorHeight,.22,0,doorHeight/2,d/2+.2,white);
-      for(const x of [-w*.34,w*.34])if(Math.abs(x)>doorWidth/2+.55)window(group,x,h*.65,d/2+.08,0,.8,.8);
-      if(site.kind==='barn'&&d>w*1.8)for(const z of [-d*.26,d*.26]) {
-        const doors=new THREE.Group();doors.position.set(-w/2-.07,0,z);doors.rotation.y=-Math.PI/2;group.add(doors);
-        box(doors,3.9,3.45,.15,0,1.72,0,white);box(doors,3.65,3.25,.18,0,1.63,.06,timber);
-        box(doors,.07,3.25,.2,0,1.63,.09,white);
+      box(group,w+.2,.4,d+.2,0,.08,0,stone);
+      box(group,w,h,d,0,h/2,0,paint);
+      // Painted gables sit below two thin roof slopes, leaving visible timber at both ends.
+      gable(group,w,d,rh,h,paint);
+      const slope=Math.atan2(rh,w/2),length=Math.hypot(w/2+.45,rh+.15);
+      for(const side of [-1,1]) {
+        const panel=box(group,length,.18,d+.9,side*(w/4+.2),h+rh/2,0,roof);
+        panel.rotation.z=-side*slope;
+        const fascia=box(group,length,.18,.18,side*(w/4+.2),h+rh/2,d/2+.47,white);fascia.rotation.z=-side*slope;
+        const back=fascia.clone();back.position.z=-d/2-.47;group.add(back);
       }
-      // Vertical boards give the long red barns a different silhouette from the houses.
-      for(let x=-w/2+.65;x<w/2;x+=.9)for(const z of [-d/2-.025,d/2+.025]) {
-        if(z>0&&Math.abs(x)<doorWidth/2+.15)continue;
-        box(group,.045,h-.2,.035,x,h/2,z,timber);
+      for(const x of [-w/2,w/2])for(const z of [-d/2,d/2])box(group,.18,h+.1,.18,x,h/2,z,white);
+      box(group,w+.15,.16,d+.15,0,.38,0,white);
+      if(site.kind==='home') {
+        for(const z of [-d/2-.08,d/2+.08]) {
+          const facing=z>0?0:Math.PI;
+          for(const x of [-w*.3,w*.3])window(group,x,h*.59,z,facing);
+          window(group,0,h+rh*.38,z,facing,1.0,1.0);
+        }
+        for(const side of [-1,1])for(const z of [-d*.27,d*.27])window(group,side*(w/2+.08),h*.59,z,side*Math.PI/2);
+        box(group,1.5,2.55,.18,0,1.28,d/2+.07,white);
+        box(group,1.22,2.36,.20,0,1.20,d/2+.13,timber);
+        box(group,.78,.72,.08,0,1.81,d/2+.27,glass);
+        box(group,.7,2,1, w*.21,h+rh*.74,-d*.16,roof);
+        if(site.porch) {
+          box(group,3.8,.24,2.5,0,.15,d/2+1.1,stone);
+          box(group,4.1,.22,2.7,0,2.85,d/2+1.1,roof);
+          for(const x of [-1.7,1.7])box(group,.15,2.8,.15,x,1.5,d/2+2.15,white);
+          // Small geometric number plaque; no text texture or external asset is needed.
+          const plaque=new THREE.Group();plaque.position.set(1.5,1.95,d/2+.17);group.add(plaque);
+          box(plaque,.65,.42,.06,0,0,0,white);
+          const segments=[[0,.12,.13,.025],[.065,.065,.025,.1],[0,0,.13,.025],[-.065,-.065,.025,.1],[0,-.12,.13,.025]];
+          for(const [digit,mirror] of [[-.15,1],[.15,-1]])for(const [x,y,sw,sh] of segments)box(plaque,sw,sh,.025,digit+x*mirror,y,.05,timber);
+        }
+      } else {
+        const doorWidth=Math.min(w*.55,4.6),doorHeight=Math.min(h-.3,3.5);
+        box(group,doorWidth+.24,doorHeight+.18,.18,0,doorHeight/2,d/2+.08,white);
+        box(group,doorWidth,doorHeight,.2,0,doorHeight/2,d/2+.17,timber);
+        box(group,.08,doorHeight,.22,0,doorHeight/2,d/2+.2,white);
+        for(const x of [-w*.34,w*.34])if(Math.abs(x)>doorWidth/2+.55)window(group,x,h*.65,d/2+.08,0,.8,.8);
+        if(site.kind==='barn'&&d>w*1.8)for(const z of [-d*.26,d*.26]) {
+          const doors=new THREE.Group();doors.position.set(-w/2-.07,0,z);doors.rotation.y=-Math.PI/2;group.add(doors);
+          box(doors,3.9,3.45,.15,0,1.72,0,white);box(doors,3.65,3.25,.18,0,1.63,.06,timber);
+          box(doors,.07,3.25,.2,0,1.63,.09,white);
+        }
+        // Vertical boards give the long red barns a different silhouette from the houses.
+        for(let x=-w/2+.65;x<w/2;x+=.9)for(const z of [-d/2-.025,d/2+.025]) {
+          if(z>0&&Math.abs(x)<doorWidth/2+.15)continue;
+          box(group,.045,h-.2,.035,x,h/2,z,timber);
+        }
       }
     }
     // Batch the repeated boxes per material to keep the detailed farmyards light on mobile.
@@ -100,8 +105,9 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     const collider:BoxCollider={id:site.id,x:site.x,z:site.z,kind:'building',halfX:w/2+.25,halfZ:d/2+.25,angle:site.angle,radius:Math.hypot(w/2+.25,d/2+.25)};
     collisions.add(collider);
     if(site.porch) {
-      const localZ=d/2+1.1,halfX=1.95,halfZ=1.3;
-      collisions.add({id:`${site.id}-porch`,x:site.x+Math.sin(site.angle)*localZ,z:site.z+Math.cos(site.angle)*localZ,kind:'building',halfX,halfZ,angle:site.angle,radius:Math.hypot(halfX,halfZ)} as BoxCollider);
+      const halfX=(site.porchWidth??3.9)/2,halfZ=(site.porchDepth??2.6)/2;
+      const localX=site.porchOffsetX??0,localZ=d/2+halfZ;
+      collisions.add({id:`${site.id}-porch`,x:site.x+Math.cos(site.angle)*localX+Math.sin(site.angle)*localZ,z:site.z-Math.sin(site.angle)*localX+Math.cos(site.angle)*localZ,kind:'building',halfX,halfZ,angle:site.angle,radius:Math.hypot(halfX,halfZ)} as BoxCollider);
     }
   };
   holmahultBuildings.forEach(building);

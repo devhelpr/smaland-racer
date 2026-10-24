@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-export type ObstacleKind = 'tree' | 'rock' | 'building' | 'moose' | 'deer';
-export interface Collider { id: string; x: number; z: number; radius: number; kind: ObstacleKind; active?: boolean }
+export type ObstacleKind = 'tree' | 'rock' | 'building' | 'moose' | 'deer' | 'snowPole';
+export interface Collider { id: string; x: number; z: number; radius: number; kind: ObstacleKind; active?: boolean; onHit?: (velocity: THREE.Vector3) => void }
 export interface BoxCollider extends Collider { halfX: number; halfZ: number; angle: number }
 export interface Hit { collider: Collider; time: number; normal: THREE.Vector3 }
 export const CAR_RADIUS=1.05;
 export function impactDamage(speed: number,kind: ObstacleKind): number {
-  const factor={tree:1.1,rock:.85,building:1.2,moose:1.65,deer:.95}[kind];
+  const factor={tree:1.1,rock:.85,building:1.2,moose:1.65,deer:.95,snowPole:0}[kind];
   return Math.max(0,speed-2.5)**1.35*factor;
 }
 
@@ -63,6 +63,7 @@ export class CollisionWorld {
         for(const c of this.cells.get(`${x}:${z}`)??[]) candidates.add(c);
     let best: Hit|null=null;
     for(const c of candidates) {
+      if(c.active===false) continue;
       const hit='halfX' in c?sweepBox(from,to,c as BoxCollider):sweepCircle(from,to,c);
       if(hit&&(!best||hit.time<best.time)) best=hit;
     }

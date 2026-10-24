@@ -5,12 +5,13 @@ import type { Collider, CollisionWorld } from './collision.ts';
 export interface WildlifePlan { progress: number; species: 'moose'|'deer'; side: number; speed: number; delay: number }
 export function wildlifePlan(course: Course,seed: number): WildlifePlan[] {
   const random=randomGenerator(seed);
-  return Array.from({length:course.definition.wildlifeCount},(_,i)=>({
-    progress:.16+(i+random()*.45)/course.definition.wildlifeCount*.69,
-    species:random()<.4?'moose':'deer',side:random()<.5?-1:1,speed:3+random()*1.6,delay:random()*.7,
-  }));
+  return Array.from({length:course.definition.wildlifeCount},(_,i)=> {
+    const progress=.16+(i+random()*.45)/course.definition.wildlifeCount*.69;
+    const species=random()<.4?'moose':'deer';
+    return {progress,species,side:random()<.5?-1:1,speed:species==='moose'?7+random()*2:9+random()*3,delay:random()*.7};
+  });
 }
-interface Animal { plan: WildlifePlan; mesh: THREE.Group; legs: THREE.Mesh[]; collider: Collider; offset: number; state: 'waiting'|'crossing'|'fleeing'|'gone'; activated: boolean; timer: number }
+interface Animal { plan: WildlifePlan; mesh: THREE.Group; legs: THREE.Mesh[]; collider: Collider; offset: number; state: 'waiting'|'crossing'|'fleeing'|'gone'; activated: boolean; timer: number; stride: number }
 
 function animalMesh(species: 'moose'|'deer'): {mesh:THREE.Group;legs:THREE.Mesh[]} {
   const mesh=new THREE.Group(); const legs: THREE.Mesh[]=[];
@@ -42,12 +43,10 @@ export class Wildlife {
   constructor(course:Course,collisions:CollisionWorld,group:THREE.Group,seed:number) {
     this.course=course;this.collisions=collisions;
     for(const [index,plan] of wildlifePlan(course,seed).entries()) {
-      const center=course.sample(plan.progress);
       const offset=plan.side*(course.definition.width/2+5);
       const {mesh,legs}=animalMesh(plan.species);
-      mesh.rotation.y=Math.atan2(-center.tangent.z*plan.side,center.tangent.x*plan.side);
       const collider:Collider={id:`animal-${index}`,x:0,z:0,radius:plan.species==='moose'?1.2:.8,kind:plan.species,active:true};
-      const animal:Animal={plan,mesh,legs,collider,offset,state:'waiting',activated:false,timer:0};
+      const animal:Animal={plan,mesh,legs,collider,offset,state:'waiting',activated:false,timer:0,stride:0};
       this.animals.push(animal);collisions.dynamic.push(collider);group.add(mesh);this.positionAnimal(animal);
       this.addSign(group,Math.max(.02,plan.progress-55/course.length));
     }
@@ -56,6 +55,8 @@ export class Wildlife {
     const center=this.course.sample(animal.plan.progress);
     const x=center.point.x-center.tangent.z*animal.offset;
     const z=center.point.z+center.tangent.x*animal.offset;
+    // The model faces +Z; decreasing offset moves along (tangent.z, -tangent.x) * side.
+    animal.mesh.rotation.y=Math.atan2(center.tangent.z*animal.plan.side,-center.tangent.x*animal.plan.side);
     animal.mesh.position.set(x,this.course.height(x,z),z);animal.collider.x=x;animal.collider.z=z;
   }
   private addSign(group:THREE.Group,progress:number): void {
@@ -86,10 +87,13 @@ export class Wildlife {
       }
       if(animal.state==='waiting'&&animal.activated&&animal.timer>=animal.plan.delay) {animal.state='crossing';animal.timer=0;}
       if(animal.state==='crossing'||animal.state==='fleeing') {
-        animal.offset-=animal.plan.side*animal.plan.speed*dt*(animal.state==='fleeing'?1.6:1);
+        const speed=animal.plan.speed*(animal.state==='fleeing'?1.6:1);
+        animal.offset-=animal.plan.side*speed*dt;
+        animal.stride+=speed*dt*1.9;
+        animal.mesh.rotation.z=0;
         if(animal.offset*animal.plan.side<-(this.course.definition.width/2+4)) animal.state='fleeing';
         if(Math.abs(animal.offset)>25) {animal.state='gone';animal.mesh.visible=false;animal.collider.active=false;}
-        animal.legs.forEach((leg,i)=>leg.rotation.x=Math.sin(animal.timer*11+i%2*Math.PI)*.45);
+        animal.legs.forEach((leg,i)=>leg.rotation.x=Math.sin(animal.stride+((i===0||i===3)?0:Math.PI))*.55);
         this.positionAnimal(animal);
       } else animal.mesh.rotation.z=Math.sin(animal.timer*1.7)*.02;
       if(carPosition.distanceTo(animal.mesh.position)<2.6&&Math.abs(carSpeed)>2) animal.state='fleeing';

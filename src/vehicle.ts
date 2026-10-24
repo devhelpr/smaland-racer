@@ -97,6 +97,13 @@ export class Vehicle {
       const destination=this.position.clone().addScaledVector(this.velocity,remaining);
       const hit=collisions?.sweep(this.position,destination);
       if(!hit) {this.position.copy(destination);break;}
+      if(hit.collider.kind==='snowPole' && this.velocity.lengthSq()>1e-6) {
+        hit.collider.active=false;
+        hit.collider.onHit?.(this.velocity.clone());
+        // Flexible markers yield to the car, without the bounce or damage of solid scenery.
+        this.velocity.multiplyScalar(.995);
+        continue;
+      }
       const inward=-this.velocity.dot(hit.normal);
       if(inward<=0&&hit.time===0) {this.position.copy(destination);break;}
       this.position.lerp(destination,Math.max(0,hit.time-.001)).addScaledVector(hit.normal,.035);

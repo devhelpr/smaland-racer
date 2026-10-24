@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import './style.css';
 import { createRendering } from './rendering.ts';
 import { createScenery } from './scenery.ts';
+import type { SnowPoles } from './snow-poles.ts';
 import { Input } from './input.ts';
 import { Vehicle } from './vehicle.ts';
 import { Course, courses, WORLD_SIZE } from './track.ts';
@@ -31,6 +32,7 @@ function start(): void {
   let race:Race;
   let world:CollisionWorld;
   let wildlife:Wildlife;
+  let snowPoles:SnowPoles;
   let lastState='';
   let lastImpact=0;
   let accumulator=0;
@@ -53,7 +55,7 @@ function start(): void {
     input.clear(); accumulator=0;
     disposeGroup(group);
     selected=index;course=new Course(courses[index]);world=new CollisionWorld();group=new THREE.Group();scene.add(group);
-    createScenery(group,course,world);
+    snowPoles=createScenery(group,course,world);
     car=new Vehicle(course);group.add(car.mesh);
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
@@ -215,7 +217,7 @@ function start(): void {
       const controls=input.read();
       while(accumulator>=step&&race.state==='racing') {
         const previous=car.position.clone();
-        wildlife.update(step,car.position,car.forwardSpeed);car.update(step,controls,world);
+        wildlife.update(step,car.position,car.forwardSpeed);car.update(step,controls,world);snowPoles.update(step);
         race.observe(previous,car.position,car.damage);
         if(race.state==='racing'&&(course.inWater(car.position.x,car.position.z)||Math.abs(car.position.x)>WORLD_SIZE/2-8||Math.abs(car.position.z)>WORLD_SIZE/2-8)) {
           recover(course.inWater(car.position.x,car.position.z)?'water':'boundary');break;

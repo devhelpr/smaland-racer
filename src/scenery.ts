@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { Course, randomGenerator, WORLD_SIZE } from './track.ts';
 import { CollisionWorld } from './collision.ts';
+import { SnowPoles } from './snow-poles.ts';
 
-export function createScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld): void {
+export function createScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld): SnowPoles {
   const random = randomGenerator(course.definition.seed);
   const {lakes, width: ROAD_WIDTH} = course.definition;
-  const trackPoints = course.points;
   const terrainHeight = (x: number,z: number) => course.height(x,z);
   const nearestRoad = (x: number,z: number) => course.nearest(x,z);
   const roadRibbon = (width: number,elevation: number) => course.ribbon(width,elevation);
@@ -125,16 +125,5 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     const collider: import('./collision.ts').BoxCollider={id:`cottage-${site.x}`,x:site.x,z:site.z,radius:5.8,kind:'building',halfX:4.5,halfZ:3.5,angle:site.angle}; collisions.add(collider);
   }
 
-  // Small reflector posts make the road readable through the trees.
-  const postMaterial = new THREE.MeshStandardMaterial({ color: '#ece7d7' });
-  const reflectorMaterial = new THREE.MeshStandardMaterial({ color: '#c58e42' });
-  for (let i = 0; i < trackPoints.length; i += 24) {
-    const point = trackPoints[i]; const next = trackPoints[(i + 1) % trackPoints.length];
-    const tangent = next.clone().sub(point).normalize();
-    for (const sign of [-1, 1]) {
-      const x = point.x - tangent.z * 6.3 * sign; const z = point.z + tangent.x * 6.3 * sign;
-      const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.15, 0.16), postMaterial); post.position.set(x, terrainHeight(x, z) + 0.575, z); post.castShadow = true;
-      const reflector = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), reflectorMaterial); reflector.position.copy(post.position).y += 0.33; scene.add(post, reflector);
-    }
-  }
+  return new SnowPoles(course, collisions, scene);
 }

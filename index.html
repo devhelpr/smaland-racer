@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#203c32" />
+    <meta name="description" content="A little gravel escape through the forests and lakes of Småland. A playable Three.js rally prototype." />
+    <title>Småland Racer — The gravel escape</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="masthead"><a class="wordmark" href="./" aria-label="Småland Racer home">SMÅLAND<span>RACER</span></a><div class="edition"><span class="live-dot"></span> FREE DRIVE <span class="edition-divider">/</span> VOL. 001</div></header>
+      <main id="viewport" aria-label="3D driving game"></main>
+      <section class="location"><div class="eyebrow">A LITTLE FURTHER FROM EVERYDAY</div><h1>The gravel escape.</h1><p>Småland, Sweden <span>·</span> 56°52′ N 14°48′ E</p></section>
+      <aside class="route-card"><div class="route-heading"><span>01 / FOREST LOOP</span><span id="surface">GRAVEL</span></div><svg id="route-map" viewBox="-135 -135 270 270" role="img" aria-label="Forest loop route"><path id="map-track"/><circle id="map-car" r="5"/></svg><div class="route-footer"><span id="route-length"></span><span>TAKE THE LONG WAY</span></div></aside>
+      <div class="drive-hint" id="drive-hint"><span>↑</span> THE ROAD IS YOURS <small>Press W or ↑ to head out</small></div>
+      <footer class="dashboard"><div class="controls"><span><kbd>W A S D</kbd> / <kbd>↑ ← ↓ →</kbd> DRIVE</span><span><kbd>SPACE</kbd> HANDBRAKE</span><button id="reset" type="button"><kbd>R</kbd> RESET CAR</button></div><div class="speedometer"><span id="gear">N</span><strong id="speed">000</strong><span class="speed-unit">KM/H<span>GRAVEL CLUB</span></span></div></footer>
+      <div id="error" role="alert" hidden></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

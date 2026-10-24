@@ -8,10 +8,15 @@ import { Vehicle } from '../src/vehicle.ts';
 import { roadsideCottages } from '../src/scenery.ts';
 import { disposeGroup } from '../src/dispose.ts';
 
-for(const definition of courses)test(`${definition.id}: more lakes and cottages are visible near safe roads`,()=> {
+for(const definition of courses)test(`${definition.id}: scenery follows the setting and leaves roads safe`,()=> {
   const course=new Course(definition),cottages=roadsideCottages(course);
-  assert.ok(course.lakes.length>=definition.lakes.length+3);
-  assert.ok(cottages.length>=9);
+  if(definition.setting==='holmahult') {
+    assert.equal(course.lakes.length,0,'the real lane has no lakes alongside it');
+    assert.equal(cottages.length,0,'fixed farmyards replace random cottages');
+  } else {
+    assert.ok(course.lakes.length>=definition.lakes.length+3);
+    assert.ok(cottages.length>=9);
+  }
   for(const site of cottages) {
     const distance=course.nearest(site.x,site.z).distance;
     assert.ok(distance>=definition.width/2+10&&distance<32);

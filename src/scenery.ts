@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import { Course, randomGenerator, WORLD_SIZE } from './track.ts';
 import { CollisionWorld } from './collision.ts';
 import { SnowPoles } from './snow-poles.ts';
+import { holmahultBuildings, holmahultFieldAt, onHolmahultSideRoad } from './holmahult-data.ts';
+import { createHolmahultScenery } from './holmahult-scenery.ts';
 
 export interface CottageSite {x: number; z: number; angle: number; scale: number; color: number}
 
 export function roadsideCottages(course: Course): CottageSite[] {
   const sites: CottageSite[] = [];
+  if (course.definition.setting === 'holmahult') return sites;
   const random = randomGenerator(course.definition.seed + 8013);
   const target = Math.min(15, Math.max(9, Math.ceil(course.length / 95)));
   for (let i = 0; i < target * 4 && sites.length < target; i++) {
@@ -42,9 +45,12 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   const vertices = groundGeometry.getAttribute('position');
   const colors: number[] = [];
   const grassColors = ['#798b4d', '#829359', '#899961', '#75884b'].map(c => new THREE.Color(c));
+  const meadowColors = ['#9ca66b', '#8c9f64', '#a6ad73'].map(c => new THREE.Color(c));
   for (let i = 0; i < vertices.count; i++) {
     vertices.setY(i, terrainHeight(vertices.getX(i), vertices.getZ(i)));
-    const color = grassColors[Math.floor(random() * grassColors.length)];
+    const variation = random();
+    const field = course.definition.setting === 'holmahult' ? holmahultFieldAt(vertices.getX(i), vertices.getZ(i)) : -1;
+    const color = field >= 0 ? meadowColors[field % meadowColors.length].clone().multiplyScalar(.97 + variation * .06) : grassColors[Math.floor(variation * grassColors.length)];
     colors.push(color.r, color.g, color.b);
   }
   groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -90,6 +96,10 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   const cottageSites = roadsideCottages(course);
   const clearScenery = (x: number, z: number, clearance: number) => {
     if (nearestRoad(x, z).distance < ROAD_WIDTH / 2 + clearance) return false;
+    if (course.definition.setting === 'holmahult') {
+      if (holmahultFieldAt(x, z) >= 0 || onHolmahultSideRoad(x, z, clearance)) return false;
+      if (holmahultBuildings.some(b => Math.hypot(x-b.x, z-b.z) < Math.hypot(b.width, b.depth)/2 + (b.id === 'holmahult-25' ? 24 : 10))) return false;
+    }
     if (lakes.some(l => Math.hypot((x - l.x) / l.rx, (z - l.z) / l.rz) < 1.5)) return false;
     return !cottageSites.some(c => Math.hypot(x - c.x, z - c.z) < 15);
   };
@@ -149,5 +159,6 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     const collider: import('./collision.ts').BoxCollider={id:`cottage-${site.x}`,x:site.x,z:site.z,radius:5.8*site.scale,kind:'building',halfX:4.5*site.scale,halfZ:3.5*site.scale,angle:site.angle}; collisions.add(collider);
   }
 
+  if (course.definition.setting === 'holmahult') createHolmahultScenery(scene, course, collisions);
   return new SnowPoles(course, collisions, scene);
 }

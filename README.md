@@ -41,7 +41,7 @@ Drive by dragging anywhere on the game view, with no on-screen steering, pedal o
 
 Each drag starts from wherever you touch, so no fixed control zone is needed. Move farther for stronger input. Small finger movements are ignored. The pause menu remains available in the header. Menus keep normal touch scrolling, while the game canvas suppresses browser pan/zoom gestures. Pause, focus loss, pointer cancellation and resizing clear held input. Touch hints are available in all three languages and replace the keyboard HUD when using touch.
 
-Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints are tracked invisibly and shown on the minimap. Grass reduces grip and speed. Trees, rocks, cottages, wildlife and A-traktors have collision geometry. Each route now has 9–15 roadside cottages and 4–7 lakes, with open verges so the houses and water are visible from the road. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
+Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints are tracked invisibly and shown on the minimap. Grass reduces grip and speed. Trees, rocks, cottages, wildlife and A-traktors have collision geometry. The five fictional routes have 9–15 roadside cottages and 4–7 lakes, with open verges so the houses and water are visible from the road. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
 
 Your **final time = driving time + 0.2 seconds per damage point + 5 seconds per recovery**. Checkpoint splits compare against the cumulative score of your best run. Gold, silver and bronze targets are fixed per course. A slower attempt or a crash never overwrites your best result.
 
@@ -52,6 +52,14 @@ Deer and moose wait off the road, cross as you approach, then flee. Crossing loc
 Slow A-traktors travel in the same direction on the right side of the road, at roughly 23–28 km/h. They have an orange rear warning triangle and leave the other side available for overtaking. They brake for traffic or a player directly ahead. Impacts cause damage based on relative speed; the A-traktor briefly slows after contact. Circuit traffic loops around, while stage traffic exits at the finish. Restarting restores the initial traffic positions.
 
 The game pauses automatically when the window loses focus or the tab is hidden. The simulation, countdown, wildlife, traffic and clock stop until you resume. The physics uses a 120 Hz fixed step and bounded catch-up; scored driving time uses elapsed wall time so slow frames cannot improve records.
+
+## Holmahult stage
+
+Course **02 — Holmahult** replaces Älgstigen with an approximately 850 m gravel stage inspired by [the supplied Holmahult 25 location near Tingsryd](https://maps.app.goo.gl/CznM1o2vWHhMrY8W9). The north-to-south route follows the lane past the farmyard, bends east at the green house and turns south towards the next farms. Its checkpoints, recovery positions, wildlife and A-traktors use that same route.
+
+The fixed scenery includes the green home with white trim and a number 25 plaque, the long red barn and northern barn complex, red neighboring houses, sheds, gravel yards and driveways, stone field boundaries, broadleaf garden trees, open meadows and the neighboring paved road. This course has no generated lakes or random cottages. Detailed buildings batch their repeated parts to limit draw calls, and have collision footprints.
+
+This is a stylized interpretation traced from aerial imagery and the supplied building colors, rather than a measured reconstruction. Building heights, facade details, vegetation and some outlying farm positions are approximate; the gravel lane is widened to 6.2 m for playable overtaking. No map imagery or external textures are shipped. The route has its own save ID, so records from the previous forest stage do not transfer; the other five courses retain their records.
 
 ## Languages and saves
 
@@ -73,6 +81,7 @@ npm run preview
 ## Architecture
 
 - `track.ts`: course definitions, terrain, lake basins, road geometry and projection.
+- `holmahult-data.ts`, `holmahult-scenery.ts`: authored real-location route, fields, farmyards, buildings and surrounding lanes.
 - `race.ts`: state machine, directional checkpoints, splits, medals and penalties.
 - `vehicle.ts`: procedural car, fixed-step arcade handling, impact response and visible damage.
 - `collision.ts`: spatial grid, swept circle / oriented-box tests and damage calculation.

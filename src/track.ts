@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { holmahultCourse } from './holmahult-data.ts';
 
 export interface Lake { x: number; z: number; rx: number; rz: number; level: number }
 export interface CourseDefinition {
   id: string;
+  setting?: 'holmahult';
   region: 'forest' | 'lakes' | 'hills';
   name: string;
   closed: boolean;
@@ -21,10 +23,7 @@ export const courses: CourseDefinition[] = [
     points: [[-80,-105],[5,-120],[90,-85],[112,-15],[80,60],[15,110],[-65,100],[-112,35],[-110,-35]],
     lakes: [{x:-5,z:-5,rx:38,rz:29,level:0.4}], hills: 1, treeDensity: 2700, wildlifeCount: 2,
     medals: {gold: 37, silver: 49, bronze: 68} },
-  { id: 'forest-stage', region: 'forest', name: 'Älgstigen', closed: false, width: 10, seed: 519,
-    points: [[-255,180],[-225,105],[-245,20],[-190,-45],[-110,-20],[-75,-100],[5,-145],[65,-105],[110,-25],[195,-60],[250,-135]],
-    lakes: [{x:15,z:110,rx:52,rz:36,level:0.2}], hills: 1.15, treeDensity: 3100, wildlifeCount: 3,
-    medals: {gold: 50, silver: 65, bronze: 90} },
+  holmahultCourse,
   { id: 'lake-loop', region: 'lakes', name: 'Sjövarvet', closed: true, width: 10, seed: 736,
     points: [[-150,-95],[-50,-130],[65,-115],[145,-60],[155,30],[80,105],[-15,130],[-125,80],[-165,0]],
     lakes: [{x:0,z:0,rx:87,rz:64,level:0.2},{x:270,z:90,rx:48,rz:85,level:-0.2}], hills: 0.65, treeDensity: 1800, wildlifeCount: 3,
@@ -54,6 +53,7 @@ function naturalHeight(x: number, z: number, hills: number): number {
 /** Add visible roadside water without letting the basin reach any part of the road. */
 function roadsideLakes(definition: CourseDefinition, curve: THREE.CatmullRomCurve3): Lake[] {
   const lakes = definition.lakes.map(lake => ({...lake}));
+  if (definition.setting === 'holmahult') return lakes;
   const random = randomGenerator(definition.seed + 3781);
   const road = curve.getSpacedPoints(Math.ceil(curve.getLength() / 3));
   const target = lakes.length + (definition.region === 'lakes' ? 4 : 3);

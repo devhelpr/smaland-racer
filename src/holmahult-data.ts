@@ -24,7 +24,7 @@ export interface HolmahultBuilding {
 }
 
 export const holmahultBuildings: HolmahultBuilding[] = [
-  {id:'holmahult-25',kind:'home',x:-125,z:-50,width:11.8,depth:10.2,height:3.9,roofHeight:3.0,angle:Math.PI/2,color:'#6d8268',porch:true},
+  {id:'holmahult-25',kind:'home',x:-125,z:-50,width:11.8,depth:10.2,height:3.9,roofHeight:3.0,angle:Math.PI,color:'#6d8268',porch:true},
   {id:'north-long-barn',kind:'barn',x:-135,z:-97,width:8.5,depth:27,height:3.7,roofHeight:2.7,angle:Math.PI/2-.10,color:'#913c32'},
   {id:'north-courtyard-barn',kind:'barn',x:-131,z:-144,width:9,depth:25,height:4.4,roofHeight:3.0,angle:Math.PI/2-.13,color:'#853a32'},
   {id:'north-barn-wing',kind:'shed',x:-144,z:-153,width:10,depth:7,height:2.9,roofHeight:1.8,angle:Math.PI/2-.1,color:'#8c4236'},

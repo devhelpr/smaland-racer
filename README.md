@@ -26,7 +26,7 @@ The title screen leads to six courses across three landscapes. Each landscape ha
 | R | Recover at your last passed checkpoint (+5 seconds; damage remains) |
 | Escape | Pause / resume |
 
-Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints are tracked invisibly and shown on the minimap. Grass reduces grip and speed. Trees, rocks, cottages and wildlife have collision geometry. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
+Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints are tracked invisibly and shown on the minimap. Grass reduces grip and speed. Trees, rocks, cottages, wildlife and A-traktors have collision geometry. Each route now has 9–15 roadside cottages and 4–7 lakes, with open verges so the houses and water are visible from the road. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
 
 Your **final time = driving time + 0.2 seconds per damage point + 5 seconds per recovery**. Checkpoint splits compare against the cumulative score of your best run. Gold, silver and bronze targets are fixed per course. A slower attempt or a crash never overwrites your best result.
 
@@ -34,7 +34,9 @@ The car starts with 100 condition points. Impact speed and obstacle type determi
 
 Deer and moose wait off the road, cross as you approach, then flee. Crossing locations and timing vary between attempts within each course's difficulty. Wildlife warning signs are placed ahead of crossings. Animal impacts are stylized, without gore.
 
-The game pauses automatically when the window loses focus or the tab is hidden. The simulation, countdown, wildlife and clock stop until you resume. The physics uses a 120 Hz fixed step and bounded catch-up; scored driving time uses elapsed wall time so slow frames cannot improve records.
+Slow A-traktors travel in the same direction on the right side of the road, at roughly 23–28 km/h. They have an orange rear warning triangle and leave the other side available for overtaking. They brake for traffic or a player directly ahead. Impacts cause damage based on relative speed; the A-traktor briefly slows after contact. Circuit traffic loops around, while stage traffic exits at the finish. Restarting restores the initial traffic positions.
+
+The game pauses automatically when the window loses focus or the tab is hidden. The simulation, countdown, wildlife, traffic and clock stop until you resume. The physics uses a 120 Hz fixed step and bounded catch-up; scored driving time uses elapsed wall time so slow frames cannot improve records.
 
 ## Languages and saves
 
@@ -51,7 +53,7 @@ npm run build
 npm run preview
 ```
 
-`dist/` contains the production website. Tests cover all six courses, checkpoint and scoring rules, pause/resume, recovery and damage, swept collisions, road clearance, wildlife behavior, save handling, translations and disposal of graphics resources. Reference drives exercise each course; medal targets are calibrated against conservative and faster clean runs. Wildlife adds variation to scored attempts.
+`dist/` contains the production website. Tests cover all six courses, checkpoint and scoring rules, pause/resume, recovery and damage, swept collisions, road clearance, wildlife behavior, traffic and overtaking, roadside placement, save handling, translations and disposal of graphics resources. Reference drives exercise each course; medal targets are calibrated against conservative and faster clean runs. Wildlife adds variation to scored attempts.
 
 ## Architecture
 
@@ -60,6 +62,7 @@ npm run preview
 - `vehicle.ts`: procedural car, fixed-step arcade handling, impact response and visible damage.
 - `collision.ts`: spatial grid, swept circle / oriented-box tests and damage calculation.
 - `scenery.ts`, `wildlife.ts`: deterministic environments, colliders, randomized wildlife and signs.
+- `traffic.ts`: slow A-traktors, lane following, queuing and moving collision geometry.
 - `snow-poles.ts`: flexible roadside snow markers and impact-driven falling animations.
 - `storage.ts`, `i18n.ts`: validated local saves and typed translation dictionaries.
 - `main.ts`: application orchestration, menus, HUD and input bindings.

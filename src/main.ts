@@ -9,6 +9,7 @@ import { Course, courses, WORLD_SIZE } from './track.ts';
 import { Race } from './race.ts';
 import { CollisionWorld } from './collision.ts';
 import { Wildlife } from './wildlife.ts';
+import { Traffic } from './traffic.ts';
 import { disposeGroup } from './dispose.ts';
 import { detectLanguage, isCourseAvailable, loadProgress, recordResult, saveProgress } from './storage.ts';
 import type { Language, StorageLike } from './storage.ts';
@@ -32,6 +33,7 @@ function start(): void {
   let race:Race;
   let world:CollisionWorld;
   let wildlife:Wildlife;
+  let traffic:Traffic;
   let snowPoles:SnowPoles;
   let lastState='';
   let lastImpact=0;
@@ -58,6 +60,7 @@ function start(): void {
     car=new Vehicle(course);group.add(car.mesh);
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
+    traffic=new Traffic(course,world,group);
     race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
     addGates();updateMap();follow(car,0,true);
     scene.background=new THREE.Color(course.definition.region==='hills'?'#c1d2cd':'#c8d9cf');
@@ -212,7 +215,7 @@ function start(): void {
       const controls=input.read();
       while(accumulator>=step&&race.state==='racing') {
         const previous=car.position.clone();
-        wildlife.update(step,car.position,car.forwardSpeed);car.update(step,controls,world);snowPoles.update(step);
+        wildlife.update(step,car.position,car.forwardSpeed);traffic.update(step,car.position);car.update(step,controls,world);snowPoles.update(step);
         race.observe(previous,car.position,car.damage);
         if(race.state==='racing'&&(course.inWater(car.position.x,car.position.z)||Math.abs(car.position.x)>WORLD_SIZE/2-8||Math.abs(car.position.z)>WORLD_SIZE/2-8)) {
           recover(course.inWater(car.position.x,car.position.z)?'water':'boundary');break;
@@ -224,6 +227,7 @@ function start(): void {
       lastImpact=car.impact;
       const activeWildlife=wildlife.animals.some(a=>a.state==='crossing'&&a.mesh.position.distanceTo(car.position)<45);
       if(activeWildlife&&performance.now()>toastUntil)announce('wildlife');
+      else if(car.forwardSpeed>9&&traffic.aheadOf(car.position)&&performance.now()>toastUntil)announce('traffic');
     } else accumulator=0;
     if(race.state==='finished'&&before!=='finished') {
       const result=race.result!;previousBest=progress.records[course.definition.id]?.total??null;

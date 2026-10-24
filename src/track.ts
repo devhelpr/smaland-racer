@@ -47,17 +47,51 @@ export interface RoadSample { point: THREE.Vector3; tangent: THREE.Vector3; dist
 export interface Checkpoint { point: THREE.Vector3; tangent: THREE.Vector3; progress: number }
 export const WORLD_SIZE = 850;
 
+function naturalHeight(x: number, z: number, hills: number): number {
+  return (Math.sin(x * 0.013) * 2.4 + Math.cos(z * 0.017) * 1.8 + Math.sin((x + z) * 0.009) * 1.4) * hills;
+}
+
+/** Add visible roadside water without letting the basin reach any part of the road. */
+function roadsideLakes(definition: CourseDefinition, curve: THREE.CatmullRomCurve3): Lake[] {
+  const lakes = definition.lakes.map(lake => ({...lake}));
+  const random = randomGenerator(definition.seed + 3781);
+  const road = curve.getSpacedPoints(Math.ceil(curve.getLength() / 3));
+  const target = lakes.length + (definition.region === 'lakes' ? 4 : 3);
+  for (let i = 0; i < 36 && lakes.length < target; i++) {
+    const t = .055 + (i % 12) * .075 + Math.floor(i / 12) * .008;
+    const point = curve.getPointAt(t);
+    const tangent = curve.getTangentAt(t).setY(0).normalize();
+    const rx = (definition.region === 'lakes' ? 39 : 30) + random() * 12;
+    const rz = 21 + random() * 14;
+    const margin = definition.width / 2 + 4;
+    const offset = Math.hypot(tangent.z * (rx * 1.3 + margin), tangent.x * (rz * 1.3 + margin)) + 4;
+    for (const side of i % 2 ? [1, -1] : [-1, 1]) {
+      const x = point.x - tangent.z * offset * side;
+      const z = point.z + tangent.x * offset * side;
+      if (Math.abs(x) + rx * 1.4 > 410 || Math.abs(z) + rz * 1.4 > 410) continue;
+      if (road.some(p => Math.hypot((p.x - x) / (rx * 1.3 + margin), (p.z - z) / (rz * 1.3 + margin)) < 1)) continue;
+      if (lakes.some(l => Math.hypot((l.x - x) / (l.rx + rx + 10), (l.z - z) / (l.rz + rz + 10)) < 1.1)) continue;
+      const level = Math.min(naturalHeight(x, z, definition.hills), naturalHeight(point.x, point.z, definition.hills) - .8);
+      lakes.push({x, z, rx, rz, level});
+      break;
+    }
+  }
+  return lakes;
+}
+
 export class Course {
   readonly definition: CourseDefinition;
   readonly points: THREE.Vector3[];
   readonly curve: THREE.CatmullRomCurve3;
   readonly length: number;
+  readonly lakes: Lake[];
   readonly checkpoints: Checkpoint[];
 
   constructor(definition: CourseDefinition) {
     this.definition = definition;
     this.curve = new THREE.CatmullRomCurve3(definition.points.map(([x,z]) => new THREE.Vector3(x, 0, z)), definition.closed, 'catmullrom', 0.5);
     this.length = this.curve.getLength();
+    this.lakes = roadsideLakes(definition, this.curve);
     const count = Math.ceil(this.length / 1.5);
     this.points = this.curve.getSpacedPoints(count).map(p => { p.y = this.height(p.x, p.z); return p; });
     const gates = Math.ceil(this.length / 40);
@@ -65,8 +99,8 @@ export class Course {
   }
 
   height(x: number, z: number): number {
-    let height = (Math.sin(x * 0.013) * 2.4 + Math.cos(z * 0.017) * 1.8 + Math.sin((x + z) * 0.009) * 1.4) * this.definition.hills;
-    for (const lake of this.definition.lakes) {
+    let height = naturalHeight(x, z, this.definition.hills);
+    for (const lake of this.lakes) {
       const radius = Math.hypot((x-lake.x)/lake.rx, (z-lake.z)/lake.rz);
       const blend = THREE.MathUtils.smoothstep(radius, 0.78, 1.08);
       const shoreline = 1 - THREE.MathUtils.smoothstep(radius, 1.08, 1.3);
@@ -99,7 +133,7 @@ export class Course {
   }
 
   inWater(x: number, z: number): boolean {
-    return this.definition.lakes.some(l => Math.hypot((x-l.x)/l.rx,(z-l.z)/l.rz)<0.98 && this.height(x,z)<l.level);
+    return this.lakes.some(l => Math.hypot((x-l.x)/l.rx,(z-l.z)/l.rz)<0.98 && this.height(x,z)<l.level);
   }
 
   ribbon(width: number, elevation: number): THREE.BufferGeometry {

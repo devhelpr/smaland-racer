@@ -104,13 +104,15 @@ export class Vehicle {
         this.velocity.multiplyScalar(.995);
         continue;
       }
-      const inward=-this.velocity.dot(hit.normal);
+      const relativeVelocity=this.velocity.clone().sub(hit.collider.velocity??new THREE.Vector3());
+      const inward=-relativeVelocity.dot(hit.normal);
       if(inward<=0&&hit.time===0) {this.position.copy(destination);break;}
       this.position.lerp(destination,Math.max(0,hit.time-.001)).addScaledVector(hit.normal,.035);
       if(inward>0) {
         if(this.age-(this.contacts.get(hit.collider.id)??-Infinity)>.65) {
           const damage=impactDamage(inward,hit.collider.kind);
           this.damage=Math.min(100,this.damage+damage); this.contacts.set(hit.collider.id,this.age);
+          hit.collider.onHit?.(this.velocity.clone());
           this.impact=Math.min(1,inward/15);
           this.heading+=(hit.normal.x*forward.z-hit.normal.z*forward.x)*Math.min(.3,inward*.012);
         }

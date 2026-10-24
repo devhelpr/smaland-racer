@@ -26,7 +26,7 @@ The title screen leads to six courses across three landscapes. Each landscape ha
 | R | Recover at your last passed checkpoint (+5 seconds; damage remains) |
 | Escape | Pause / resume |
 
-Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints have roadside flags. Grass reduces grip and speed. Trees, rocks, cottages and wildlife have collision geometry. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
+Cross every checkpoint in order and in the forward direction. The start/finish has a checkered overhead gate; intermediate checkpoints are tracked invisibly and shown on the minimap. Grass reduces grip and speed. Trees, rocks, cottages and wildlife have collision geometry. Slim orange snow poles with reflective bands line the verges; you can knock them over without car damage. Fallen poles stay down until you restart the attempt. Water or leaving the world recovers your car with the same five-second penalty.
 
 Your **final time = driving time + 0.2 seconds per damage point + 5 seconds per recovery**. Checkpoint splits compare against the cumulative score of your best run. Gold, silver and bronze targets are fixed per course. A slower attempt or a crash never overwrites your best result.
 

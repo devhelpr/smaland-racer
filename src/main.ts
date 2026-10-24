@@ -68,24 +68,20 @@ function start(): void {
   function addGates(): void {
     const gateMaterial=new THREE.MeshStandardMaterial({color:'#e9ddba'});
     const accent=new THREE.MeshStandardMaterial({color:'#bd6c40'});
-    const make=(progress:number,finish:boolean)=> {
+    const make=(progress:number)=> {
       const sample=course.sample(progress);
       const gate=new THREE.Group();
       for(const sign of [-1,1]) {
         const post=new THREE.Mesh(new THREE.BoxGeometry(.25,3.5,.25),gateMaterial);post.position.set(sign*(course.definition.width/2+1),1.75,0);post.castShadow=true;gate.add(post);
-        const flag=new THREE.Mesh(new THREE.BoxGeometry(.7,.8,.08),accent);flag.position.set(sign*(course.definition.width/2+1),3.1,0);gate.add(flag);
       }
-      if(finish) {
-        const beam=new THREE.Mesh(new THREE.BoxGeometry(course.definition.width+2.5,.7,.15),gateMaterial);beam.position.y=3.7;gate.add(beam);
-        for(let i=0;i<18;i++) {
-          const check=new THREE.Mesh(new THREE.BoxGeometry((course.definition.width+2.5)/18,.35,.16),i%2?accent:gateMaterial);
-          check.position.set((i-8.5)*(course.definition.width+2.5)/18,3.7+(i%2?.175:-.175),0);gate.add(check);
-        }
+      const beam=new THREE.Mesh(new THREE.BoxGeometry(course.definition.width+2.5,.7,.15),gateMaterial);beam.position.y=3.7;gate.add(beam);
+      for(let i=0;i<18;i++) {
+        const check=new THREE.Mesh(new THREE.BoxGeometry((course.definition.width+2.5)/18,.35,.16),i%2?accent:gateMaterial);
+        check.position.set((i-8.5)*(course.definition.width+2.5)/18,3.7+(i%2?.175:-.175),0);gate.add(check);
       }
       gate.position.copy(sample.point);gate.rotation.y=Math.atan2(sample.tangent.x,sample.tangent.z);group.add(gate);
     };
-    for(let i=1;i<course.checkpoints.length-1;i++) make(course.checkpoints[i].progress,false);
-    make(0,true); if(!course.definition.closed) make(1,true);
+    make(0); if(!course.definition.closed) make(1);
   }
 
   function updateMap(): void {

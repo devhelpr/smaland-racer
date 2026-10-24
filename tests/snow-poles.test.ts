@@ -35,7 +35,7 @@ test('wildlife faces its movement on both verges and runs at the faster species-
 });
 
 test('car knocks snow pole down, passes through, and cannot hit the fallen collider again',()=> {
-  const course=new Course(courses[0]),world=new CollisionWorld(),group=new THREE.Group();
+  const course=new Course(courses.find(course=>course.id==='forest-loop')!),world=new CollisionWorld(),group=new THREE.Group();
   const markers=new SnowPoles(course,world,group),pole=markers.poles[0];
   const car=new Vehicle(course),direction=new THREE.Vector3(0,0,1);
   car.position.copy(pole.mesh.position).addScaledVector(direction,-4);

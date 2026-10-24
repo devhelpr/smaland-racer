@@ -19,11 +19,11 @@ export interface CourseDefinition {
 }
 
 export const courses: CourseDefinition[] = [
+  holmahultCourse,
   { id: 'forest-loop', region: 'forest', name: 'Tallskogen', closed: true, width: 11, seed: 481,
     points: [[-80,-105],[5,-120],[90,-85],[112,-15],[80,60],[15,110],[-65,100],[-112,35],[-110,-35]],
     lakes: [{x:-5,z:-5,rx:38,rz:29,level:0.4}], hills: 1, treeDensity: 2700, wildlifeCount: 2,
     medals: {gold: 37, silver: 49, bronze: 68} },
-  holmahultCourse,
   { id: 'lake-loop', region: 'lakes', name: 'Sjövarvet', closed: true, width: 10, seed: 736,
     points: [[-150,-95],[-50,-130],[65,-115],[145,-60],[155,30],[80,105],[-15,130],[-125,80],[-165,0]],
     lakes: [{x:0,z:0,rx:87,rz:64,level:0.2},{x:270,z:90,rx:48,rz:85,level:-0.2}], hills: 0.65, treeDensity: 1800, wildlifeCount: 3,

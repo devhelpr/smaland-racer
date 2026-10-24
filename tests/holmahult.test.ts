@@ -8,8 +8,8 @@ import { CollisionWorld } from '../src/collision.ts';
 import { disposeGroup } from '../src/dispose.ts';
 import { loadProgress } from '../src/storage.ts';
 
-test('Holmahult is a distinct open stage with a bend east of number 25 and fixed farmyards',()=>{
-  const course=new Course(courses[1]),home=holmahultBuildings.find(b=>b.id==='holmahult-25')!;
+test('Holmahult is the first/default open stage with a bend east of number 25 and fixed farmyards',()=>{
+  const course=new Course(courses[0]),home=holmahultBuildings.find(b=>b.id==='holmahult-25')!;
   assert.equal(course.definition.id,'holmahult-stage');assert.equal(course.definition.closed,false);
   assert.ok(course.length>800&&course.length<900);assert.equal(course.lakes.length,0);
   const lane=course.nearest(home.x,home.z);
@@ -22,7 +22,7 @@ test('Holmahult is a distinct open stage with a bend east of number 25 and fixed
 });
 
 test('the green home and red farm buildings have bounded render geometry and matching collisions',()=>{
-  const group=new THREE.Group(),world=new CollisionWorld(),course=new Course(courses[1]);
+  const group=new THREE.Group(),world=new CollisionWorld(),course=new Course(courses[0]);
   createHolmahultScenery(group,course,world);group.updateMatrixWorld(true);
   for(const building of holmahultBuildings) {
     const mesh=group.getObjectByName(building.id)!;assert.ok(mesh);

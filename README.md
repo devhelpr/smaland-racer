@@ -55,7 +55,7 @@ The game pauses automatically when the window loses focus or the tab is hidden. 
 
 ## Holmahult stage
 
-Course **02 — Holmahult** replaces Älgstigen with an approximately 850 m gravel stage inspired by [the supplied Holmahult 25 location near Tingsryd](https://maps.app.goo.gl/CznM1o2vWHhMrY8W9). The north-to-south route follows the lane past the farmyard, bends east at the green house and turns south towards the next farms. Its checkpoints, recovery positions, wildlife and A-traktors use that same route.
+Course **01 — Holmahult** is the default selection and replaces Älgstigen with an approximately 850 m gravel stage inspired by [the supplied Holmahult 25 location near Tingsryd](https://maps.app.goo.gl/CznM1o2vWHhMrY8W9). The north-to-south route follows the lane past the farmyard, bends east at the green house and turns south towards the next farms. Its checkpoints, recovery positions, wildlife and A-traktors use that same route.
 
 The fixed scenery includes the green home with white trim and a number 25 plaque, the long red barn and northern barn complex, red neighboring houses, sheds, gravel yards and driveways, stone field boundaries, broadleaf garden trees, open meadows and the neighboring paved road. This course has no generated lakes or random cottages. Detailed buildings batch their repeated parts to limit draw calls, and have collision footprints.
 

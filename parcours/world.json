@@ -11,7 +11,7 @@
   "road": {
     "tension": 0.5,
     "sampleSpacing": 1.5,
-    "checkpointSpacing": 40
+    "checkpointCount": 6
   },
   "lakes": {
     "seedOffset": 3781,

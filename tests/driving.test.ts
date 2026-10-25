@@ -22,7 +22,10 @@ test('six unique routes have safe roads, terrain, water clearance and gates',()=
       for(const lake of def.lakes) assert.ok(Math.hypot((point.x-lake.x)/(lake.rx+def.width/2+2),(point.z-lake.z)/(lake.rz+def.width/2+2))>1,`${def.id}: lake too close`);
     }
     for(const gate of course.checkpoints)assert.ok(course.nearest(gate.point.x,gate.point.z).distance<.08);
-    assert.ok(course.checkpoints.length>10);
+    assert.equal(course.checkpoints.length-1,6);
+    assert.equal(course.checkpoints[0].progress,0);
+    assert.equal(course.checkpoints.at(-1)!.progress,1);
+    course.checkpoints.slice(1).forEach((gate,i)=>assert.equal(gate.progress,(i+1)/6));
   }
 });
 

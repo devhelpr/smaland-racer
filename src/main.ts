@@ -1,4 +1,4 @@
-import asset from '../assets/gates.json' with { type: 'json' };
+import { CheckpointGates } from './checkpoints.ts';
 import * as THREE from 'three';
 import './style.css';
 import { applySeason, isSeason, seasons, seasonPalettes } from './seasons.ts';
@@ -37,6 +37,7 @@ function start(): void {
   let wildlife:Wildlife;
   let traffic:Traffic;
   let snowPoles:SnowPoles;
+  let checkpointGates:CheckpointGates;
   let lastState='';
   let lastImpact=0;
   let accumulator=0;
@@ -64,27 +65,9 @@ function start(): void {
     wildlife=new Wildlife(course,world,group,seed[0]);
     traffic=new Traffic(course,world,group);
     race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
-    addGates();updateMap();follow(car,0,true);
+    checkpointGates=new CheckpointGates(course);group.add(checkpointGates.root);
+    updateMap();follow(car,0,true);
     applySeason(group,progress.season);setSeason(progress.season);
-  }
-
-  function addGates(): void {
-    const gateMaterial=new THREE.MeshStandardMaterial(asset.gateMaterial);
-    const accent=new THREE.MeshStandardMaterial(asset.accent);
-    const make=(progress:number)=> {
-      const sample=course.sample(progress);
-      const gate=new THREE.Group();
-      for(const sign of [-1,1]) {
-        const post=new THREE.Mesh(new THREE.BoxGeometry(...asset.post as [number,number,number]),gateMaterial);post.position.set(sign*(course.definition.width/2+asset.postOffset),asset.postHeight,0);post.castShadow=true;gate.add(post);
-      }
-      const beam=new THREE.Mesh(new THREE.BoxGeometry(course.definition.width+asset.beamWidthExtra,asset.beamHeight,asset.beamDepth),gateMaterial);beam.position.y=asset.beamY;gate.add(beam);
-      for(let i=0;i<asset.checkCount;i++) {
-        const check=new THREE.Mesh(new THREE.BoxGeometry((course.definition.width+asset.beamWidthExtra)/asset.checkCount,asset.checkHeight,asset.checkDepth),i%2?accent:gateMaterial);
-        check.position.set((i-asset.checkCenter)*(course.definition.width+asset.beamWidthExtra)/asset.checkCount,asset.beamY+(i%2?asset.checkOffsetY:-asset.checkOffsetY),0);gate.add(check);
-      }
-      gate.position.copy(sample.point);gate.rotation.y=Math.atan2(sample.tangent.x,sample.tangent.z);group.add(gate);
-    };
-    make(0); if(!course.definition.closed) make(1);
   }
 
   function updateMap(): void {
@@ -93,7 +76,7 @@ function start(): void {
     const size=Math.max(Math.max(...xs)-minX,Math.max(...zs)-minZ)+20;
     el('route-map').setAttribute('viewBox',`${minX} ${minZ} ${size} ${size}`);
     el('map-track').setAttribute('d',course.points.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)},${p.z.toFixed(1)}`).join(' '));
-    el('map-gates').innerHTML=course.checkpoints.filter((_,i)=>i%3===0).map(p=>`<circle cx="${p.point.x}" cy="${p.point.z}" r="2"/>`).join('');
+    el('map-gates').innerHTML=course.checkpoints.slice(1).map(p=>`<circle cx="${p.point.x}" cy="${p.point.z}" r="2"/>`).join('');
   }
 
   function begin(practice=false): void {
@@ -228,7 +211,11 @@ function start(): void {
       while(accumulator>=step&&race.state==='racing') {
         const previous=car.position.clone();
         wildlife.update(step,car.position,car.forwardSpeed);traffic.update(step,car.position);car.update(step,controls,world);snowPoles.update(step);
+        const checkpoint=race.nextCheckpoint;
         race.observe(previous,car.position,car.damage);
+        if(race.nextCheckpoint!==checkpoint) {
+          checkpointGates.pass(checkpoint,race.practice&&course.definition.closed&&race.nextCheckpoint===1);
+        }
         if(race.state==='racing'&&(course.inWater(car.position.x,car.position.z)||Math.abs(car.position.x)>WORLD_SIZE/2-8||Math.abs(car.position.z)>WORLD_SIZE/2-8)) {
           recover(course.inWater(car.position.x,car.position.z)?'water':'boundary');break;
         }
@@ -241,6 +228,7 @@ function start(): void {
       if(activeWildlife&&performance.now()>toastUntil)announce('wildlife');
       else if(car.forwardSpeed>9&&traffic.aheadOf(car.position)&&performance.now()>toastUntil)announce('traffic');
     } else accumulator=0;
+    if(race.state!=='paused')checkpointGates.update(Math.min(wallDelta,.1));
     if(race.state==='finished'&&before!=='finished') {
       const result=race.result!;previousBest=progress.records[course.definition.id]?.total??null;
       personalBest=recordResult(progress,course.definition.id,result);persist();
@@ -258,7 +246,7 @@ function start(): void {
     el('checkpoint-count').textContent=race.practice?'—':`${Math.min(completed,total)} / ${total}`;
     el('progress-fill').style.width=`${race.practice?course.nearest(car.position.x,car.position.z).progress*100:completed/total*100}%`;
     const best=progress.records[course.definition.id];
-    const split=completed>0&&best?.splits[completed-1]!==undefined?race.splits[completed-1]-best.splits[completed-1]:null;
+    const split=!race.practice&&completed>0&&best?.splits.length===total&&best.splits[completed-1]!==undefined?race.splits[completed-1]-best.splits[completed-1]:null;
     el('split').textContent=race.practice?t('practiceNote'):split!==null?`${t('split')} ${split>0?'+':'−'}${time(Math.abs(split))}`:best?`${t('best')} ${time(best.total)}`:t('firstRun');
     el('split').classList.toggle('ahead',split!==null&&split<0);
     el('map-car').setAttribute('cx',car.position.x.toFixed(2));el('map-car').setAttribute('cy',car.position.z.toFixed(2));

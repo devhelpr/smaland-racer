@@ -74,7 +74,8 @@ export class Course {
     this.lakes = roadsideLakes(definition, this.curve);
     const count = Math.ceil(this.length / world.road.sampleSpacing);
     this.points = this.curve.getSpacedPoints(count).map(p => { p.y = this.height(p.x, p.z); return p; });
-    const gates = Math.ceil(this.length / world.road.checkpointSpacing);
+    // Index zero is the recovery/start anchor; the six numbered gates follow it.
+    const gates = world.road.checkpointCount;
     this.checkpoints = Array.from({length: gates + 1}, (_, i) => this.sample(i / gates));
   }
 

@@ -2,5 +2,10 @@
   "baseShade": 0.94,
   "shadeFrequency": 2.71,
   "shadeVariation": 0.035,
-  "textureScale": 3
+  "textureScale": 3,
+  "network": {
+    "miterLimit": 2,
+    "capSegments": 12,
+    "junctionTolerance": 0.0001
+  }
 }

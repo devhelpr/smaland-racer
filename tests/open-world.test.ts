@@ -76,3 +76,47 @@ test('all road centerlines are clear and the Bro deck is dry above visible roads
   assert.ok(course.isWater(sideX,sideZ));assert.ok(course.height(x,z)-course.height(sideX,sideZ)>2);
   disposeGroup(scene);
 });
+
+test('every farm lane connects exactly to its parent road, including the restored western lane',()=>{
+  const roads=definition.openWorld!.roads,byId=new Map(roads.map(r=>[r.id,r]));
+  for(const join of definition.openWorld!.connections) {
+    const p=byId.get(join.road)!.points.at(join.end)!;
+    assert.ok(byId.get(join.target)!.points.some(q=>Math.hypot(p[0]-q[0],p[1]-q[1])<1e-4),`${join.road} has a gap to ${join.target}`);
+  }
+  const west=byId.get('holmahult-west-lane')!;
+  for(const id of ['local-2','local-9','local-6']) {
+    const p=byId.get(id)!.points[0];assert.ok(west.points.some(q=>Math.hypot(p[0]-q[0],p[1]-q[1])<1e-4));
+  }
+});
+
+test('Bro road sections share both edges at their angled seams',async()=>{
+  const {default:fixture}=await import('./fixtures/road-junctions.json',{with:{type:'json'}});
+  const course=new Course(definition),network=course.roadNetwork!;
+  for(const [aId,aEnd,bId,bEnd] of fixture.broSeams) {
+    const a=network.roads.find(r=>r.definition.id===aId)!,b=network.roads.find(r=>r.definition.id===bId)!;
+    const ga=network.ribbon(a,0),gb=network.ribbon(b,0),pa=ga.getAttribute('position'),pb=gb.getAttribute('position');
+    const ai=aEnd===0?0:(a.points.length-1)*2,bi=bEnd===0?0:(b.points.length-1)*2;
+    for(const index of [ai,ai+1]) {
+      const p=new THREE.Vector3().fromBufferAttribute(pa,index);
+      assert.ok([bi,bi+1].some(j=>p.distanceTo(new THREE.Vector3().fromBufferAttribute(pb,j))<.001),`${aId} / ${bId}: open seam`);
+    }
+    ga.dispose();gb.dispose();
+  }
+});
+
+test('rounded road ends render the drivable approach and barn drives reach gravel courtyards',async()=>{
+  const {default:fixture}=await import('./fixtures/road-junctions.json',{with:{type:'json'}});
+  const {RoadNetwork}=await import('../src/road-network.ts');
+  const network=new RoadNetwork(fixture.roads as import('../src/road-network.ts').RoadDefinition[],()=>0,1.5);
+  const nearest=network.nearest(...fixture.wideRoadProbe as [number,number]);
+  assert.ok(nearest.distance<=nearest.width/2,'a nearby narrow road must not remove grip from a wider road');
+  const road=network.roads[0],geometry=network.ribbon(road,0),mesh=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));
+  const [x,z]=fixture.capProbe;
+  assert.ok(new THREE.Raycaster(new THREE.Vector3(x,10,z),new THREE.Vector3(0,-1,0)).intersectObject(mesh).length>0,'visible road stops before the end of its grip corridor');
+  disposeGroup(new THREE.Group().add(mesh));
+  const course=new Course(definition);
+  for(const id of ['local-3','local-4','local-7','local-8','local-9']) {
+    const [x,z]=course.roadNetwork!.roads.find(r=>r.definition.id===id)!.definition.points.at(-1)!;
+    assert.ok(definition.openWorld!.yards.some(([cx,cz,w,d])=>Math.abs(x-cx)<=w/2&&Math.abs(z-cz)<=d/2),`${id}: grass gap before the courtyard`);
+  }
+});

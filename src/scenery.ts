@@ -117,7 +117,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
 
   const cottageSites = roadsideCottages(course);
   const clearScenery = (x: number, z: number, clearance: number) => {
-    if(course.definition.openWorld&&course.inWater(x,z))return false;
+    if(course.definition.openWorld&&(course.inWater(x,z)||course.definition.openWorld.yards.some(([cx,cz,w,d])=>Math.abs(x-cx)<w/2+clearance&&Math.abs(z-cz)<d/2+clearance)))return false;
     const nearest=nearestRoad(x,z);
     if (nearest.distance < nearest.width / 2 + clearance) return false;
     if (course.definition.setting === 'holmahult') {

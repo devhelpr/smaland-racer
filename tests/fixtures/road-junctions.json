@@ -1,0 +1,11 @@
+{
+  "roads": [
+    {"id":"approach","name":"Approach","width":6,"surface":"gravel","points":[[-20,0],[0,0]]},
+    {"id":"turn","name":"Turn","width":6,"surface":"gravel","points":[[0,0],[0,20]]},
+    {"id":"wide","name":"Wide","width":12,"surface":"asphalt","points":[[30,-20],[30,20]]},
+    {"id":"narrow","name":"Narrow","width":3,"surface":"gravel","points":[[34,-20],[34,20]]}
+  ],
+  "capProbe": [-22,0],
+  "wideRoadProbe": [35,0],
+  "broSeams": [["osm-82138175-0",0,"osm-120074103-0",0],["osm-120074103-0",-1,"osm-120074105-0",0]]
+}

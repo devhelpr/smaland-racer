@@ -1,7 +1,10 @@
 {
   "asphalt": {
     "color": "#555653",
-    "roughness": 0.95
+    "roughness": 0.95,
+    "polygonOffset": true,
+    "polygonOffsetFactor": -1,
+    "polygonOffsetUnits": -1
   },
   "gravel": {
     "color": "#c4b18a",

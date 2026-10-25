@@ -119,7 +119,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
 
   const gravel=new THREE.MeshStandardMaterial({...asset.gravel,side:THREE.DoubleSide});
   const asphalt=new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide});
-  for(const [x,z,w,d] of sceneryData.yards) {
+  for(const [x,z,w,d] of course.definition.openWorld?.yards??sceneryData.yards) {
     const geometry=new THREE.PlaneGeometry(w,d,details.yardSegments,details.yardSegments);geometry.rotateX(-Math.PI/2);
     const positions=geometry.getAttribute('position');
     for(let i=0;i<positions.count;i++) {

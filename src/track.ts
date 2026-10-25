@@ -118,7 +118,9 @@ export class Course implements DrivingWorld {
   surfaceAt(x:number,z:number):SurfaceType {
     if(this.onIce(x,z))return 'ice';
     const road=this.nearestRoad(x,z);
-    return road.distance<=road.width/2?road.surface:'grass';
+    if(road.distance<=road.width/2)return road.surface;
+    if(this.definition.openWorld?.yards.some(([cx,cz,w,d])=>Math.abs(x-cx)<=w/2&&Math.abs(z-cz)<=d/2))return 'gravel';
+    return 'grass';
   }
   isWater(x:number,z:number):boolean { return this.inWater(x,z); }
 

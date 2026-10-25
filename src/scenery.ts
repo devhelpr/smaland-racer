@@ -1,4 +1,4 @@
-import { createGravelTexture } from './gravel.ts';
+import { applyGravelUVs, createGravelTexture } from './gravel.ts';
 import { createOpenWorldScenery, refineBridgeTerrain } from './open-world-scenery.ts';
 import roadRockData from '../parcours/road-rocks.json' with { type: 'json' };
 import { createSandsjon } from './sandsjon.ts';
@@ -79,6 +79,8 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   const shoulder = new THREE.Mesh(roadRibbon(ROAD_WIDTH + asset.shoulderExtraWidth, asset.shoulderElevation), new THREE.MeshStandardMaterial({ ...asset.shoulder, side: THREE.DoubleSide }));
   const gravelTexture = createGravelTexture(random);
   const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, asset.roadElevation), new THREE.MeshStandardMaterial({ ...asset.road, map: gravelTexture, side: THREE.DoubleSide }));
+  road.name='course-road';shoulder.name='course-shoulder';
+  if(course.definition.setting==='holmahult')applyGravelUVs(road.geometry);
   shoulder.userData.seasonalSurface=road.userData.seasonalSurface='gravel';
   shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.openWorld) { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();createOpenWorldScenery(scene,course,collisions,gravelTexture); }
   else if(course.definition.setting!=='sandsjon')scene.add(shoulder, road);

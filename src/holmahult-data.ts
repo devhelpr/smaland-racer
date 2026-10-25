@@ -18,7 +18,7 @@ export interface HolmahultBuilding {
 
 export const holmahultBuildings: HolmahultBuilding[] = sceneryData.buildings as HolmahultBuilding[];
 
-export interface LocalRoad { points: [number, number][]; width: number; asphalt?: boolean }
+export interface LocalRoad { points: [number, number][]; width: number; asphalt?: boolean; joinsCourseStart?: boolean }
 export const holmahultSideRoads: LocalRoad[] = sceneryData.sideRoads as LocalRoad[];
 
 export const holmahultFields: [number, number][][] = sceneryData.fields as [number, number][][];

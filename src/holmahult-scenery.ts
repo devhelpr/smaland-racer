@@ -1,3 +1,5 @@
+import roadAsset from '../assets/road.json' with { type: 'json' };
+import sceneryAsset from '../assets/scenery.json' with { type: 'json' };
 import { applyGravelUVs, createGravelTexture } from './gravel.ts';
 import asset from '../assets/holmahult-scenery.json' with { type: 'json' };
 import sceneryData from '../parcours/holmahult.json' with { type: 'json' };
@@ -132,17 +134,31 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   for(const [index,road] of holmahultSideRoads.entries()) {
     if(course.roadNetwork)continue;
     const curve=new THREE.CatmullRomCurve3(road.points.map(([x,z])=>new THREE.Vector3(x,0,z)),false,'centripetal');
-    const count=Math.ceil(curve.getLength()/details.roadSampleSpacing),positions:number[]=[],indices:number[]=[];
-    for(let i=0;i<=count;i++) {
-      const p=curve.getPointAt(i/count),t=curve.getTangentAt(i/count);
-      for(const side of [-1,1]) {
-        const x=p.x-t.z*road.width/2*side,z=p.z+t.x*road.width/2*side;
-        positions.push(x,course.height(x,z)+details.roadElevation,z);
+    const count=Math.ceil(curve.getLength()/details.roadSampleSpacing);
+    const ribbon=(width:number,elevation:number)=>{
+      const positions:number[]=[],indices:number[]=[],colors:number[]=[];
+      for(let i=0;i<=count;i++) {
+        // Match the race ribbon's first cross-section exactly, including its endpoint tangent.
+        const sample=road.joinsCourseStart&&i===count?course.sample(0):null;
+        const p=sample?.point??curve.getPointAt(i/count),t=sample?.tangent??curve.getTangentAt(i/count);
+        for(const side of [-1,1]) {
+          const x=p.x-t.z*width/2*side,z=p.z+t.x*width/2*side;
+          positions.push(x,course.height(x,z)+elevation,z);
+          colors.push(roadAsset.baseShade,roadAsset.baseShade,roadAsset.baseShade);
+        }
+        if(i<count){const a=i*2;indices.push(a,a+2,a+1,a+1,a+2,a+3);}
       }
-      if(i<count){const a=i*2;indices.push(a,a+2,a+1,a+1,a+2,a+3);}
+      const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+      if(road.joinsCourseStart)geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+      geometry.setIndex(indices);applyGravelUVs(geometry);geometry.computeVertexNormals();return geometry;
+    };
+    const elevation=road.joinsCourseStart?sceneryAsset.roadElevation:details.roadElevation;
+    const material=road.joinsCourseStart?new THREE.MeshStandardMaterial({...sceneryAsset.road,map:gravel.map,side:THREE.DoubleSide}):road.asphalt?asphalt:gravel;
+    const mesh=new THREE.Mesh(ribbon(road.width,elevation),material);mesh.name=`holmahult-side-road-${index}`;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
+    if(road.joinsCourseStart) {
+      const shoulder=new THREE.Mesh(ribbon(road.width+sceneryAsset.shoulderExtraWidth,sceneryAsset.shoulderElevation),new THREE.MeshStandardMaterial({...sceneryAsset.shoulder,side:THREE.DoubleSide}));
+      shoulder.name='holmahult-start-shoulder';shoulder.userData.seasonalSurface='gravel';shoulder.receiveShadow=true;scene.add(shoulder);
     }
-    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);applyGravelUVs(geometry);geometry.computeVertexNormals();
-    const mesh=new THREE.Mesh(geometry,road.asphalt?asphalt:gravel);mesh.name=`holmahult-side-road-${index}`;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
   }
 
   const random=randomGenerator(sceneryData.seed);

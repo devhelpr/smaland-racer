@@ -59,3 +59,33 @@ test('old forest-stage times do not become Holmahult records',()=>{
   const progress=loadProgress({getItem:()=>JSON.stringify({version:1,language:'nl',records:{'forest-stage':{elapsed:1,damage:0,recoveries:0,total:1,medal:'gold',splits:[]}}}),setItem:()=>{}});
   assert.equal(progress.records['holmahult-stage'],undefined);
 });
+
+test('the ordinary Holmahult start approach joins both road edges and shoulders without the sideways stub',async()=>{
+  const {createScenery}=await import('../src/scenery.ts');
+  const {holmahultSideRoads}=await import('../src/holmahult-data.ts');
+  const course=new Course(courses[0]),group=new THREE.Group();createScenery(group,course,new CollisionWorld());
+  const start=course.sample(0),definition=holmahultSideRoads.find(r=>r.joinsCourseStart)!;
+  const last=definition.points.at(-1)!,before=definition.points.at(-2)!;
+  assert.deepEqual(last,[start.point.x,start.point.z]);
+  const incoming=new THREE.Vector3(last[0]-before[0],0,last[1]-before[1]).normalize();
+  assert.ok(incoming.dot(start.tangent)>.9999,'approach turns sideways at the race start');
+  for(const [approachName,routeName] of [['holmahult-side-road-1','course-road'],['holmahult-start-shoulder','course-shoulder']]) {
+    const approach=group.getObjectByName(approachName) as THREE.Mesh,route=group.getObjectByName(routeName) as THREE.Mesh;
+    const a=approach.geometry.getAttribute('position'),b=route.geometry.getAttribute('position');
+    for(let side=0;side<2;side++) {
+      assert.ok(new THREE.Vector3().fromBufferAttribute(a,a.count-2+side).distanceTo(new THREE.Vector3().fromBufferAttribute(b,side))<1e-5,`${approachName}: seam in position or height`);
+      if(routeName==='course-road') {
+        const auv=approach.geometry.getAttribute('uv'),buv=route.geometry.getAttribute('uv');
+        assert.equal(auv.getX(a.count-2+side),buv.getX(side));assert.equal(auv.getY(a.count-2+side),buv.getY(side));
+        assert.equal((approach.material as THREE.MeshStandardMaterial).map,(route.material as THREE.MeshStandardMaterial).map);
+      }
+    }
+  }
+  const approach=group.getObjectByName('holmahult-side-road-1')!,road=group.getObjectByName('course-road')!;
+  const across=new THREE.Vector3(-start.tangent.z,0,start.tangent.x);
+  for(let along=-8;along<=8;along+=.25)for(let side=-course.definition.width/2+.2;side<course.definition.width/2-.2;side+=.25) {
+    const p=start.point.clone().addScaledVector(start.tangent,along).addScaledVector(across,side);p.y+=10;
+    assert.ok(new THREE.Raycaster(p,new THREE.Vector3(0,-1,0)).intersectObjects([approach,road]).length,'gap visible behind the car at the ordinary Holmahult start');
+  }
+  disposeGroup(group);
+});

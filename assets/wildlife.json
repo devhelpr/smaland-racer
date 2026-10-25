@@ -62,7 +62,7 @@
   "tineSpacingY": 0.04,
   "tineZ": 1.1,
   "tineAngle": 0.3,
-  "signPoleHeight": 1.25,
+  "signPolePosition": [0,1.25,-0.08],
   "signHeight": 2.4,
   "signInsetScale": 0.8,
   "signInsetPosition": [0,2.4,0.015],

@@ -64,7 +64,7 @@ export class Wildlife {
   private addSign(group:THREE.Group,progress:number): void {
     const sample=this.course.sample(progress);const side=this.course.definition.width/2+placement.signRoadOffset;
     const sign=new THREE.Group();
-    const pole=new THREE.Mesh(new THREE.CylinderGeometry(...asset.signPoleGeometry as [number, number, number, number]),new THREE.MeshStandardMaterial(asset.signPoleMaterial));pole.position.y=asset.signPoleHeight;sign.add(pole);
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(...asset.signPoleGeometry as [number, number, number, number]),new THREE.MeshStandardMaterial(asset.signPoleMaterial));pole.position.set(...asset.signPolePosition as [number,number,number]);sign.add(pole);
     const shape=new THREE.Shape();shape.moveTo(...asset.signTop as [number, number]);shape.lineTo(...asset.signLeft as [number, number]);shape.lineTo(...asset.signRight as [number, number]);shape.closePath();
     const triangle=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({...asset.triangle,side:THREE.DoubleSide}));triangle.position.y=asset.signHeight;sign.add(triangle);
     const inside=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({...asset.inside,side:THREE.DoubleSide}));inside.scale.setScalar(asset.signInsetScale);inside.position.set(...asset.signInsetPosition as [number,number,number]);sign.add(inside);

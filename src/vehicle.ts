@@ -88,6 +88,23 @@ export class Vehicle {
     this.velocity.set(0,0,0); this.forwardSpeed=0; this.steering=0; this.onRoad=true; this.contacts.clear(); this.syncMesh();
   }
 
+  /** Right the car at its current X/Z, retaining damage and its facing direction. */
+  rightInPlace(collisions?:CollisionWorld):void {
+    const sin=Math.sin(this.heading),cos=Math.cos(this.heading);
+    let support=this.course.height(this.position.x,this.position.z);
+    // Clear stones under either axle or the chassis without shifting sideways.
+    const points=[[0,0],...asset.wheelX.flatMap(x=>asset.wheelZ.map(z=>[x,z]))];
+    for(const [x,z] of points) {
+      const worldX=this.position.x+x*cos+z*sin,worldZ=this.position.z-x*sin+z*cos;
+      const terrain=this.course.height(worldX,worldZ);
+      support=Math.max(support,collisions?.surfaceAt(worldX,worldZ,terrain).height??terrain);
+    }
+    this.position.y=Math.max(this.position.y,support);
+    this.velocity.set(0,0,0);this.forwardSpeed=0;this.steering=0;this.impact=0;this.contacts.clear();
+    this.onRoad=this.course.nearest(this.position.x,this.position.z).distance<=this.course.definition.width/2;
+    this.stunts.placeUpright(this.heading);this.syncMesh();
+  }
+
   update(dt: number, input: DriveInput, collisions?: CollisionWorld): void {
     this.age+=dt; this.impact=Math.max(0,this.impact-dt*2.5);
     this.onRoad=this.course.nearest(this.position.x,this.position.z).distance<=this.course.definition.width/2;

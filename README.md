@@ -23,7 +23,7 @@ The title screen leads to six courses across three landscapes. Each landscape ha
 | S / ↓ | Brake, then reverse |
 | A D / ← → | Steer |
 | Space | Handbrake / slide |
-| R | Recover at your last passed checkpoint (+5 seconds; damage remains) |
+| R | Right the car in place (+5 seconds; damage remains) |
 | Escape | Pause / resume |
 
 ### Touchscreen controls
@@ -119,6 +119,8 @@ Driving styles are selected from the title screen or route menu. **Cruising** pr
 **Sandsjön · Isrally** uses a shoreline hand-traced from the supplied Sandsjön satellite reference, including the eastern peninsulas, bays, and southern outlet. The Road 120 bridge crosses the southern narrows; the marked ice stage runs beneath it. The frozen lake has low grip across its whole surface, snowy shores, and an elevated road bridge with solid piers and open passages underneath. Select **Free drive** to explore without a timer target. This level always uses winter, independently of the season selected for the other routes. Lake/route data lives in `parcours/sandsjon.json`; visual geometry and materials in `assets/sandsjon.json`; handling profiles in `assets/driving.json`.
 
 
-Driving over rocks now uses the same rotated, scaled facets as the visible stone. Four wheel contacts and chassis contacts apply gravity and rotational impulses around the car’s center of mass. Approach speed, the stone’s slope and the side that touches determine whether the car climbs, jumps, balances briefly on two wheels or tumbles. Steering can affect balance while wheels touch; airborne throttle and steering do not create tire forces. Grass drag slows an off-road approach gradually, retaining momentum for a jump. Hard landings and chassis impacts cause damage; an overturned car remains on its side or roof until **R** (or the touch recovery gesture) returns it to the road. A wreck continues its tumble behind the result panel.
+Driving over rocks now uses the same rotated, scaled facets as the visible stone. Four wheel contacts and chassis contacts apply gravity and rotational impulses around the car’s center of mass. Approach speed, the stone’s slope and the side that touches determine whether the car climbs, jumps, balances briefly on two wheels or tumbles. Steering can affect balance while wheels touch; airborne throttle and steering do not create tire forces. Grass drag slows an off-road approach gradually, retaining momentum for a jump. Hard landings and chassis impacts cause damage; an overturned car remains on its side or roof until **R** (or the touch recovery gesture) rights it at its current position. A wreck continues its tumble behind the result panel.
 
-Use **Rally → Free drive** to experiment with the stones beside the roads. The minimap’s surface indicator shows airborne, two-wheel and overturned states. Gravity, inertia, contacts, body dimensions, landing damage and friction live in `assets/stunts.json`; rock shapes/materials remain in `assets/scenery.json`, and rock placement in `parcours/scenery.json`.
+Use **Rally → Free drive** to experiment with the stones on and beside the roads. The minimap’s surface indicator shows airborne, two-wheel and overturned states. Gravity, inertia, contacts, body dimensions, landing damage and friction live in `assets/stunts.json`; rock shapes/materials remain in `assets/scenery.json`, and rock placement in `parcours/scenery.json` and `parcours/road-rocks.json`.
+
+Seven authored stones sit at spaced positions on each route, including very low, flat stones (roughly 7–12 cm high) and a few higher, angled rocks. They use the same rendered geometry and wheel contact physics as roadside stones. Route progress, side offsets, scales and angles live in `parcours/road-rocks.json`. Manual righting keeps the current position and driving heading, clears linear/angular motion and retains damage and checkpoint progress. It does not snap or reorient the camera. Water and map-boundary recovery still return to the last checkpoint.

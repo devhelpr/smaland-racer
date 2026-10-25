@@ -92,3 +92,31 @@ test('grass drag reduces an off-road approach gradually, preserving momentum for
   assert.equal(car.stunts.active,false);assert.equal(car.position.y,0);
   disposeGroup(car.mesh);
 });
+
+
+test('righting an overturned car preserves off-road position, heading, damage and clears all motion',()=> {
+  const car=new Vehicle(course);car.position.set(100,0,70);car.heading=.7;car.damage=27;
+  car.stunts.placeUpright(-.2);car.stunts.rotation.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI));
+  car.stunts.angularVelocity.set(2,3,4);car.velocity.set(4,-2,6);
+  car.rightInPlace();
+  assert.equal(car.position.x,100);assert.equal(car.position.z,70);
+  assert.ok(Math.abs(car.heading-.7)<1e-8);assert.ok(car.stunts.upright>.999);
+  assert.equal(car.onRoad,false);assert.equal(car.damage,27);assert.equal(car.velocity.length(),0);
+  assert.equal(car.stunts.angularVelocity.length(),0);
+  for(let i=0;i<120;i++)car.update(dt,neutral);
+  assert.equal(car.position.x,100);assert.equal(car.position.z,70);assert.ok(car.stunts.upright>.99);
+  disposeGroup(car.mesh);
+});
+
+test('righting over a rock clears its surface without moving sideways; midair righting preserves height',()=> {
+  const env=setup(0);env.car.position.set(0,0,0);env.car.damage=14;
+  const surface=env.world.surfaceAt(0,0,0);
+  assert.ok(surface.rock);
+  env.car.rightInPlace(env.world);
+  assert.equal(env.car.position.x,0);assert.equal(env.car.position.z,0);
+  assert.ok(env.car.position.y>=surface.height);assert.equal(env.car.damage,14);
+  env.car.position.set(100,8,50);env.car.rightInPlace(env.world);
+  assert.equal(env.car.position.y,8);env.car.update(dt,neutral,env.world);
+  assert.ok(env.car.position.y<8&&env.car.position.y>7.9);assert.equal(env.car.stunts.airborne,true);
+  env.dispose();
+});

@@ -1,3 +1,4 @@
+import roadRockData from '../parcours/road-rocks.json' with { type: 'json' };
 import { createSandsjon } from './sandsjon.ts';
 import placement from '../parcours/scenery.json' with { type: 'json' };
 import asset from '../assets/scenery.json' with { type: 'json' };
@@ -34,6 +35,17 @@ export function roadsideCottages(course: Course): CottageSite[] {
     }
   }
   return sites;
+}
+
+/** Authored road obstacles use route-relative positions on every course. */
+export function roadRockPlacements(course:Course) {
+  return roadRockData.placements.map((definition,index)=> {
+    const sample=course.sample(definition.progress),position=sample.point.clone();
+    const offset=definition.offset*course.definition.width;
+    position.x+=sample.tangent.z*offset;position.z-=sample.tangent.x*offset;
+    position.y=course.height(position.x,position.z)+(course.definition.setting==='sandsjon'?0:asset.roadElevation);
+    return {id:`road-rock-${index}`,position,heading:Math.atan2(sample.tangent.x,sample.tangent.z),...definition};
+  });
 }
 
 export function createScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld): SnowPoles {
@@ -138,10 +150,18 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     const x = (random() - 0.5) * placement.rocks.area; const z = (random() - 0.5) * placement.rocks.area;
     if (clearScenery(x, z, placement.rocks.roadClearance)) rockPositions.push(new THREE.Vector3(x, terrainHeight(x, z), z));
   }
-  const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(...asset.rockGeometry as [number, number]), new THREE.MeshStandardMaterial(asset.rockMaterial), rockPositions.length);
+  const roadRocks=roadRockPlacements(course);
+  const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(...asset.rockGeometry as [number, number]), new THREE.MeshStandardMaterial(asset.rockMaterial), rockPositions.length+roadRocks.length);
   rockPositions.forEach((p, i) => {
     dummy.position.copy(p); dummy.rotation.set(random(), random() * placement.rocks.rotationY, random()); dummy.scale.set(placement.rocks.scaleX + random() * placement.rocks.scaleXRange, placement.rocks.scaleY + random() * placement.rocks.scaleYRange, placement.rocks.scaleZ + random() * placement.rocks.scaleZRange); dummy.updateMatrix(); rocks.setMatrixAt(i, dummy.matrix);
     collisions.addRock(`rock-${i}`,rocks.geometry,rocks.material,dummy.matrix);
+  });
+  roadRocks.forEach((rock,i)=> {
+    dummy.position.copy(rock.position);
+    dummy.rotation.set(rock.rotation[0],rock.heading+rock.rotation[1],rock.rotation[2],'YXZ');
+    dummy.scale.set(...rock.scale as [number,number,number]);dummy.updateMatrix();
+    rocks.setMatrixAt(rockPositions.length+i,dummy.matrix);
+    collisions.addRock(rock.id,rocks.geometry,rocks.material,dummy.matrix);
   });
   rocks.userData.seasonalSurface='stone';
   rocks.castShadow = true; rocks.receiveShadow = true; scene.add(rocks);

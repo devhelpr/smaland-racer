@@ -17,6 +17,8 @@ test('season switches retain all course geometry, assets, landmarks and collisio
     const paint:THREE.Color[]=[];
     greenHouse?.traverse(object=>{if(object instanceof THREE.Mesh&&(object.material as THREE.MeshStandardMaterial).color.equals(new THREE.Color('#607a68')))paint.push((object.material as THREE.MeshStandardMaterial).color);});
     const points=course.points.map(point=>point.clone());
+    const collisionIds=()=>course.points.slice(0,-1).map((point,i)=>world.sweep(point,course.points[i+1])?.collider.id??null);
+    const originalCollisions=collisionIds();
     const terrain=meshes.find(mesh=>mesh.userData.seasonalSurface==='grass')!;
     const colors=terrain.geometry.getAttribute('color');let summer:number[]=[];
     for(const season of ['summer',...seasons,'summer'] as const) {
@@ -32,7 +34,7 @@ test('season switches retain all course geometry, assets, landmarks and collisio
       if(season==='summer') {
         const current=Array.from(colors.array);if(summer.length)assert.deepEqual(current,summer,'season changes accumulated color drift');else summer=current;
       }
-      for(let i=0;i<course.points.length-1;i++)assert.equal(world.sweep(course.points[i],course.points[i+1]),null);
+      assert.deepEqual(collisionIds(),originalCollisions);
     }
     disposeGroup(root);
   }

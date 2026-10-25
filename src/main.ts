@@ -102,8 +102,9 @@ function start(): void {
   function resume(): void {race.resume();lastTime=performance.now();input.clear();accumulator=0;renderMenus();updateLabels();}
   function recover(key:TextKey='recovered'): void {
     if(!race.recover()) return;
-    const point=race.recoveryPoint;
-    car.recover(point.point,point.tangent);race.damage=car.damage;follow(car,0,true);accumulator=0;announce(key);
+    if(key==='recovered')car.rightInPlace(world);
+    else {const point=race.recoveryPoint;car.recover(point.point,point.tangent);follow(car,0,true);}
+    input.clear();race.damage=car.damage;accumulator=0;announce(key);
   }
 
   function updateLabels(): void {

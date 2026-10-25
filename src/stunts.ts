@@ -43,6 +43,11 @@ export class StuntDynamics {
     this.rotation.identity();this.angularVelocity.set(0,0,0);this.damageAfter=0;this.age=0;
   }
 
+  placeUpright(heading:number):void {
+    this.reset();this.active=true;this.lastHeading=heading;
+    this.rotation.setFromAxisAngle(up,heading);
+  }
+
   private inverseInertia(torque:THREE.Vector3):THREE.Vector3 {
     return torque.clone().applyQuaternion(this.rotation.clone().invert())
       .divide(new THREE.Vector3(...data.inertia as [number,number,number])).applyQuaternion(this.rotation);

@@ -1,3 +1,4 @@
+import { icon, iconText } from './icons.ts';
 import sandsjonAsset from '../assets/sandsjon.json' with { type: 'json' };
 import { drivingStyles, isDrivingStyle } from './driving.ts';
 import { CheckpointGates } from './checkpoints.ts';
@@ -30,6 +31,7 @@ function start(): void {
   const time=(value:number)=>formatTime(value,language);
   const {renderer,scene,camera,follow,setSeason}=createRendering(el('viewport'));
   const input=new Input(renderer.domElement);
+  el('keyboard-arrows').innerHTML=icon('arrowKeys');
   let group=new THREE.Group();
   let selected=0;
   let course:Course;
@@ -107,13 +109,13 @@ function start(): void {
     el('app').classList.toggle('touch-input',input.usingTouch);
     el('keyboard-controls').hidden=input.usingTouch;
     el('touch-controls').hidden=!input.usingTouch;
-    el('touch-controls').innerHTML=`<span>${t('touchHint')}</span><span>${t('touchExtras')}</span>`;
+    el('touch-controls').innerHTML=`<span>${iconText(t('touchHint'))}</span><span>${t('touchExtras')}</span>`;
     languageSelect.value=language;languageSelect.setAttribute('aria-label',t('language'));el('language-label').textContent=t('language');
     el('home').setAttribute('aria-label',t('homeLabel'));el('viewport').setAttribute('aria-label',t(input.usingTouch?'gameLabelTouch':'gameLabel'));
     renderer.domElement.setAttribute('aria-label',t(input.usingTouch?'gameLabelTouch':'gameLabel'));
     el('route-map').setAttribute('aria-label',t('mapLabel'));
     el('countdown').setAttribute('aria-label',t('countdownLabel'));
-    el('pause-button').textContent=t('pause');
+    el('pause-button').innerHTML=icon('pause')+t('pause');
     el('pause-button').hidden=!['racing','countdown'].includes(race.state);
     el('mode-label').textContent=`${t(progress.drivingStyle??'cruising')} / ${t(race.practice?'freeDrive':'racing')}`;
     for(const [id,key] of [['time-label','time'],['checkpoint-label','checkpoints'],['condition-label','condition'],['drive-label','drive'],['handbrake-label','handbrake'],['recover-label','recover']] as [string,TextKey][]) el(id).textContent=t(key);
@@ -124,25 +126,28 @@ function start(): void {
     if(!el('toast').hidden) el('toast').textContent=t(toastKey);
   }
 
-  const button=(action:string,key:TextKey,primary=false)=>`<button data-action="${action}" class="${primary?'primary':'secondary'}">${t(key)}${primary?'<span aria-hidden="true">↗</span>':''}</button>`;
+  const button=(action:string,key:TextKey,primary=false)=>`<button data-action="${action}" class="${primary?'primary':'secondary'}">${t(key)}${primary?icon('arrowUpRight'):''}</button>`;
   const targets=()=>`<div class="targets">${(['gold','silver','bronze'] as const).map(m=>`<span class="medal-target ${m}"><i></i>${t(m)}<b>${time(course.definition.medals[m])}</b></span>`).join('')}</div>`;
 
   const drivingOptions=()=>`<fieldset class="driving-picker"><legend>${t('drivingStyle')}</legend><div class="driving-options">${drivingStyles.map(style=>`<button type="button" data-driving-style="${style}" aria-pressed="${(progress.drivingStyle??'cruising')===style}"><strong>${t(style)}</strong><span>${t(style==='cruising'?'cruisingInfo':'rallyInfo')}</span></button>`).join('')}</div></fieldset>`;
   const languageOptions=()=>`<label class="language pause-language"><span>${t('language')}</span><select data-language aria-label="${t('language')}">${(['en','nl','sv'] as const).map(code=>`<option value="${code}" ${code===language?'selected':''}>${{en:'English',nl:'Nederlands',sv:'Svenska'}[code]}</option>`).join('')}</select></label>`;
   function renderMenus(): void {
     const state=race.state;
+    const wasTitle=document.body.classList.contains('title-screen');
+    document.body.classList.toggle('title-screen',state==='title');
+    if(wasTitle!==(state==='title'))window.scrollTo(0,0);
     input.setDrivingEnabled(state==='racing'||state==='countdown');
     el('race-hud').hidden=!['racing','countdown','paused'].includes(state);
     el('countdown').hidden=state!=='countdown';
     menus.className=state==='title'?'title-menu':state==='select'?'selection-menu':state==='paused'||state==='finished'||state==='crashed'?'center-menu':'';
     if(state==='title') {
-      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div><p>${t('goldenHour')}</p></fieldset><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
+      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div><p>${t('goldenHour')}</p></fieldset><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${icon('chevronRight')}${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
-      menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">← ${t('back')}</button></div>${drivingOptions()}<div class="course-grid">${courses.map((def,i)=> {
+      menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">${icon('arrowLeft')}${t('back')}</button></div>${drivingOptions()}<div class="course-grid">${courses.map((def,i)=> {
         const record=progress.records[courseRecordKey(def.id,progress.drivingStyle)];
         const preview=new Course(def);const outline=preview.lakes.flatMap(l=>l.outline??[]);const xs=[...preview.points.map(p=>p.x),...outline.map(p=>p[0])],zs=[...preview.points.map(p=>p.z),...outline.map(p=>p[1])];const x=Math.min(...xs)-20,z=Math.min(...zs)-20,size=Math.max(Math.max(...xs)-x,Math.max(...zs)-z)+20;
         const path=preview.points.filter((_,j)=>j%5===0).map((p,j)=>`${j?'L':'M'}${p.x},${p.z}`).join(' ')+(def.closed?'Z':'');
-        return `<button class="course-tile ${i===selected?'selected':''}" data-course="${i}" aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${record?t(record.medal):'↗'}</span></div><svg viewBox="${x} ${z} ${size} ${size}" aria-hidden="true">${mapLandscape(preview)}<path d="${path}"/></svg><h2>${def.name}</h2><span class="course-type">${def.setting==='sandsjon'?t('iceLake')+' · ':''}${t(def.closed?'circuit':'stage')} · ${(preview.length/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')}</div></button>`;
+        return `<button class="course-tile ${i===selected?'selected':''}" data-course="${i}" aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${record?t(record.medal):icon('arrowUpRight')}</span></div><svg class="route-preview" viewBox="${x} ${z} ${size} ${size}" aria-hidden="true">${mapLandscape(preview)}<path d="${path}"/></svg><h2>${def.name}</h2><span class="course-type">${def.setting==='sandsjon'?t('iceLake')+' · ':''}${t(def.closed?'circuit':'stage')} · ${(preview.length/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')}</div></button>`;
       }).join('')}</div><div class="selection-bottom"><div><h3>${course.definition.name}</h3>${targets()}</div><div class="selection-actions">${button('practice','practice')}${button('start','play',true)}<small>${t('practiceNote')}</small></div></div></section>`;
     } else if(state==='paused') {
       menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t(input.usingTouch?'touchInfo':'controlInfo')}</p></section>`;

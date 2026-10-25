@@ -141,7 +141,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(...asset.rockGeometry as [number, number]), new THREE.MeshStandardMaterial(asset.rockMaterial), rockPositions.length);
   rockPositions.forEach((p, i) => {
     dummy.position.copy(p); dummy.rotation.set(random(), random() * placement.rocks.rotationY, random()); dummy.scale.set(placement.rocks.scaleX + random() * placement.rocks.scaleXRange, placement.rocks.scaleY + random() * placement.rocks.scaleYRange, placement.rocks.scaleZ + random() * placement.rocks.scaleZRange); dummy.updateMatrix(); rocks.setMatrixAt(i, dummy.matrix);
-    collisions.add({id:`rock-${i}`,x:p.x,z:p.z,radius:Math.max(dummy.scale.x,dummy.scale.z),kind:'rock'});
+    collisions.addRock(`rock-${i}`,rocks.geometry,rocks.material,dummy.matrix);
   });
   rocks.userData.seasonalSurface='stone';
   rocks.castShadow = true; rocks.receiveShadow = true; scene.add(rocks);

@@ -11,7 +11,7 @@ import { createScenery } from './scenery.ts';
 import type { SnowPoles } from './snow-poles.ts';
 import { Input } from './input.ts';
 import { Vehicle } from './vehicle.ts';
-import { Course, courses, WORLD_SIZE } from './track.ts';
+import { Course, courses, WORLD_SIZE, lakeContains } from './track.ts';
 import { Race } from './race.ts';
 import { CollisionWorld } from './collision.ts';
 import { Wildlife } from './wildlife.ts';
@@ -238,8 +238,9 @@ function start(): void {
         if(race.nextCheckpoint!==checkpoint) {
           checkpointGates.pass(checkpoint,race.practice&&course.definition.closed&&race.nextCheckpoint===1);
         }
-        if(race.state==='racing'&&(course.inWater(car.position.x,car.position.z)||Math.abs(car.position.x)>WORLD_SIZE/2-8||Math.abs(car.position.z)>WORLD_SIZE/2-8)) {
-          recover(course.inWater(car.position.x,car.position.z)?'water':'boundary');break;
+        const inWater=course.inWater(car.position.x,car.position.z)&&course.lakes.some(lake=>lakeContains(lake,car.position.x,car.position.z)&&car.position.y<=lake.level);
+        if(race.state==='racing'&&(inWater||Math.abs(car.position.x)>WORLD_SIZE/2-8||Math.abs(car.position.z)>WORLD_SIZE/2-8)) {
+          recover(inWater?'water':'boundary');break;
         }
         accumulator-=step;
       }
@@ -249,6 +250,11 @@ function start(): void {
       const activeWildlife=wildlife.animals.some(a=>a.state==='crossing'&&a.mesh.position.distanceTo(car.position)<45);
       if(activeWildlife&&performance.now()>toastUntil)announce('wildlife');
       else if(car.forwardSpeed>9&&traffic.aheadOf(car.position)&&performance.now()>toastUntil)announce('traffic');
+    } else if(race.state==='crashed'&&car.stunts.active) {
+      // A wreck finishes its tumble while the result panel is open.
+      accumulator+=Math.min(wallDelta,.1);
+      while(accumulator>=step) {car.update(step,{throttle:0,steer:0,handbrake:false},world);snowPoles.update(step);accumulator-=step;}
+      follow(car,Math.min(wallDelta,.05));
     } else accumulator=0;
     if(race.state!=='paused')checkpointGates.update(Math.min(wallDelta,.1));
     if(race.state==='finished'&&before!=='finished') {
@@ -260,7 +266,7 @@ function start(): void {
     el('race-time').textContent=time(race.practice?race.elapsed:race.total);
     el('speed').textContent=Math.round(car.velocity.length()*3.6).toString().padStart(3,'0');
     el('gear').textContent=car.forwardSpeed<-.5?'R':Math.abs(car.forwardSpeed)<.5?'N':'D';
-    el('surface').textContent=t(course.onIce(car.position.x,car.position.z)?'ice':car.onRoad?'gravel':'offRoad');
+    el('surface').textContent=t(car.stunts.airborne?'airborne':car.stunts.active&&car.stunts.upright<.25?'overturned':car.stunts.active&&car.stunts.wheelsOnGround===2?'twoWheels':course.onIce(car.position.x,car.position.z)?'ice':car.onRoad?'gravel':'offRoad');
     el('condition-value').textContent=`${Math.ceil(100-car.damage)}%`;
     el('condition-fill').style.width=`${100-car.damage}%`;
     el('condition-fill').classList.toggle('critical',car.damage>65);

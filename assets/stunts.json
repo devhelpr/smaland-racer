@@ -1,0 +1,46 @@
+{
+  "gravity": 9.81,
+  "centerOfMassHeight": 0.95,
+  "inertia": [
+    1.55,
+    1.65,
+    0.5
+  ],
+  "contactSlop": 0.025,
+  "contactBias": 0.035,
+  "positionCorrection": 0.18,
+  "maxCorrection": 0.12,
+  "solverIterations": 6,
+  "restitution": 0.12,
+  "bounceThreshold": 3,
+  "airDrag": 0.015,
+  "angularAirDrag": 0.12,
+  "angularGroundDrag": 1.4,
+  "bodyDrag": 2.8,
+  "surfaceFriction": 0.65,
+  "landingDamageThreshold": 5.5,
+  "landingDamageScale": 1.25,
+  "bodyDamageScale": 0.4,
+  "damageCooldown": 0.35,
+  "settleHeight": 0.06,
+  "settleSpeed": 0.6,
+  "settleAngularSpeed": 0.25,
+  "settleUp": 0.995,
+  "wheelContactMinimumUp": 0.25,
+  "bodyContactBounds": {
+    "min": [
+      -0.94,
+      0.48,
+      -1.95
+    ],
+    "max": [
+      0.94,
+      1.86,
+      1.95
+    ],
+    "samplesX": 3,
+    "samplesZ": 5
+  },
+  "maxBiasSpeed": 0.75,
+  "tireTorqueScale": 0.3
+}

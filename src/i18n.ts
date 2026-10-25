@@ -1,5 +1,6 @@
 import type { Language } from './storage.ts';
 const en={
+  airborne:'Airborne',twoWheels:'Two wheels',overturned:'Overturned · R to recover',
   drivingStyle:'Driving style',cruising:'Cruising',rally:'Rally',cruisingInfo:'The original handling. Easy pace, grass slows you down.',rallyInfo:'More speed, quicker acceleration, less drag on grass.',ice:'Ice',iceLake:'Winter lake · Road 120 underpass',
   country:'Sweden',
   season:'Season',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter',goldenHour:'Golden hour · every season',
@@ -31,6 +32,7 @@ const en={
 };
 export type TextKey=keyof typeof en;
 const nl: Record<TextKey,string>={
+  airborne:'In de lucht',twoWheels:'Twee wielen',overturned:'Omgeslagen · R om terug te zetten',
   drivingStyle:'Rijstijl',cruising:'Cruising',rally:'Rally',cruisingInfo:'Het originele rijgedrag. Rustig rijden; gras remt je af.',rallyInfo:'Meer snelheid, sneller optrekken, minder weerstand op gras.',ice:'IJs',iceLake:'Wintermeer · Onder de brug van weg 120',
   country:'Zweden',
   season:'Seizoen',spring:'Lente',summer:'Zomer',autumn:'Herfst',winter:'Winter',goldenHour:'Het gouden uurtje · elk seizoen',
@@ -61,6 +63,7 @@ const nl: Record<TextKey,string>={
   exitPractice:'Stop vrij rijden',distance:'km',selectLabel:'Kies een parcours',countdownLabel:'Aftellen voor de start',
 };
 const sv: Record<TextKey,string>={
+  airborne:'I luften',twoWheels:'Två hjul',overturned:'Vält · R till vägen',
   drivingStyle:'Körstil',cruising:'Cruising',rally:'Rally',cruisingInfo:'Den ursprungliga körkänslan. Lugn fart, gräset bromsar.',rallyInfo:'Högre fart, snabbare acceleration, mindre motstånd på gräs.',ice:'Is',iceLake:'Vintersjö · Under bron på väg 120',
   country:'Sverige',
   season:'Årstid',spring:'Vår',summer:'Sommar',autumn:'Höst',winter:'Vinter',goldenHour:'Gyllene timmen · alla årstider',

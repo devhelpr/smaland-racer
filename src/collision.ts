@@ -3,6 +3,8 @@ import * as THREE from 'three';
 export type ObstacleKind = 'tree' | 'rock' | 'building' | 'moose' | 'deer' | 'snowPole' | 'aTractor';
 export interface Collider { id: string; x: number; z: number; radius: number; kind: ObstacleKind; active?: boolean; velocity?: THREE.Vector3; onHit?: (velocity: THREE.Vector3) => void }
 export interface BoxCollider extends Collider { halfX: number; halfZ: number; angle: number }
+export interface SurfaceContact { height: number; normal: THREE.Vector3; rock: boolean }
+interface RockSurface { mesh: THREE.Mesh; top: number; normalMatrix: THREE.Matrix3 }
 export interface Hit { collider: Collider; time: number; normal: THREE.Vector3 }
 export const CAR_RADIUS=vehicleAsset.colliderRadius;
 export function impactDamage(speed: number,kind: ObstacleKind): number {
@@ -50,6 +52,41 @@ export class CollisionWorld {
   private cells=new Map<string,Collider[]>();
   private cellSize=16;
   readonly dynamic: Collider[]=[];
+  private rockSurfaces=new Map<string,RockSurface>();
+  private surfaceRay=new THREE.Raycaster();
+
+  /** Use the exact same transformed facets for drawing and wheel/chassis contact. */
+  addRock(id:string,geometry:THREE.BufferGeometry,material:THREE.Material|THREE.Material[],matrix:THREE.Matrix4):void {
+    const mesh=new THREE.Mesh(geometry,material);mesh.matrixAutoUpdate=false;
+    mesh.matrix.copy(matrix);mesh.matrixWorld.copy(matrix);
+    if(!geometry.boundingSphere)geometry.computeBoundingSphere();
+    const sphere=geometry.boundingSphere!.clone().applyMatrix4(matrix);
+    const bounds=new THREE.Box3().setFromObject(mesh),center=sphere.center,radius=sphere.radius;
+    this.rockSurfaces.set(id,{mesh,top:bounds.max.y,normalMatrix:new THREE.Matrix3().getNormalMatrix(matrix)});
+    this.add({id,x:center.x,z:center.z,radius,kind:'rock'});
+  }
+
+  hasRockNear(x:number,z:number,radius:number):boolean {
+    for(let cx=Math.floor((x-radius)/this.cellSize);cx<=Math.floor((x+radius)/this.cellSize);cx++)
+      for(let cz=Math.floor((z-radius)/this.cellSize);cz<=Math.floor((z+radius)/this.cellSize);cz++)
+        for(const collider of this.cells.get(`${cx}:${cz}`)??[])
+          if(this.rockSurfaces.has(collider.id)&&Math.hypot(x-collider.x,z-collider.z)<radius+collider.radius)return true;
+    return false;
+  }
+
+  surfaceAt(x:number,z:number,height:number,normal=new THREE.Vector3(0,1,0)):SurfaceContact {
+    const result={height,normal,rock:false};
+    for(const collider of this.cells.get(`${Math.floor(x/this.cellSize)}:${Math.floor(z/this.cellSize)}`)??[]) {
+      const surface=this.rockSurfaces.get(collider.id);
+      if(!surface||collider.active===false||Math.hypot(x-collider.x,z-collider.z)>collider.radius)continue;
+      this.surfaceRay.set(new THREE.Vector3(x,surface.top+1,z),new THREE.Vector3(0,-1,0));
+      const hit=this.surfaceRay.intersectObject(surface.mesh,false)[0];
+      if(hit&&hit.point.y>result.height) {
+        result.height=hit.point.y;result.normal=hit.face!.normal.clone().applyNormalMatrix(surface.normalMatrix);result.rock=true;
+      }
+    }
+    return result;
+  }
   add(collider: Collider): void {
     const r=collider.radius;
     for(let x=Math.floor((collider.x-r)/this.cellSize);x<=Math.floor((collider.x+r)/this.cellSize);x++)
@@ -57,14 +94,14 @@ export class CollisionWorld {
         const key=`${x}:${z}`; const cell=this.cells.get(key)??[]; cell.push(collider); this.cells.set(key,cell);
       }
   }
-  sweep(from: THREE.Vector3,to: THREE.Vector3): Hit|null {
+  sweep(from: THREE.Vector3,to: THREE.Vector3,driveOverRocks=false): Hit|null {
     const candidates=new Set(this.dynamic.filter(c=>c.active!==false));
     for(let x=Math.floor((Math.min(from.x,to.x)-CAR_RADIUS)/this.cellSize);x<=Math.floor((Math.max(from.x,to.x)+CAR_RADIUS)/this.cellSize);x++)
       for(let z=Math.floor((Math.min(from.z,to.z)-CAR_RADIUS)/this.cellSize);z<=Math.floor((Math.max(from.z,to.z)+CAR_RADIUS)/this.cellSize);z++)
         for(const c of this.cells.get(`${x}:${z}`)??[]) candidates.add(c);
     let best: Hit|null=null;
     for(const c of candidates) {
-      if(c.active===false) continue;
+      if(c.active===false||(driveOverRocks&&this.rockSurfaces.has(c.id))) continue;
       const hit='halfX' in c?sweepBox(from,to,c as BoxCollider):sweepCircle(from,to,c);
       if(hit&&(!best||hit.time<best.time)) best=hit;
     }

@@ -1,3 +1,5 @@
+import { StuntDynamics } from './stunts.ts';
+import stuntAsset from '../assets/stunts.json' with { type: 'json' };
 import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
 import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
@@ -9,6 +11,7 @@ export class Vehicle {
   readonly mesh = new THREE.Group();
   readonly position = new THREE.Vector3();
   readonly velocity = new THREE.Vector3();
+  readonly stunts = new StuntDynamics();
   heading = 0;
   forwardSpeed = 0;
   onRoad = true;
@@ -66,6 +69,9 @@ export class Vehicle {
     const smokeGeometry = new THREE.IcosahedronGeometry(...asset.smokeGeometry as [number, number]);
     for(let i=0;i<asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
     this.mesh.add(this.smoke);
+    // Rotate the model around its center of mass, including during a full rollover.
+    const body=new THREE.Group();body.add(...this.mesh.children);
+    body.position.y=-stuntAsset.centerOfMassHeight;this.mesh.add(body);
     this.restart();
   }
 
@@ -78,6 +84,7 @@ export class Vehicle {
     this.position.copy(point).addScaledVector(tangent,advance?1.8:0);
     this.position.y=this.course.height(this.position.x,this.position.z);
     this.heading=Math.atan2(tangent.x,tangent.z);
+    this.stunts.reset();
     this.velocity.set(0,0,0); this.forwardSpeed=0; this.steering=0; this.onRoad=true; this.contacts.clear(); this.syncMesh();
   }
 
@@ -94,24 +101,33 @@ export class Vehicle {
     const power=1-Math.max(0,this.damage-50)/50*.25;
     const ice=this.course.onIce(this.position.x,this.position.z);
     const surface=ice?this.profiles.ice:this.onRoad?profile.road:profile.grass;
+    const traction=this.stunts.traction;
+    const verticalSpeed=this.velocity.y;
+    const previousVelocity=this.velocity.clone();
     const acceleration=braking?profile.braking*(ice?this.profiles.ice.brakingScale:1):(input.throttle<0?profile.reverseAcceleration:profile.acceleration)*power*(ice?this.profiles.ice.accelerationScale:1);
     // Cursor-key assistance eases into a slide at speed without holding the full handbrake.
     const autoDrift=input.autoDrift&&input.throttle>0&&input.steer!==0
       ?handling.autoDriftStrength*THREE.MathUtils.clamp((longitudinal-handling.autoDriftMinSpeed)/handling.autoDriftFadeInSpeed,0,1):0;
-    longitudinal+=input.throttle*acceleration*dt;
-    longitudinal*=Math.exp(-surface.drag*dt);
-    if(input.handbrake) longitudinal*=Math.exp(-(ice?this.profiles.ice.handbrakeDrag:handling.handbrakeDrag)*dt);
-    if(!input.handbrake&&autoDrift>0)longitudinal*=Math.exp(-handling.autoDriftDrag*autoDrift*dt);
-    longitudinal=THREE.MathUtils.clamp(longitudinal,-profile.reverseSpeed,(ice?profile.road.speed:surface.speed)*power);
+    const topSpeed=(ice?profile.road.speed:surface.speed)*power;
+    const driven=longitudinal+input.throttle*acceleration*traction*dt;
+    // Surface limits constrain engine power; existing momentum decays through drag.
+    longitudinal=THREE.MathUtils.clamp(driven,Math.min(-profile.reverseSpeed,longitudinal),Math.max(topSpeed,longitudinal));
+    longitudinal*=Math.exp(-(surface.drag*traction+stuntAsset.airDrag*(1-traction))*dt);
+    if(input.handbrake&&traction>0) longitudinal*=Math.exp(-(ice?this.profiles.ice.handbrakeDrag:handling.handbrakeDrag)*dt);
+    if(!input.handbrake&&autoDrift>0&&traction>0)longitudinal*=Math.exp(-handling.autoDriftDrag*autoDrift*dt);
     const normalGrip=surface.grip/handling.drift;
     const slideGrip=Math.min(handling.handbrakeGrip,normalGrip);
-    lateral*=Math.exp(-(input.handbrake?Math.min(handling.handbrakeGrip,surface.grip):THREE.MathUtils.lerp(normalGrip,slideGrip,autoDrift))*dt);
-    this.heading+=this.steering*longitudinal*(handling.steeringStrength/(1+Math.abs(longitudinal)*handling.speedSensitivity))*dt*(input.handbrake?handling.handbrakeTurn:THREE.MathUtils.lerp(1,handling.handbrakeTurn,autoDrift));
+    const lateralDrag=(input.handbrake?Math.min(handling.handbrakeGrip,surface.grip):THREE.MathUtils.lerp(normalGrip,slideGrip,autoDrift))*traction+stuntAsset.airDrag*(1-traction);
+    lateral*=Math.exp(-lateralDrag*dt);
+    this.heading+=this.steering*longitudinal*traction*(handling.steeringStrength/(1+Math.abs(longitudinal)*handling.speedSensitivity))*dt*(input.handbrake?handling.handbrakeTurn:THREE.MathUtils.lerp(1,handling.handbrakeTurn,autoDrift));
     this.velocity.copy(forward).multiplyScalar(longitudinal).addScaledVector(right,lateral);
+    this.velocity.y=verticalSpeed;
+    this.stunts.applyTireImpulse(this.velocity.clone().sub(previousVelocity));
     let remaining=dt;
     for(let iteration=0;iteration<3&&remaining>0;iteration++) {
       const destination=this.position.clone().addScaledVector(this.velocity,remaining);
-      const hit=collisions?.sweep(this.position,destination);
+      destination.y=this.position.y;
+      const hit=collisions?.sweep(this.position,destination,true);
       if(!hit) {this.position.copy(destination);break;}
       if(hit.collider.kind==='snowPole' && this.velocity.lengthSq()>1e-6) {
         hit.collider.active=false;
@@ -136,7 +152,10 @@ export class Vehicle {
       }
       remaining*=1-hit.time;
     }
-    this.position.y=this.course.height(this.position.x,this.position.z);
+    const landingDamage=this.stunts.update(dt,this.position,this.velocity,this.heading,this.course,collisions);
+    this.heading=this.stunts.groundedHeading()??this.heading;
+    if(landingDamage>0) {this.damage=Math.min(100,this.damage+landingDamage);this.impact=Math.min(1,landingDamage/20);}
+    if(!this.stunts.active) {this.position.y=this.course.height(this.position.x,this.position.z);this.velocity.y=0;}
     this.forwardSpeed=this.velocity.dot(forward);
     this.syncMesh();
     for(const wheel of this.wheels) {
@@ -155,7 +174,9 @@ export class Vehicle {
   }
 
   private syncMesh(): void {
-    this.mesh.position.copy(this.position).y += 0.12;
+    this.mesh.position.copy(this.position).y += 0.12+stuntAsset.centerOfMassHeight;
+    if(this.stunts.active) {this.mesh.quaternion.copy(this.stunts.rotation);return;}
+    this.mesh.rotation.order='YXZ';
     this.mesh.rotation.set(0, this.heading, 0);
     const dx = Math.sin(this.heading); const dz = Math.cos(this.heading);
     this.mesh.rotation.x = -Math.atan((this.course.height(this.position.x + dx, this.position.z + dz) - this.course.height(this.position.x - dx, this.position.z - dz)) / 2);

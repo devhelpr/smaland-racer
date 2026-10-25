@@ -1,4 +1,4 @@
-import { drivingProfiles, type DrivingStyle } from './driving.ts';
+import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
 import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course } from './track.ts';
@@ -23,7 +23,9 @@ export class Vehicle {
 
   readonly course: Course;
   readonly drivingStyle: DrivingStyle;
-  constructor(course: Course, drivingStyle: DrivingStyle = 'cruising') {
+  readonly profiles: DrivingProfiles;
+  constructor(course: Course, drivingStyle: DrivingStyle = 'cruising', profiles: DrivingProfiles = drivingProfiles) {
+    this.profiles=profiles;
     this.drivingStyle=drivingStyle;
     this.course=course;
     const paint = new THREE.MeshStandardMaterial(asset.paint);
@@ -85,19 +87,20 @@ export class Vehicle {
     const forward=new THREE.Vector3(Math.sin(this.heading),0,Math.cos(this.heading));
     const right=new THREE.Vector3(Math.cos(this.heading),0,-Math.sin(this.heading));
     let longitudinal=this.velocity.dot(forward); let lateral=this.velocity.dot(right);
-    this.steering=THREE.MathUtils.damp(this.steering,input.steer,9,dt);
+    const profile=this.profiles[this.drivingStyle];
+    const handling=profile.handling;
+    this.steering=THREE.MathUtils.damp(this.steering,input.steer,handling.steeringResponse,dt);
     const braking=input.throttle!==0&&Math.sign(input.throttle)!==Math.sign(longitudinal)&&Math.abs(longitudinal)>0.8;
     const power=1-Math.max(0,this.damage-50)/50*.25;
-    const profile=drivingProfiles[this.drivingStyle];
     const ice=this.course.onIce(this.position.x,this.position.z);
-    const surface=ice?drivingProfiles.ice:this.onRoad?profile.road:profile.grass;
-    const acceleration=braking?profile.braking*(ice?drivingProfiles.ice.brakingScale:1):(input.throttle<0?profile.reverseAcceleration:profile.acceleration)*power*(ice?drivingProfiles.ice.accelerationScale:1);
+    const surface=ice?this.profiles.ice:this.onRoad?profile.road:profile.grass;
+    const acceleration=braking?profile.braking*(ice?this.profiles.ice.brakingScale:1):(input.throttle<0?profile.reverseAcceleration:profile.acceleration)*power*(ice?this.profiles.ice.accelerationScale:1);
     longitudinal+=input.throttle*acceleration*dt;
     longitudinal*=Math.exp(-surface.drag*dt);
-    if(input.handbrake) longitudinal*=Math.exp(-(ice?drivingProfiles.ice.handbrakeDrag:1.35)*dt);
+    if(input.handbrake) longitudinal*=Math.exp(-(ice?this.profiles.ice.handbrakeDrag:handling.handbrakeDrag)*dt);
     longitudinal=THREE.MathUtils.clamp(longitudinal,-profile.reverseSpeed,(ice?profile.road.speed:surface.speed)*power);
-    lateral*=Math.exp(-(input.handbrake?Math.min(1.4,surface.grip):surface.grip)*dt);
-    this.heading+=this.steering*longitudinal*(.08/(1+Math.abs(longitudinal)*.045))*dt*(input.handbrake?1.6:1);
+    lateral*=Math.exp(-(input.handbrake?Math.min(handling.handbrakeGrip,surface.grip):surface.grip/handling.drift)*dt);
+    this.heading+=this.steering*longitudinal*(handling.steeringStrength/(1+Math.abs(longitudinal)*handling.speedSensitivity))*dt*(input.handbrake?handling.handbrakeTurn:1);
     this.velocity.copy(forward).multiplyScalar(longitudinal).addScaledVector(right,lateral);
     let remaining=dt;
     for(let iteration=0;iteration<3&&remaining>0;iteration++) {

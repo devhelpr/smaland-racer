@@ -1,3 +1,4 @@
+import { DrivingTuner } from './tuning.ts';
 import { icon, iconText } from './icons.ts';
 import sandsjonAsset from '../assets/sandsjon.json' with { type: 'json' };
 import { drivingStyles, isDrivingStyle } from './driving.ts';
@@ -31,6 +32,7 @@ function start(): void {
   const time=(value:number)=>formatTime(value,language);
   const {renderer,scene,camera,follow,setSeason}=createRendering(el('viewport'));
   const input=new Input(renderer.domElement);
+  const tuner=new DrivingTuner(()=>progress.drivingStyle??'cruising',()=>input.clear());
   el('keyboard-arrows').innerHTML=icon('arrowKeys');
   let group=new THREE.Group();
   let selected=0;
@@ -64,7 +66,7 @@ function start(): void {
     disposeGroup(group);
     selected=index;course=new Course(courses[index]);world=new CollisionWorld();group=new THREE.Group();scene.add(group);
     snowPoles=createScenery(group,course,world);
-    car=new Vehicle(course,progress.drivingStyle);group.add(car.mesh);
+    car=new Vehicle(course,progress.drivingStyle,tuner.profiles);group.add(car.mesh);
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
     traffic=new Traffic(course,world,group);
@@ -107,6 +109,7 @@ function start(): void {
   function updateLabels(): void {
     document.documentElement.lang=language;
     el('app').classList.toggle('touch-input',input.usingTouch);
+    tuner.refresh();
     el('keyboard-controls').hidden=input.usingTouch;
     el('touch-controls').hidden=!input.usingTouch;
     el('touch-controls').innerHTML=`<span>${iconText(t('touchHint'))}</span><span>${t('touchExtras')}</span>`;

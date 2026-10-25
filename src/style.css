@@ -73,3 +73,31 @@ body.title-screen #app{position:relative;inset:auto;min-height:100dvh}
 .title-details summary::-webkit-details-marker{display:none}
 .title-details summary .icon{width:14px;height:14px}
 .title-details details[open] summary .icon{transform:rotate(90deg)}
+
+/* The desktop minimap switches into a live driving workshop. */
+.map-tools{display:flex;justify-content:flex-end;margin-top:8px}
+.map-tools button,.tuning-heading button,.tuning-bottom button{pointer-events:auto;border:1px solid #eee3be44;border-radius:3px;background:transparent;color:var(--cream);cursor:pointer}
+#tuning-toggle{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;font-size:9px}
+#tuning-toggle .icon,#tuning-copy .icon{width:14px;height:14px}
+#tuning-toggle[aria-checked=true]{color:var(--gold);border-color:var(--gold)}
+.route-card.tuning-open{width:310px;max-height:calc(100dvh - 260px);overflow-y:auto;pointer-events:auto;overscroll-behavior:contain}
+#tuning-panel{margin-top:12px;pointer-events:auto}
+.tuning-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px}
+#tuning-copy{display:grid;place-items:center;width:28px;height:28px}
+.tuning-hint{font-size:10px;line-height:1.5;opacity:.75;margin:8px 0 12px}
+#tuning-controls details{border-top:1px solid #eee3be33;padding:9px 0}
+#tuning-controls summary{cursor:pointer;font-size:11px;color:var(--gold)}
+.tuning-control{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin-top:11px;font-size:10px}
+.tuning-control output{color:var(--gold);font-variant-numeric:tabular-nums}
+.tuning-control input{grid-column:1 / -1;width:100%;margin:0;accent-color:var(--gold);cursor:pointer}
+.tuning-bottom{border-top:1px solid #eee3be33;padding-top:10px}
+.tuning-bottom button{font-size:9px;padding:6px 8px}
+#tuning-status{display:block;font-size:9px;line-height:1.5;margin-top:8px;opacity:.8}
+#tuning-export{width:100%;height:80px;margin-top:8px;font-size:10px}
+.touch-input .map-tools,.touch-input #tuning-panel{display:none}
+@media(max-height:550px){.route-card.tuning-open{max-height:calc(100dvh - 180px)}}
+/* Keep mode, copy and reset controls visible while the sliders scroll. */
+.route-card.tuning-open{display:flex;flex-direction:column;overflow:hidden}
+.tuning-open .route-heading,.tuning-open .map-tools,.tuning-heading,.tuning-hint,.tuning-bottom{flex-shrink:0}
+.tuning-open #tuning-panel{display:flex;flex-direction:column;min-height:0}
+#tuning-controls{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}

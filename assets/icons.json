@@ -2,13 +2,35 @@
   "viewBox": "0 0 24 24",
   "strokeWidth": 1.8,
   "paths": {
-    "arrowUpRight": ["M7 17 17 7M7 7h10v10"],
-    "arrowLeft": ["M19 12H5m7-7-7 7 7 7"],
-    "arrowUp": ["M12 19V5m-7 7 7-7 7 7"],
-    "arrowDown": ["M12 5v14m-7-7 7 7 7-7"],
-    "arrowHorizontal": ["M4 12h16M8 8l-4 4 4 4m8-8 4 4-4 4"],
-    "arrowKeys": ["M12 10V2m-3 3 3-3 3 3M12 14v8m-3-3 3 3 3-3M10 12H2m3-3-3 3 3 3M14 12h8m-3-3 3 3-3 3"],
-    "pause": ["M8 5v14M16 5v14"],
-    "chevronRight": ["m9 5 7 7-7 7"]
+    "arrowUpRight": [
+      "M7 17 17 7M7 7h10v10"
+    ],
+    "arrowLeft": [
+      "M19 12H5m7-7-7 7 7 7"
+    ],
+    "arrowUp": [
+      "M12 19V5m-7 7 7-7 7 7"
+    ],
+    "arrowDown": [
+      "M12 5v14m-7-7 7 7 7-7"
+    ],
+    "arrowHorizontal": [
+      "M4 12h16M8 8l-4 4 4 4m8-8 4 4-4 4"
+    ],
+    "arrowKeys": [
+      "M12 10V2m-3 3 3-3 3 3M12 14v8m-3-3 3 3 3-3M10 12H2m3-3-3 3 3 3M14 12h8m-3-3 3 3-3 3"
+    ],
+    "pause": [
+      "M8 5v14M16 5v14"
+    ],
+    "chevronRight": [
+      "m9 5 7 7-7 7"
+    ],
+    "tune": [
+      "M4 7h16M4 17h16M9 4v6M15 14v6"
+    ],
+    "copy": [
+      "M9 9h11v12H9zM15 9V3H3v12h6"
+    ]
   }
 }

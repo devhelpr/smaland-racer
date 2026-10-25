@@ -1,0 +1,181 @@
+[
+  {
+    "label": "Power",
+    "controls": [
+      {
+        "path": "acceleration",
+        "label": "Acceleration",
+        "min": 1,
+        "max": 50,
+        "step": 0.5
+      },
+      {
+        "path": "reverseAcceleration",
+        "label": "Reverse acceleration",
+        "min": 1,
+        "max": 30,
+        "step": 0.5
+      },
+      {
+        "path": "braking",
+        "label": "Braking",
+        "min": 1,
+        "max": 60,
+        "step": 0.5
+      },
+      {
+        "path": "reverseSpeed",
+        "label": "Reverse speed",
+        "min": 1,
+        "max": 25,
+        "step": 0.5
+      }
+    ]
+  },
+  {
+    "label": "Steering & drift",
+    "controls": [
+      {
+        "path": "handling.steeringResponse",
+        "label": "Steering response",
+        "min": 1,
+        "max": 20,
+        "step": 0.5
+      },
+      {
+        "path": "handling.steeringStrength",
+        "label": "Steering strength",
+        "min": 0.01,
+        "max": 0.2,
+        "step": 0.005
+      },
+      {
+        "path": "handling.speedSensitivity",
+        "label": "Speed steering reduction",
+        "min": 0,
+        "max": 0.1,
+        "step": 0.005
+      },
+      {
+        "path": "handling.drift",
+        "label": "Drift \u00b7 higher = more slide",
+        "min": 0.25,
+        "max": 4,
+        "step": 0.05
+      },
+      {
+        "path": "handling.handbrakeGrip",
+        "label": "Handbrake grip",
+        "min": 0.1,
+        "max": 8,
+        "step": 0.1
+      },
+      {
+        "path": "handling.handbrakeDrag",
+        "label": "Handbrake drag",
+        "min": 0,
+        "max": 4,
+        "step": 0.05
+      },
+      {
+        "path": "handling.handbrakeTurn",
+        "label": "Handbrake turn",
+        "min": 0.5,
+        "max": 3,
+        "step": 0.05
+      }
+    ]
+  },
+  {
+    "label": "Gravel",
+    "controls": [
+      {
+        "path": "road.speed",
+        "label": "Top speed",
+        "min": 5,
+        "max": 90,
+        "step": 1
+      },
+      {
+        "path": "road.drag",
+        "label": "Drag",
+        "min": 0,
+        "max": 3,
+        "step": 0.01
+      },
+      {
+        "path": "road.grip",
+        "label": "Grip",
+        "min": 0.1,
+        "max": 12,
+        "step": 0.1
+      }
+    ]
+  },
+  {
+    "label": "Grass",
+    "controls": [
+      {
+        "path": "grass.speed",
+        "label": "Top speed",
+        "min": 5,
+        "max": 90,
+        "step": 1
+      },
+      {
+        "path": "grass.drag",
+        "label": "Drag",
+        "min": 0,
+        "max": 4,
+        "step": 0.01
+      },
+      {
+        "path": "grass.grip",
+        "label": "Grip",
+        "min": 0.1,
+        "max": 12,
+        "step": 0.1
+      }
+    ]
+  },
+  {
+    "label": "Ice \u00b7 shared by both styles",
+    "controls": [
+      {
+        "path": "ice.drag",
+        "label": "Drag",
+        "min": 0,
+        "max": 2,
+        "step": 0.005
+      },
+      {
+        "path": "ice.grip",
+        "label": "Grip",
+        "min": 0.05,
+        "max": 8,
+        "step": 0.05
+      },
+      {
+        "path": "ice.brakingScale",
+        "label": "Braking multiplier",
+        "min": 0.05,
+        "max": 1.5,
+        "step": 0.05
+      },
+      {
+        "path": "ice.accelerationScale",
+        "label": "Acceleration multiplier",
+        "min": 0.05,
+        "max": 1.5,
+        "step": 0.05
+      },
+      {
+        "path": "ice.handbrakeDrag",
+        "label": "Handbrake drag",
+        "min": 0,
+        "max": 3,
+        "step": 0.05
+      }
+    ]
+  }
+]

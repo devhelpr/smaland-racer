@@ -1,0 +1,20 @@
+{
+  "gateMaterial": {
+    "color": "#e9ddba"
+  },
+  "accent": {
+    "color": "#bd6c40"
+  },
+  "post": [0.25,3.5,0.25],
+  "postOffset": 1,
+  "postHeight": 1.75,
+  "beamWidthExtra": 2.5,
+  "beamHeight": 0.7,
+  "beamDepth": 0.15,
+  "beamY": 3.7,
+  "checkCount": 18,
+  "checkHeight": 0.35,
+  "checkDepth": 0.16,
+  "checkCenter": 8.5,
+  "checkOffsetY": 0.175
+}

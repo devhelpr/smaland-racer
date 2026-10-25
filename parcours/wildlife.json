@@ -1,0 +1,16 @@
+{
+  "start": 0.16,
+  "jitter": 0.45,
+  "span": 0.69,
+  "mooseProbability": 0.4,
+  "sideProbability": 0.5,
+  "mooseSpeed": 7,
+  "mooseSpeedRange": 2,
+  "deerSpeed": 9,
+  "deerSpeedRange": 3,
+  "delayRange": 0.7,
+  "vergeOffset": 5,
+  "signMinProgress": 0.02,
+  "signDistance": 55,
+  "signRoadOffset": 1.5
+}

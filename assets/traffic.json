@@ -1,0 +1,85 @@
+{
+  "paint": {
+    "roughness": 0.68,
+    "metalness": 0.15
+  },
+  "dark": {
+    "color": "#27312d",
+    "roughness": 0.8
+  },
+  "glass": {
+    "color": "#779b9d",
+    "roughness": 0.28,
+    "metalness": 0.25
+  },
+  "chrome": {
+    "color": "#c0c5b7",
+    "metalness": 0.45,
+    "roughness": 0.45
+  },
+  "rearLight": {
+    "color": "#bc4432",
+    "emissive": "#b33120",
+    "emissiveIntensity": 0.35
+  },
+  "frontLight": {
+    "color": "#f5e4a9",
+    "emissive": "#d1ba7a",
+    "emissiveIntensity": 0.2
+  },
+  "body": [1.96,0.6,4.15,0,0.85,0],
+  "cabinWidthHeight": [1.67,0.7],
+  "cabinXY": [0,1.48],
+  "roofWidthHeight": [1.77,0.13],
+  "roofXY": [0,1.88],
+  "pillarX": [-0.83,0.83],
+  "pickupPillarZ": [-0.35,0.85],
+  "wagonPillarZ": [-1.55,-0.2,0.95],
+  "pillarSize": [0.1,0.74,0.12],
+  "pickupBed": [1.55,0.09,1.35,0,1.17,-1.17],
+  "bedSideX": [-0.9,0.9],
+  "bedSideSize": [0.14,0.3,1.5],
+  "bedSideYZ": [1.23,-1.2],
+  "bumperZ": [-2.12,2.12],
+  "bumperSizeXY": [2.04,0.17,0.17,0,0.62],
+  "lampX": [-0.7,0.7],
+  "headlampSize": [0.35,0.23,0.07],
+  "headlampYZ": [0.98,2.1],
+  "tailLampSize": [0.3,0.25,0.07],
+  "tailLampYZ": [0.98,-2.1],
+  "grille": [0.78,0.23,0.07,0,0.98,2.11],
+  "wheelZ": [-1.35,1.35],
+  "tire": [0.44,0.44,0.26,10],
+  "hub": [0.24,0.24,0.28,8],
+  "triangleTop": [0,0.38],
+  "triangleLeft": [-0.43,-0.32],
+  "triangleRight": [0.43,-0.32],
+  "border": {
+    "color": "#b93b2c"
+  },
+  "center": {
+    "color": "#f39242"
+  },
+  "paintColors": ["#4f797a","#913d39","#6f784b","#596d8a"],
+  "pickup": {
+    "cabinDepth": 1.2,
+    "roofDepth": 1.35,
+    "cabinZ": 0.25
+  },
+  "wagon": {
+    "cabinDepth": 2.5,
+    "roofDepth": 2.65,
+    "cabinZ": -0.3
+  },
+  "pillarHeight": 1.5,
+  "wheelHeight": 0.47,
+  "wheelX": [-1,1],
+  "triangleBorderPosition": [0,1.3,-2.17],
+  "triangleCenterPosition": [0,1.3,-2.18],
+  "triangleCenterScale": 0.73,
+  "collider": {
+    "radius": 2.35,
+    "halfX": 1.03,
+    "halfZ": 2.15
+  }
+}

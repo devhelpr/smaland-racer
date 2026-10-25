@@ -1,3 +1,4 @@
+import asset from '../assets/snow-poles.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course } from './track.ts';
 import type { Collider, CollisionWorld } from './collision.ts';
@@ -17,17 +18,17 @@ export class SnowPoles {
   readonly poles: SnowPole[] = [];
 
   constructor(course: Course, world: CollisionWorld, group: THREE.Group) {
-    const height = 2.2;
-    const shaftGeometry = new THREE.CylinderGeometry(0.035, 0.055, height, 6);
-    const bandGeometry = new THREE.CylinderGeometry(0.058, 0.058, 0.13, 6);
-    const orange = new THREE.MeshStandardMaterial({ color: '#ed6437', roughness: 0.8 });
-    const reflective = new THREE.MeshStandardMaterial({ color: '#fff3dd', roughness: 0.35, emissive: '#b7b2a1', emissiveIntensity: 0.15 });
-    const count = Math.ceil(course.length / 28);
+    const height = asset.height;
+    const shaftGeometry = new THREE.CylinderGeometry(asset.shaftRadiusTop, asset.shaftRadiusBottom, height, asset.shaftSegments);
+    const bandGeometry = new THREE.CylinderGeometry(...asset.bandGeometry as [number, number, number, number]);
+    const orange = new THREE.MeshStandardMaterial(asset.orange);
+    const reflective = new THREE.MeshStandardMaterial(asset.reflective);
+    const count = Math.ceil(course.length / asset.spacing);
     for (let i = 0; i < count; i++) {
       const sample = course.sample(i / count);
       for (const side of [-1, 1]) {
         const mesh = new THREE.Group();
-        const offset = (course.definition.width / 2 + 0.9) * side;
+        const offset = (course.definition.width / 2 + asset.roadOffset) * side;
         const x = sample.point.x - sample.tangent.z * offset;
         const z = sample.point.z + sample.tangent.x * offset;
         mesh.position.set(x, course.height(x, z), z);
@@ -35,12 +36,12 @@ export class SnowPoles {
         shaft.position.y = height / 2;
         shaft.castShadow = true;
         mesh.add(shaft);
-        for (const y of [1.72, 1.97]) {
+        for (const y of asset.bandHeights) {
           const band = new THREE.Mesh(bandGeometry, reflective);
           band.position.y = y;
           mesh.add(band);
         }
-        const collider: Collider = { id: `snow-pole-${i}-${side}`, x, z, radius: 0.055, kind: 'snowPole', active: true };
+        const collider: Collider = { id: `snow-pole-${i}-${side}`, x, z, radius: asset.colliderRadius, kind: 'snowPole', active: true };
         const pole: SnowPole = { mesh, collider, falling: false, progress: 0, fallRate: 5, axis: new THREE.Vector3(), angle: Math.PI / 2 };
         collider.onHit = velocity => {
           if (pole.falling) return;

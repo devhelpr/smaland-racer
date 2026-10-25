@@ -1,0 +1,47 @@
+{
+  "cottages": {
+    "seedOffset": 8013,
+    "minCount": 9,
+    "maxCount": 15,
+    "lengthPerCottage": 95,
+    "attemptMultiplier": 4,
+    "start": 0.035,
+    "span": 0.93,
+    "offsets": [19,25,31],
+    "roadClearance": 10,
+    "lakeMargin": 8,
+    "lakeClearance": 1.4,
+    "spacing": 22,
+    "scale": 0.85,
+    "scaleRange": 0.25
+  },
+  "trees": {
+    "area": 740,
+    "roadClearance": 6,
+    "scale": 0.7,
+    "scaleRange": 1.25,
+    "colliderRadius": 0.35
+  },
+  "rocks": {
+    "count": 450,
+    "area": 500,
+    "roadClearance": 2,
+    "rotationY": 6,
+    "scaleX": 0.6,
+    "scaleXRange": 1.7,
+    "scaleY": 0.4,
+    "scaleYRange": 1,
+    "scaleZ": 0.6,
+    "scaleZRange": 1.5
+  },
+  "clearance": {
+    "holmahultHome": 24,
+    "holmahultBuilding": 10,
+    "lake": 1.5,
+    "cottage": 15
+  },
+  "meadow": {
+    "shade": 0.97,
+    "variation": 0.06
+  }
+}

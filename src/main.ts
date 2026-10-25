@@ -1,3 +1,4 @@
+import asset from '../assets/gates.json' with { type: 'json' };
 import * as THREE from 'three';
 import './style.css';
 import { applySeason, isSeason, seasons, seasonPalettes } from './seasons.ts';
@@ -68,18 +69,18 @@ function start(): void {
   }
 
   function addGates(): void {
-    const gateMaterial=new THREE.MeshStandardMaterial({color:'#e9ddba'});
-    const accent=new THREE.MeshStandardMaterial({color:'#bd6c40'});
+    const gateMaterial=new THREE.MeshStandardMaterial(asset.gateMaterial);
+    const accent=new THREE.MeshStandardMaterial(asset.accent);
     const make=(progress:number)=> {
       const sample=course.sample(progress);
       const gate=new THREE.Group();
       for(const sign of [-1,1]) {
-        const post=new THREE.Mesh(new THREE.BoxGeometry(.25,3.5,.25),gateMaterial);post.position.set(sign*(course.definition.width/2+1),1.75,0);post.castShadow=true;gate.add(post);
+        const post=new THREE.Mesh(new THREE.BoxGeometry(...asset.post as [number,number,number]),gateMaterial);post.position.set(sign*(course.definition.width/2+asset.postOffset),asset.postHeight,0);post.castShadow=true;gate.add(post);
       }
-      const beam=new THREE.Mesh(new THREE.BoxGeometry(course.definition.width+2.5,.7,.15),gateMaterial);beam.position.y=3.7;gate.add(beam);
-      for(let i=0;i<18;i++) {
-        const check=new THREE.Mesh(new THREE.BoxGeometry((course.definition.width+2.5)/18,.35,.16),i%2?accent:gateMaterial);
-        check.position.set((i-8.5)*(course.definition.width+2.5)/18,3.7+(i%2?.175:-.175),0);gate.add(check);
+      const beam=new THREE.Mesh(new THREE.BoxGeometry(course.definition.width+asset.beamWidthExtra,asset.beamHeight,asset.beamDepth),gateMaterial);beam.position.y=asset.beamY;gate.add(beam);
+      for(let i=0;i<asset.checkCount;i++) {
+        const check=new THREE.Mesh(new THREE.BoxGeometry((course.definition.width+asset.beamWidthExtra)/asset.checkCount,asset.checkHeight,asset.checkDepth),i%2?accent:gateMaterial);
+        check.position.set((i-asset.checkCenter)*(course.definition.width+asset.beamWidthExtra)/asset.checkCount,asset.beamY+(i%2?asset.checkOffsetY:-asset.checkOffsetY),0);gate.add(check);
       }
       gate.position.copy(sample.point);gate.rotation.y=Math.atan2(sample.tangent.x,sample.tangent.z);group.add(gate);
     };

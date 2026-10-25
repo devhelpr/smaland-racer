@@ -1,0 +1,1 @@
+- assets (vector paths/coordinates/data/color information) and parcours/tracks/scenery/levels info should be in json files in separate folders and not in the code

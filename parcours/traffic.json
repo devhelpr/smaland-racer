@@ -1,0 +1,14 @@
+{
+  "seedOffset": 2901,
+  "minCount": 3,
+  "maxCount": 7,
+  "lengthPerVehicle": 230,
+  "pickupEvery": 3,
+  "pickupOffset": 1,
+  "baseSpeed": 6.4,
+  "speedRange": 1.4,
+  "startDistance": 38,
+  "finishClearance": 90,
+  "laneOffset": 0.22,
+  "groundOffset": 0.13
+}

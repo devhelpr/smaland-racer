@@ -88,7 +88,9 @@ npm run preview
 
 ## Architecture
 
-- `track.ts`: course definitions, terrain, lake basins, road geometry and projection.
+- `parcours/`: JSON course definitions, world/terrain and placement settings, and authored Holmahult roads, fields, buildings, yards, walls and trees.
+- `assets/`: JSON model dimensions, vector/shape coordinates, materials, color palettes, road surfaces, lighting and roadside markers.
+- `track.ts`: typed course loading, terrain, lake basins, road geometry and projection.
 - `holmahult-data.ts`, `holmahult-scenery.ts`, `holmahult-home.ts`: authored real-location route, fields, farmyards, buildings and surrounding lanes.
 - `race.ts`: state machine, directional checkpoints, splits, medals and penalties.
 - `vehicle.ts`: procedural car, fixed-step arcade handling, impact response and visible damage.
@@ -99,7 +101,15 @@ npm run preview
 - `storage.ts`, `i18n.ts`: validated local saves and typed translation dictionaries.
 - `input.ts`, `gestures.ts`: keyboard/pointer bindings, analog drag gestures, handbrake, double-tap recovery and interruption handling.
 - `main.ts`: application orchestration, menus and adaptive HUD.
-- `seasons.ts`: environmental color palettes, reversible tinting and saved season validation.
+- `seasons.ts`: JSON palette loading, reversible tinting and saved season validation.
 - `rendering.ts`, `dispose.ts`: reusable renderer, camera, lighting and graphics-resource lifecycle.
+
+### Editing game data
+
+Edit `parcours/courses.json` to change route points, names, widths, seeds, lakes, scenery counts or medal times. The array order controls course selection; Holmahult remains first by default. Coordinates are world-space meters, with +X east and +Z south; Holmahult's traced coordinates are already converted into this system. `parcours/holmahult.json` contains the reference URL and fixed scenery placements. The other parcours files configure terrain, procedural scenery, traffic and wildlife placement.
+
+Edit the matching file in `assets/` to change a model or palette. Numeric arrays follow the consuming Three.js constructor or function: box parts use `[width, height, depth, x, y, z]`, size arrays use `[width, height, depth]`, and vector/shape arrays use their axis order. Named `XY`, `YZ` and `SizeXY` fields identify partial box arguments. Building `details` hold offsets, proportions and repeated-detail spacing. Rendering and generation algorithms stay in TypeScript; authored geometry, colors and level settings live in JSON.
+
+JSON imports are bundled by Vite and work in the Node test runner through `with { type: 'json' }`. No runtime data fetch is required. Run the checks above after editing data to catch invalid JSON, type errors and road/collision regressions.
 
 The game supports desktop keyboard play and mobile/touchscreen gestures. Multiplayer, AI opponents, online leaderboards, vehicle upgrades and audio are outside this version.

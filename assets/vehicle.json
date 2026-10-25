@@ -1,0 +1,60 @@
+{
+  "paint": {
+    "color": "#e9ad48",
+    "roughness": 0.66,
+    "metalness": 0.12
+  },
+  "trim": {
+    "color": "#233632",
+    "roughness": 0.7
+  },
+  "glass": {
+    "color": "#71999e",
+    "roughness": 0.23,
+    "metalness": 0.3
+  },
+  "white": {
+    "color": "#eee8d7"
+  },
+  "body": [1.85,0.55,3.9,0,0.83,0],
+  "hood": [1.75,0.1,1.1,0,1.13,1.25],
+  "cabin": [1.57,0.65,1.85,0,1.4,-0.25],
+  "roof": [1.64,0.12,1.92,0,1.77,-0.25],
+  "pillarX": [-0.78,0.78],
+  "frontPillarSize": [0.09,0.72,0.12],
+  "frontPillarYZ": [1.4,0.64],
+  "rearPillarSize": [0.09,0.72,0.12],
+  "rearPillarYZ": [1.4,-1.14],
+  "middlePillarSize": [0.08,0.65,0.1],
+  "middlePillarYZ": [1.4,-0.3],
+  "frontBumper": [1.95,0.16,0.18,0,0.6,1.99],
+  "rearBumper": [1.95,0.16,0.18,0,0.6,-1.99],
+  "licensePlate": [0.65,0.2,0.04,0,0.83,-1.963],
+  "lamp": {
+    "color": "#fff0bf",
+    "emissive": "#c4a76c",
+    "emissiveIntensity": 0.35
+  },
+  "red": {
+    "color": "#b64032"
+  },
+  "lampX": [-0.65,0.65],
+  "headlampSize": [0.37,0.22,0.06],
+  "headlampYZ": [0.94,1.97],
+  "tailLampSize": [0.28,0.2,0.06],
+  "tailLampYZ": [0.94,-1.97],
+  "wheelX": [-0.95,0.95],
+  "wheelZ": [-1.22,1.22],
+  "tire": [0.43,0.43,0.28,10],
+  "hub": [0.23,0.23,0.29,8],
+  "smokeMaterial": {
+    "color": "#555c56",
+    "transparent": true,
+    "opacity": 0.35,
+    "depthWrite": false
+  },
+  "smokeGeometry": [0.3,0],
+  "wheelHeight": 0.48,
+  "smokeCount": 7,
+  "colliderRadius": 1.05
+}

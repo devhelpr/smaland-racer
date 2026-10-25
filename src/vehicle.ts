@@ -1,3 +1,4 @@
+import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course } from './track.ts';
 import { CollisionWorld, impactDamage } from './collision.ts';
@@ -22,43 +23,43 @@ export class Vehicle {
   readonly course: Course;
   constructor(course: Course) {
     this.course=course;
-    const paint = new THREE.MeshStandardMaterial({ color: '#e9ad48', roughness: 0.66, metalness: 0.12 });
-    const trim = new THREE.MeshStandardMaterial({ color: '#233632', roughness: 0.7 });
-    const glass = new THREE.MeshStandardMaterial({ color: '#71999e', roughness: 0.23, metalness: 0.3 });
-    const white = new THREE.MeshStandardMaterial({ color: '#eee8d7' });
+    const paint = new THREE.MeshStandardMaterial(asset.paint);
+    const trim = new THREE.MeshStandardMaterial(asset.trim);
+    const glass = new THREE.MeshStandardMaterial(asset.glass);
+    const white = new THREE.MeshStandardMaterial(asset.white);
     const box = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
       mesh.position.set(x, y, z); mesh.castShadow = true; this.mesh.add(mesh); return mesh;
     };
-    this.panels.push(box(1.85, 0.55, 3.9, 0, 0.83, 0, paint));
-    this.panels.push(box(1.75, 0.1, 1.1, 0, 1.13, 1.25, paint));
-    box(1.57, 0.65, 1.85, 0, 1.4, -0.25, glass);
-    box(1.64, 0.12, 1.92, 0, 1.77, -0.25, paint);
-    for (const x of [-0.78, 0.78]) {
-      box(0.09, 0.72, 0.12, x, 1.4, 0.64, paint);
-      box(0.09, 0.72, 0.12, x, 1.4, -1.14, paint);
-      box(0.08, 0.65, 0.1, x, 1.4, -0.3, paint);
+    this.panels.push(box(...asset.body as [number, number, number, number, number, number], paint));
+    this.panels.push(box(...asset.hood as [number, number, number, number, number, number], paint));
+    box(...asset.cabin as [number, number, number, number, number, number], glass);
+    box(...asset.roof as [number, number, number, number, number, number], paint);
+    for (const x of asset.pillarX) {
+      box(...asset.frontPillarSize as [number, number, number], x, ...asset.frontPillarYZ as [number, number], paint);
+      box(...asset.rearPillarSize as [number, number, number], x, ...asset.rearPillarYZ as [number, number], paint);
+      box(...asset.middlePillarSize as [number, number, number], x, ...asset.middlePillarYZ as [number, number], paint);
     }
-    box(1.95, 0.16, 0.18, 0, 0.6, 1.99, trim);
-    box(1.95, 0.16, 0.18, 0, 0.6, -1.99, trim);
-    box(0.65, 0.2, 0.04, 0, 0.83, -1.963, white);
-    const lamp = new THREE.MeshStandardMaterial({ color: '#fff0bf', emissive: '#c4a76c', emissiveIntensity: 0.35 });
-    const red = new THREE.MeshStandardMaterial({ color: '#b64032' });
-    for (const x of [-0.65, 0.65]) {
-      box(0.37, 0.22, 0.06, x, 0.94, 1.97, lamp);
-      box(0.28, 0.2, 0.06, x, 0.94, -1.97, red);
+    box(...asset.frontBumper as [number, number, number, number, number, number], trim);
+    box(...asset.rearBumper as [number, number, number, number, number, number], trim);
+    box(...asset.licensePlate as [number, number, number, number, number, number], white);
+    const lamp = new THREE.MeshStandardMaterial(asset.lamp);
+    const red = new THREE.MeshStandardMaterial(asset.red);
+    for (const x of asset.lampX) {
+      box(...asset.headlampSize as [number, number, number], x, ...asset.headlampYZ as [number, number], lamp);
+      box(...asset.tailLampSize as [number, number, number], x, ...asset.tailLampYZ as [number, number], red);
     }
-    for (const x of [-0.95, 0.95]) for (const z of [-1.22, 1.22]) {
-      const pivot = new THREE.Group(); pivot.position.set(x, 0.48, z);
-      const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.43, 0.43, 0.28, 10), trim);
+    for (const x of asset.wheelX) for (const z of asset.wheelZ) {
+      const pivot = new THREE.Group(); pivot.position.set(x, asset.wheelHeight, z);
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(...asset.tire as [number, number, number, number]), trim);
       tire.rotation.z = Math.PI / 2; tire.castShadow = true; pivot.add(tire);
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 0.29, 8), white);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(...asset.hub as [number, number, number, number]), white);
       hub.rotation.z = Math.PI / 2; pivot.add(hub);
       this.mesh.add(pivot); this.wheels.push(pivot);
     }
-    const smokeMaterial = new THREE.MeshBasicMaterial({color: '#555c56', transparent: true, opacity: 0.35, depthWrite: false});
-    const smokeGeometry = new THREE.IcosahedronGeometry(0.3, 0);
-    for(let i=0;i<7;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
+    const smokeMaterial = new THREE.MeshBasicMaterial(asset.smokeMaterial);
+    const smokeGeometry = new THREE.IcosahedronGeometry(...asset.smokeGeometry as [number, number]);
+    for(let i=0;i<asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
     this.mesh.add(this.smoke);
     this.restart();
   }
@@ -132,7 +133,7 @@ export class Vehicle {
     this.panels[1].position.y=1.13+this.damage*.0015;
     this.smoke.visible=this.damage>50;
     this.smoke.children.forEach((puff,i)=> {
-      const phase=(this.age*.6+i/7)%1;
+      const phase=(this.age*.6+i/asset.smokeCount)%1;
       puff.position.set(Math.sin(i*2+this.age)*phase*.5,1.2+phase*3,1.2+phase*.5);
       puff.scale.setScalar(.4+phase*1.9);
     });

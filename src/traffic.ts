@@ -1,3 +1,5 @@
+import placement from '../parcours/traffic.json' with { type: 'json' };
+import asset from '../assets/traffic.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course, randomGenerator } from './track.ts';
 import type { BoxCollider, CollisionWorld } from './collision.ts';
@@ -15,42 +17,43 @@ interface ATractor {
 
 function createATractor(color: string, pickup: boolean): {mesh: THREE.Group; wheels: THREE.Group[]} {
   const mesh = new THREE.Group();
-  const paint = new THREE.MeshStandardMaterial({color, roughness: .68, metalness: .15});
-  const dark = new THREE.MeshStandardMaterial({color: '#27312d', roughness: .8});
-  const glass = new THREE.MeshStandardMaterial({color: '#779b9d', roughness: .28, metalness: .25});
-  const chrome = new THREE.MeshStandardMaterial({color: '#c0c5b7', metalness: .45, roughness: .45});
-  const rearLight = new THREE.MeshStandardMaterial({color: '#bc4432', emissive: '#b33120', emissiveIntensity: .35});
-  const frontLight = new THREE.MeshStandardMaterial({color: '#f5e4a9', emissive: '#d1ba7a', emissiveIntensity: .2});
+  const variant=pickup?asset.pickup:asset.wagon;
+  const paint = new THREE.MeshStandardMaterial({color, ...asset.paint});
+  const dark = new THREE.MeshStandardMaterial(asset.dark);
+  const glass = new THREE.MeshStandardMaterial(asset.glass);
+  const chrome = new THREE.MeshStandardMaterial(asset.chrome);
+  const rearLight = new THREE.MeshStandardMaterial(asset.rearLight);
+  const frontLight = new THREE.MeshStandardMaterial(asset.frontLight);
   const part = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
     const piece = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
     piece.position.set(x, y, z);piece.castShadow = true;mesh.add(piece);return piece;
   };
-  part(1.96, .6, 4.15, 0, .85, 0, paint);
-  part(1.67, .7, pickup ? 1.2 : 2.5, 0, 1.48, pickup ? .25 : -.3, glass);
-  part(1.77, .13, pickup ? 1.35 : 2.65, 0, 1.88, pickup ? .25 : -.3, paint);
-  for (const x of [-.83, .83]) for (const z of pickup ? [-.35, .85] : [-1.55, -.2, .95]) part(.1, .74, .12, x, 1.5, z, paint);
+  part(...asset.body as [number, number, number, number, number, number], paint);
+  part(...asset.cabinWidthHeight as [number, number], variant.cabinDepth, ...asset.cabinXY as [number, number], variant.cabinZ, glass);
+  part(...asset.roofWidthHeight as [number, number], variant.roofDepth, ...asset.roofXY as [number, number], variant.cabinZ, paint);
+  for (const x of asset.pillarX) for (const z of pickup ? asset.pickupPillarZ : asset.wagonPillarZ) part(...asset.pillarSize as [number, number, number], x, asset.pillarHeight, z, paint);
   if (pickup) {
-    part(1.55, .09, 1.35, 0, 1.17, -1.17, dark);
-    for (const x of [-.9,.9]) part(.14,.3,1.5,x,1.23,-1.2,paint);
+    part(...asset.pickupBed as [number, number, number, number, number, number], dark);
+    for (const x of asset.bedSideX) part(...asset.bedSideSize as [number, number, number],x,...asset.bedSideYZ as [number, number],paint);
   }
-  for (const z of [-2.12, 2.12]) part(2.04,.17,.17,0,.62,z,dark);
-  for (const x of [-.7,.7]) {
-    part(.35,.23,.07,x,.98,2.1,frontLight);part(.3,.25,.07,x,.98,-2.1,rearLight);
+  for (const z of asset.bumperZ) part(...asset.bumperSizeXY as [number, number, number, number, number],z,dark);
+  for (const x of asset.lampX) {
+    part(...asset.headlampSize as [number, number, number],x,...asset.headlampYZ as [number, number],frontLight);part(...asset.tailLampSize as [number, number, number],x,...asset.tailLampYZ as [number, number],rearLight);
   }
-  part(.78,.23,.07,0,.98,2.11,dark);
+  part(...asset.grille as [number, number, number, number, number, number],dark);
   const wheels: THREE.Group[] = [];
-  for (const x of [-1,1]) for (const z of [-1.35,1.35]) {
-    const wheel = new THREE.Group();wheel.position.set(x,.47,z);
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(.44,.44,.26,10),dark);tire.rotation.z=Math.PI/2;tire.castShadow=true;wheel.add(tire);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.28,8),chrome);hub.rotation.z=Math.PI/2;wheel.add(hub);
+  for (const x of asset.wheelX) for (const z of asset.wheelZ) {
+    const wheel = new THREE.Group();wheel.position.set(x,asset.wheelHeight,z);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(...asset.tire as [number, number, number, number]),dark);tire.rotation.z=Math.PI/2;tire.castShadow=true;wheel.add(tire);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(...asset.hub as [number, number, number, number]),chrome);hub.rotation.z=Math.PI/2;wheel.add(hub);
     wheels.push(wheel);mesh.add(wheel);
   }
   // Rear-facing slow-vehicle triangle: a wide red border around a bright orange center.
-  const triangle = new THREE.Shape();triangle.moveTo(0,.38);triangle.lineTo(-.43,-.32);triangle.lineTo(.43,-.32);triangle.closePath();
-  const border = new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({color:'#b93b2c',side:THREE.DoubleSide}));
-  border.position.set(0,1.3,-2.17);mesh.add(border);
-  const center = new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({color:'#f39242',side:THREE.DoubleSide}));
-  center.scale.setScalar(.73);center.position.set(0,1.3,-2.18);mesh.add(center);
+  const triangle = new THREE.Shape();triangle.moveTo(...asset.triangleTop as [number, number]);triangle.lineTo(...asset.triangleLeft as [number, number]);triangle.lineTo(...asset.triangleRight as [number, number]);triangle.closePath();
+  const border = new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({...asset.border,side:THREE.DoubleSide}));
+  border.position.set(...asset.triangleBorderPosition as [number,number,number]);mesh.add(border);
+  const center = new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({...asset.center,side:THREE.DoubleSide}));
+  center.scale.setScalar(asset.triangleCenterScale);center.position.set(...asset.triangleCenterPosition as [number,number,number]);mesh.add(center);
   return {mesh,wheels};
 }
 
@@ -61,13 +64,13 @@ export class Traffic {
 
   constructor(course: Course, world: CollisionWorld, group: THREE.Group) {
     this.course = course;
-    const random = randomGenerator(course.definition.seed + 2901);
-    const count = Math.max(3, Math.min(7, Math.ceil(course.length / 230)));
+    const random = randomGenerator(course.definition.seed + placement.seedOffset);
+    const count = Math.max(placement.minCount, Math.min(placement.maxCount, Math.ceil(course.length / placement.lengthPerVehicle)));
     for (let i=0;i<count;i++) {
-      const {mesh,wheels}=createATractor(['#4f797a','#913d39','#6f784b','#596d8a'][i%4],i%3===1);
-      const baseSpeed=6.4+random()*1.4;
-      const collider: BoxCollider={id:`a-tractor-${i}`,x:0,z:0,radius:2.35,kind:'aTractor',halfX:1.03,halfZ:2.15,angle:0,active:true,velocity:new THREE.Vector3()};
-      const vehicle: ATractor={mesh,wheels,collider,distance:38+i*(course.length-90)/count,baseSpeed,speed:baseSpeed,brakeTime:0,active:true};
+      const {mesh,wheels}=createATractor(asset.paintColors[i%asset.paintColors.length],i%placement.pickupEvery===placement.pickupOffset);
+      const baseSpeed=placement.baseSpeed+random()*placement.speedRange;
+      const collider: BoxCollider={id:`a-tractor-${i}`,x:0,z:0,...asset.collider,kind:'aTractor',angle:0,active:true,velocity:new THREE.Vector3()};
+      const vehicle: ATractor={mesh,wheels,collider,distance:placement.startDistance+i*(course.length-placement.finishClearance)/count,baseSpeed,speed:baseSpeed,brakeTime:0,active:true};
       collider.onHit=()=>{vehicle.brakeTime=1.3;};
       this.vehicles.push(vehicle);world.dynamic.push(collider);group.add(mesh);this.place(vehicle);
     }
@@ -76,9 +79,9 @@ export class Traffic {
   private place(vehicle: ATractor): void {
     const sample=this.course.sample(vehicle.distance/this.course.length);
     const side=new THREE.Vector3(-sample.tangent.z,0,sample.tangent.x);
-    vehicle.mesh.position.copy(sample.point).addScaledVector(side,this.course.definition.width*.22);
+    vehicle.mesh.position.copy(sample.point).addScaledVector(side,this.course.definition.width*placement.laneOffset);
     const {x,z}=vehicle.mesh.position;
-    vehicle.mesh.position.y=this.course.height(x,z)+.13;
+    vehicle.mesh.position.y=this.course.height(x,z)+placement.groundOffset;
     const heading=Math.atan2(sample.tangent.x,sample.tangent.z);
     const front=this.course.height(x+sample.tangent.x,z+sample.tangent.z);
     const back=this.course.height(x-sample.tangent.x,z-sample.tangent.z);

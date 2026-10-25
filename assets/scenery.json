@@ -1,0 +1,121 @@
+{
+  "grassColors": ["#798b4d","#829359","#899961","#75884b"],
+  "meadowColors": ["#9ca66b","#8c9f64","#a6ad73"],
+  "terrain": {
+    "vertexColors": true,
+    "roughness": 1,
+    "flatShading": true
+  },
+  "shoulder": {
+    "color": "#a69c75",
+    "vertexColors": true,
+    "roughness": 1
+  },
+  "road": {
+    "color": "#e4d1ad",
+    "vertexColors": true,
+    "roughness": 1
+  },
+  "waterGeometry": [1,64],
+  "waterMaterial": {
+    "color": "#6fabb2",
+    "metalness": 0.25,
+    "roughness": 0.3
+  },
+  "glintMaterial": {
+    "color": "#bdd7cf",
+    "transparent": true,
+    "opacity": 0.38
+  },
+  "glintGeometry": [1,1],
+  "trunkGeometry": [0.22,0.35,5.5,5],
+  "trunkMaterial": {
+    "color": "#695b43"
+  },
+  "foliageMaterial": {
+    "color": "#ffffff",
+    "roughness": 1,
+    "flatShading": true
+  },
+  "lowerFoliage": [2.7,5.2,6],
+  "middleFoliage": [2.1,4.8,6],
+  "upperFoliage": [1.45,3.9,6],
+  "foliageHeights": [4.7,6.6,8.3],
+  "rockGeometry": [1,0],
+  "rockMaterial": {
+    "color": "#8a8b7e",
+    "roughness": 1,
+    "flatShading": true
+  },
+  "cottagePaint": {
+    "roughness": 1
+  },
+  "cottageColors": ["#9c4036","#b2a065","#a14839","#dbd4b4"],
+  "white": {
+    "color": "#ede8d3"
+  },
+  "roofMaterial": {
+    "color": "#414a43",
+    "roughness": 1
+  },
+  "windowMaterial": {
+    "color": "#95b5b1",
+    "metalness": 0.15,
+    "roughness": 0.4
+  },
+  "cottageBody": [8,4.8,6,0,2.4,0],
+  "cottageCornerX": [-3.9,3.9],
+  "cottageCornerZ": [-2.95,2.95],
+  "cornerTrimSize": [0.22,4.9,0.22],
+  "cottageWindowX": [-2.35,2.35],
+  "windowFrameSize": [1.5,1.7,0.15],
+  "windowFrameYZ": [2.8,3.05],
+  "windowGlassSize": [1.22,1.42,0.16],
+  "windowGlassYZ": [2.8,3.14],
+  "verticalMullionSize": [0.08,1.42,0.18],
+  "verticalMullionYZ": [2.8,3.16],
+  "horizontalMullionSize": [1.22,0.08,0.18],
+  "horizontalMullionYZ": [2.8,3.16],
+  "doorFrame": [1.35,2.7,0.16,0,1.35,3.05],
+  "door": [1.1,2.5,0.18,0,1.25,3.13],
+  "roofLeft": [-4.5,0],
+  "roofPeak": [0,2.6],
+  "roofRight": [4.5,0],
+  "chimney": [0.75,2.3,0.8,2,6.3,-0.8],
+  "groundSegments": 200,
+  "shoulderExtraWidth": 1.8,
+  "shoulderElevation": 0.075,
+  "roadElevation": 0.13,
+  "gravelTexture": {
+    "size": 128,
+    "minShade": 160,
+    "shadeRange": 95,
+    "greenRatio": 0.94,
+    "blueRatio": 0.82,
+    "opacity": 255
+  },
+  "glintCount": 65,
+  "glintRadius": 0.9,
+  "glintLimit": 0.88,
+  "glintMinLength": 1.5,
+  "glintLengthRange": 5,
+  "glintWidth": 0.15,
+  "glintElevation": 0.025,
+  "trunkHeight": 2.75,
+  "foliageColor": {
+    "hue": 0.37,
+    "hueRange": 0.035,
+    "saturation": 0.24,
+    "saturationRange": 0.16,
+    "lightness": 0.18,
+    "lightnessRange": 0.13
+  },
+  "cornerTrimHeight": 2.45,
+  "roofDepth": 7,
+  "roofPosition": [0,4.8,-3.5],
+  "cottageCollider": {
+    "radius": 5.8,
+    "halfX": 4.5,
+    "halfZ": 3.5
+  }
+}

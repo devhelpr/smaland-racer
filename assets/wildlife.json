@@ -1,0 +1,74 @@
+{
+  "fur": {
+    "roughness": 1
+  },
+  "mooseColor": "#665440",
+  "deerColor": "#a47b4d",
+  "pale": {
+    "color": "#e4d5ae",
+    "roughness": 1
+  },
+  "dark": {
+    "color": "#242c24"
+  },
+  "body": [0.85,1,2,0,1.65,0],
+  "neck": [0.55,1.1,0.65,0,2.05,0.95],
+  "head": [0.62,0.6,0.9,0,2.55,1.25],
+  "muzzle": [0.5,0.3,0.55,0,2.35,1.7],
+  "leftEye": [0.15,0.12,0.12,-0.32,2.65,1.42],
+  "rightEye": [0.15,0.12,0.12,0.32,2.65,1.42],
+  "legZ": [-0.7,0.7],
+  "legSize": [0.19,1.2,0.22],
+  "earSize": [0.23,0.5,0.22],
+  "earYZ": [2.95,1.1],
+  "antlerSize": [0.95,0.13,0.12],
+  "antlerYZ": [3.18,1.1],
+  "tineSize": [0.13,0.45,0.12],
+  "tail": [0.24,0.25,0.35,0,1.95,-1.12],
+  "signPoleGeometry": [0.06,0.06,2.5,6],
+  "signPoleMaterial": {
+    "color": "#9a9e91"
+  },
+  "signTop": [0,0.65],
+  "signLeft": [-0.65,-0.45],
+  "signRight": [0.65,-0.45],
+  "triangle": {
+    "color": "#c65d41"
+  },
+  "inside": {
+    "color": "#f5d878"
+  },
+  "ink": {
+    "color": "#263c31"
+  },
+  "signSilhouette": [
+    [0.34,0.16,0,2.34],
+    [0.12,0.25,0.17,2.44],
+    [0.04,0.19,-0.12,2.19],
+    [0.04,0.19,0.12,2.19],
+    [0.3,0.035,0.19,2.58]
+  ],
+  "deerScale": 0.65,
+  "legX": 0.3,
+  "legHeight": 0.65,
+  "earX": 0.42,
+  "earAngle": 0.55,
+  "antlerX": 0.7,
+  "antlerAngle": 0.25,
+  "tineCount": 3,
+  "tineX": 0.65,
+  "tineSpacingX": 0.22,
+  "tineHeight": 3.38,
+  "tineSpacingY": 0.04,
+  "tineZ": 1.1,
+  "tineAngle": 0.3,
+  "signPoleHeight": 1.25,
+  "signHeight": 2.4,
+  "signInsetScale": 0.8,
+  "signInsetPosition": [0,2.4,0.015],
+  "signInkDepth": 0.025,
+  "colliderRadii": {
+    "moose": 1.2,
+    "deer": 0.8
+  }
+}

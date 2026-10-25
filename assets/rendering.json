@@ -1,0 +1,27 @@
+{
+  "initialSky": "#c8d9cf",
+  "initialFog": "#c8d9cf",
+  "ambientSky": "#ffe5c4",
+  "ambientGround": "#6e7054",
+  "sunColor": "#ffd09a",
+  "winterGround": "#9c9b9c",
+  "seasonGround": "#6e7054",
+  "fogNear": 85,
+  "fogFar": 330,
+  "ambientIntensity": 1.9,
+  "sunlightOffset": [-100,48,-60],
+  "sunIntensity": 3,
+  "shadow": {
+    "mapSize": 2048,
+    "extent": 65,
+    "near": 1,
+    "far": 300,
+    "normalBias": 0.08,
+    "bias": -0.0002
+  },
+  "camera": {
+    "fov": 55,
+    "near": 0.1,
+    "far": 650
+  }
+}

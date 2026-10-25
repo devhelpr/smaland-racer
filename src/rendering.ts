@@ -1,3 +1,4 @@
+import asset from '../assets/rendering.json' with { type: 'json' };
 import * as THREE from 'three';
 import { seasonPalettes, type Season } from './seasons.ts';
 import type { Vehicle } from './vehicle.ts';
@@ -9,13 +10,13 @@ export function createRendering(container: HTMLElement) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
   container.append(renderer.domElement);
   renderer.domElement.setAttribute('aria-label', 'Småland forest rally. Drive with WASD or arrow keys.');
-  const scene = new THREE.Scene(); scene.background = new THREE.Color('#c8d9cf'); scene.fog = new THREE.Fog('#c8d9cf', 85, 330);
-  const ambient=new THREE.HemisphereLight('#ffe5c4','#6e7054',1.9);scene.add(ambient);
-  const sunlightOffset=new THREE.Vector3(-100,48,-60);
-  const sun = new THREE.DirectionalLight('#ffd09a', 3.0); sun.position.copy(sunlightOffset); sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.left = -65; sun.shadow.camera.right = 65; sun.shadow.camera.top = 65; sun.shadow.camera.bottom = -65;
-  sun.shadow.camera.near = 1; sun.shadow.camera.far = 300; sun.shadow.normalBias = 0.08; sun.shadow.bias = -0.0002; scene.add(sun, sun.target);
-  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 650);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(asset.initialSky); scene.fog = new THREE.Fog(asset.initialFog, asset.fogNear, asset.fogFar);
+  const ambient=new THREE.HemisphereLight(asset.ambientSky,asset.ambientGround,asset.ambientIntensity);scene.add(ambient);
+  const sunlightOffset=new THREE.Vector3(...asset.sunlightOffset as [number,number,number]);
+  const sun = new THREE.DirectionalLight(asset.sunColor, asset.sunIntensity); sun.position.copy(sunlightOffset); sun.castShadow = true;
+  sun.shadow.mapSize.set(asset.shadow.mapSize, asset.shadow.mapSize); sun.shadow.camera.left = -asset.shadow.extent; sun.shadow.camera.right = asset.shadow.extent; sun.shadow.camera.top = asset.shadow.extent; sun.shadow.camera.bottom = -asset.shadow.extent;
+  sun.shadow.camera.near = asset.shadow.near; sun.shadow.camera.far = asset.shadow.far; sun.shadow.normalBias = asset.shadow.normalBias; sun.shadow.bias = asset.shadow.bias; scene.add(sun, sun.target);
+  const camera = new THREE.PerspectiveCamera(asset.camera.fov, 1, asset.camera.near, asset.camera.far);
   const target = new THREE.Vector3(); const desired = new THREE.Vector3(); const lookAt = new THREE.Vector3();
   const resize = () => { const width = container.clientWidth; const height = container.clientHeight; renderer.setSize(width, height); camera.aspect = width / height; camera.updateProjectionMatrix(); };
   window.addEventListener('resize', resize); resize();
@@ -33,7 +34,7 @@ export function createRendering(container: HTMLElement) {
     const palette=seasonPalettes[season];
     scene.background=new THREE.Color(palette.sky);
     if(scene.fog instanceof THREE.Fog)scene.fog.color.set(palette.fog);
-    ambient.groundColor.set(season==='winter'?'#9c9b9c':'#6e7054');
+    ambient.groundColor.set(season==='winter'?asset.winterGround:asset.seasonGround);
   }
   setSeason('summer');
   return { renderer, scene, camera, follow, setSeason };

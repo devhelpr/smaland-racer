@@ -147,12 +147,12 @@ function start(): void {
     if(state==='title') {
       menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div><p>${t('goldenHour')}</p></fieldset><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${icon('chevronRight')}${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
-      menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">${icon('arrowLeft')}${t('back')}</button></div>${drivingOptions()}<div class="course-grid">${courses.map((def,i)=> {
+      menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">${icon('arrowLeft')}${t('back')}</button></div><div class="selection-controls">${drivingOptions()}${button('start','play',true)}</div><div class="course-grid">${courses.map((def,i)=> {
         const record=progress.records[courseRecordKey(def.id,progress.drivingStyle)];
         const preview=new Course(def);const outline=preview.lakes.flatMap(l=>l.outline??[]);const xs=[...preview.points.map(p=>p.x),...outline.map(p=>p[0])],zs=[...preview.points.map(p=>p.z),...outline.map(p=>p[1])];const x=Math.min(...xs)-20,z=Math.min(...zs)-20,size=Math.max(Math.max(...xs)-x,Math.max(...zs)-z)+20;
         const path=preview.points.filter((_,j)=>j%5===0).map((p,j)=>`${j?'L':'M'}${p.x},${p.z}`).join(' ')+(def.closed?'Z':'');
         return `<button class="course-tile ${i===selected?'selected':''}" data-course="${i}" aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${record?t(record.medal):icon('arrowUpRight')}</span></div><svg class="route-preview" viewBox="${x} ${z} ${size} ${size}" aria-hidden="true">${mapLandscape(preview)}<path d="${path}"/></svg><h2>${def.name}</h2><span class="course-type">${def.setting==='sandsjon'?t('iceLake')+' · ':''}${t(def.closed?'circuit':'stage')} · ${(preview.length/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')}</div></button>`;
-      }).join('')}</div><div class="selection-bottom"><div><h3>${course.definition.name}</h3>${targets()}</div><div class="selection-actions">${button('practice','practice')}${button('start','play',true)}<small>${t('practiceNote')}</small></div></div></section>`;
+      }).join('')}</div><div class="selection-bottom"><div><h3>${course.definition.name}</h3>${targets()}</div><div class="selection-actions">${button('practice','practice')}<small>${t('practiceNote')}</small></div></div></section>`;
     } else if(state==='paused') {
       menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t(input.usingTouch?'touchInfo':'controlInfo')}</p></section>`;
     } else if(state==='finished') {
@@ -239,6 +239,7 @@ function start(): void {
         if(race.nextCheckpoint!==checkpoint) {
           checkpointGates.pass(checkpoint,race.practice&&course.definition.closed&&race.nextCheckpoint===1);
         }
+        if(race.state==='racing'&&car.stunts.autoRightReady) {recover();break;}
         const inWater=course.inWater(car.position.x,car.position.z)&&course.lakes.some(lake=>lakeContains(lake,car.position.x,car.position.z)&&car.position.y<=lake.level);
         if(race.state==='racing'&&(inWater||Math.abs(car.position.x)>WORLD_SIZE/2-8||Math.abs(car.position.z)>WORLD_SIZE/2-8)) {
           recover(inWater?'water':'boundary');break;
@@ -254,7 +255,7 @@ function start(): void {
     } else if(race.state==='crashed'&&car.stunts.active) {
       // A wreck finishes its tumble while the result panel is open.
       accumulator+=Math.min(wallDelta,.1);
-      while(accumulator>=step) {car.update(step,{throttle:0,steer:0,handbrake:false},world);snowPoles.update(step);accumulator-=step;}
+      while(accumulator>=step) {car.update(step,{throttle:0,steer:0,handbrake:false},world);if(car.stunts.autoRightReady)car.rightInPlace(world);snowPoles.update(step);accumulator-=step;}
       follow(car,Math.min(wallDelta,.05));
     } else accumulator=0;
     if(race.state!=='paused')checkpointGates.update(Math.min(wallDelta,.1));

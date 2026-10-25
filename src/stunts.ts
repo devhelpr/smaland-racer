@@ -25,6 +25,9 @@ export class StuntDynamics {
   private lastHeading=0;
   private damageAfter=0;
   private age=0;
+  private overturnedStillTime=0;
+
+  get autoRightReady():boolean {return this.overturnedStillTime+1e-9>=data.autoRight.delay;}
 
   get upright():number {return up.clone().applyQuaternion(this.rotation).y;}
   get traction():number {return this.active?this.wheelsOnGround/4*Math.max(0,this.upright):1;}
@@ -40,7 +43,7 @@ export class StuntDynamics {
 
   reset():void {
     this.active=false;this.airborne=false;this.wheelsOnGround=4;
-    this.rotation.identity();this.angularVelocity.set(0,0,0);this.damageAfter=0;this.age=0;
+    this.rotation.identity();this.angularVelocity.set(0,0,0);this.damageAfter=0;this.age=0;this.overturnedStillTime=0;
   }
 
   placeUpright(heading:number):void {
@@ -123,6 +126,9 @@ export class StuntDynamics {
       this.active=false;this.airborne=false;this.wheelsOnGround=4;velocity.y=0;
       position.y=ground;this.angularVelocity.set(0,0,0);
     }
+    const stillOverturned=this.active&&!this.airborne&&this.upright<=data.autoRight.maximumUp&&
+      velocity.length()<=data.autoRight.maximumLinearSpeed&&this.angularVelocity.length()<=data.autoRight.maximumAngularSpeed;
+    this.overturnedStillTime=stillOverturned?this.overturnedStillTime+dt:0;
     return damage;
   }
 }

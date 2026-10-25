@@ -120,3 +120,44 @@ test('righting over a rock clears its surface without moving sideways; midair ri
   assert.ok(env.car.position.y<8&&env.car.position.y>7.9);assert.equal(env.car.stunts.airborne,true);
   env.dispose();
 });
+
+test('automatic righting becomes ready after five continuous seconds still on the roof and resets on motion',()=> {
+  const car=new Vehicle(course);car.heading=0;car.position.set(100,-.04,70);
+  car.stunts.placeUpright(0);car.stunts.rotation.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);
+  for(let i=0;i<4.9/dt;i++)car.update(dt,neutral);
+  assert.equal(car.stunts.autoRightReady,false,'must wait the full five seconds');
+  car.velocity.set(2,0,0);car.update(dt,neutral);
+  assert.equal(car.stunts.autoRightReady,false);
+  car.velocity.set(0,0,0);car.stunts.angularVelocity.set(0,0,0);
+  for(let i=0;i<4.9/dt;i++)car.update(dt,neutral);
+  assert.equal(car.stunts.autoRightReady,false,'movement must restart the five-second wait');
+  for(let i=0;i<.2/dt;i++)car.update(dt,neutral);
+  assert.equal(car.stunts.autoRightReady,true);
+  const x=car.position.x,z=car.position.z,heading=car.heading;car.damage=20;
+  car.rightInPlace();
+  assert.equal(car.stunts.autoRightReady,false);assert.ok(car.stunts.upright>.99);
+  assert.equal(car.position.x,x);assert.equal(car.position.z,z);assert.equal(car.heading,heading);assert.equal(car.damage,20);
+  disposeGroup(car.mesh);
+});
+
+test('automatic righting never triggers upright or during an inverted flight',()=> {
+  const grounded=new Vehicle(course),flying=new Vehicle(course);
+  flying.position.set(100,1000,70);flying.heading=0;flying.stunts.placeUpright(0);
+  flying.stunts.rotation.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI);
+  for(let i=0;i<6/dt;i++) {grounded.update(dt,neutral);flying.update(dt,neutral);}
+  assert.equal(grounded.stunts.autoRightReady,false);
+  assert.equal(flying.stunts.airborne,true);assert.equal(flying.stunts.autoRightReady,false);
+  disposeGroup(grounded.mesh);disposeGroup(flying.mesh);
+});
+
+test('a stationary car on its side also becomes ready for automatic righting',()=> {
+  const car=new Vehicle(course);car.heading=0;car.position.set(100,0,70);
+  car.stunts.placeUpright(0);car.stunts.rotation.setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2);
+  for(let i=0;i<4.9/dt;i++)car.update(dt,neutral);
+  assert.ok(Math.abs(car.stunts.upright)<.25,'car remains resting on its side');
+  assert.equal(car.stunts.autoRightReady,false);
+  for(let i=0;i<.3/dt;i++)car.update(dt,neutral);
+  assert.equal(car.stunts.autoRightReady,true);
+  car.rightInPlace();assert.ok(car.stunts.upright>.99);assert.equal(car.stunts.autoRightReady,false);
+  disposeGroup(car.mesh);
+});

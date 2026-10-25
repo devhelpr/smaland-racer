@@ -42,5 +42,11 @@
     "samplesZ": 5
   },
   "maxBiasSpeed": 0.75,
-  "tireTorqueScale": 0.3
+  "tireTorqueScale": 0.3,
+  "autoRight": {
+    "delay": 5,
+    "maximumUp": 0.25,
+    "maximumLinearSpeed": 0.25,
+    "maximumAngularSpeed": 0.3
+  }
 }

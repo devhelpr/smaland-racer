@@ -101,3 +101,9 @@ body.title-screen #app{position:relative;inset:auto;min-height:100dvh}
 .tuning-open .route-heading,.tuning-open .map-tools,.tuning-heading,.tuning-hint,.tuning-bottom{flex-shrink:0}
 .tuning-open #tuning-panel{display:flex;flex-direction:column;min-height:0}
 #tuning-controls{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+
+/* Keep the race start beside the driving-style choices, above the route grid. */
+.selection-controls{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:20px}
+.selection-controls .driving-picker{flex:1;max-width:560px;min-width:0;margin:0}
+.selection-controls>.primary{flex-shrink:0}
+@media(max-width:560px){.selection-controls{gap:12px;flex-wrap:wrap}.selection-controls .driving-picker{flex-basis:100%}.selection-controls>.primary{margin-left:auto}}

@@ -1,11 +1,12 @@
 import type { Language } from './storage.ts';
 const en={
+  drivingStyle:'Driving style',cruising:'Cruising',rally:'Rally',cruisingInfo:'The original handling. Easy pace, grass slows you down.',rallyInfo:'More speed, quicker acceleration, less drag on grass.',ice:'Ice',iceLake:'Winter lake · Road 120 underpass',
   country:'Sweden',
   season:'Season',spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter',goldenHour:'Golden hour · every season',
-  escape:'The gravel escape.', eyebrow:'A LITTLE FURTHER FROM EVERYDAY', subtitle:'Six roads. Three landscapes. Your next personal best.',
+  escape:'The gravel escape.', eyebrow:'A LITTLE FURTHER FROM EVERYDAY', subtitle:'Seven routes. Four landscapes. Your next personal best.',
   choose:'Choose a route', play:'Start rally', practice:'Free drive', practiceNote:'Practice without medals or records.', back:'Back', title:'Title screen', language:'Language',
   forest:'Pine woods', lakes:'Lake country', hills:'Småland highlands', circuit:'Circuit · 1 lap', stage:'Rally stage', route:'Route', routes:'The road ahead',
-  routeIntro:'All six routes are open. Pick your road and beat your best.',
+  routeIntro:'All seven routes are open. Pick your road and beat your best.',
   best:'Personal best', noRecord:'No time set', gold:'Gold', silver:'Silver', bronze:'Bronze', none:'No medal', target:'Medal targets',
   drive:'Drive', handbrake:'Handbrake', recover:'Recover +5s', pause:'Pause', resume:'Resume', restart:'Try again', menu:'Routes', next:'Next route',
   controls:'Controls', controlInfo:'WASD / arrows to drive · Space to slide · R to recover · Esc to pause',
@@ -30,12 +31,13 @@ const en={
 };
 export type TextKey=keyof typeof en;
 const nl: Record<TextKey,string>={
+  drivingStyle:'Rijstijl',cruising:'Cruising',rally:'Rally',cruisingInfo:'Het originele rijgedrag. Rustig rijden; gras remt je af.',rallyInfo:'Meer snelheid, sneller optrekken, minder weerstand op gras.',ice:'IJs',iceLake:'Wintermeer · Onder de brug van weg 120',
   country:'Zweden',
   season:'Seizoen',spring:'Lente',summer:'Zomer',autumn:'Herfst',winter:'Winter',goldenHour:'Het gouden uurtje · elk seizoen',
-  escape:'Even helemaal weg.',eyebrow:'VERDER WEG VAN ALLEDAG',subtitle:'Zes routes. Drie landschappen. Jouw volgende record.',
+  escape:'Even helemaal weg.',eyebrow:'VERDER WEG VAN ALLEDAG',subtitle:'Zeven routes. Vier landschappen. Jouw volgende record.',
   choose:'Kies een parcours',play:'Start rally',practice:'Vrij rijden',practiceNote:'Oefen zonder medailles of records.',back:'Terug',title:'Titelscherm',language:'Taal',
   forest:'Dennenbossen',lakes:'Merengebied',hills:'Smålandse heuvels',circuit:'Circuit · 1 ronde',stage:'Rally-etappe',route:'Parcours',routes:'De weg voor je',
-  routeIntro:'Alle zes parcoursen zijn beschikbaar. Kies je route en verbeter je record.',
+  routeIntro:'Alle zeven parcoursen zijn beschikbaar. Kies je route en verbeter je record.',
   best:'Persoonlijk record',noRecord:'Nog geen tijd',gold:'Goud',silver:'Zilver',bronze:'Brons',none:'Geen medaille',target:'Medailletijden',
   drive:'Rijden',handbrake:'Handrem',recover:'Terugzetten +5s',pause:'Pauze',resume:'Verder rijden',restart:'Opnieuw proberen',menu:'Parcoursen',next:'Volgend parcours',
   controls:'Besturing',controlInfo:'WASD / pijltjes om te rijden · Spatie voor handrem · R om terug te zetten · Esc voor pauze',
@@ -59,12 +61,13 @@ const nl: Record<TextKey,string>={
   exitPractice:'Stop vrij rijden',distance:'km',selectLabel:'Kies een parcours',countdownLabel:'Aftellen voor de start',
 };
 const sv: Record<TextKey,string>={
+  drivingStyle:'Körstil',cruising:'Cruising',rally:'Rally',cruisingInfo:'Den ursprungliga körkänslan. Lugn fart, gräset bromsar.',rallyInfo:'Högre fart, snabbare acceleration, mindre motstånd på gräs.',ice:'Is',iceLake:'Vintersjö · Under bron på väg 120',
   country:'Sverige',
   season:'Årstid',spring:'Vår',summer:'Sommar',autumn:'Höst',winter:'Vinter',goldenHour:'Gyllene timmen · alla årstider',
-  escape:'Bortom vardagen.',eyebrow:'LITE LÄNGRE FRÅN VARDAGEN',subtitle:'Sex vägar. Tre landskap. Ditt nästa personbästa.',
+  escape:'Bortom vardagen.',eyebrow:'LITE LÄNGRE FRÅN VARDAGEN',subtitle:'Sju banor. Fyra landskap. Ditt nästa personbästa.',
   choose:'Välj en bana',play:'Starta rally',practice:'Fri körning',practiceNote:'Träna utan medaljer eller rekord.',back:'Tillbaka',title:'Titelskärm',language:'Språk',
   forest:'Tallskog',lakes:'Sjöriket',hills:'Småländska höjder',circuit:'Rundbana · 1 varv',stage:'Rallysträcka',route:'Bana',routes:'Vägen framför dig',
-  routeIntro:'Alla sex banor är öppna. Välj din väg och slå ditt personbästa.',
+  routeIntro:'Alla sju banor är öppna. Välj din väg och slå ditt personbästa.',
   best:'Personbästa',noRecord:'Ingen tid ännu',gold:'Guld',silver:'Silver',bronze:'Brons',none:'Ingen medalj',target:'Medaljtider',
   drive:'Kör',handbrake:'Handbroms',recover:'Till vägen +5s',pause:'Paus',resume:'Fortsätt',restart:'Försök igen',menu:'Banor',next:'Nästa bana',
   controls:'Kontroller',controlInfo:'WASD / piltangenter för att köra · Mellanslag för handbroms · R till vägen · Esc för paus',

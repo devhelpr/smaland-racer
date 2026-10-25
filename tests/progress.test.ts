@@ -11,7 +11,7 @@ test('all courses are available immediately; records improve only and saves relo
   let data='';const storage={getItem:()=>data,setItem:(_key:string,value:string)=>{data=value;}};
   const progress=loadProgress(storage,'nl-NL');assert.equal(progress.language,'nl');assert.ok(isCourseAvailable(0));assert.ok(isCourseAvailable(1));
   for(let i=0;i<courses.length;i++)assert.ok(isCourseAvailable(i));
-  for(const index of [-1,6,NaN,1.5])assert.equal(isCourseAvailable(index),false);
+  for(const index of [-1,courses.length,NaN,1.5])assert.equal(isCourseAvailable(index),false);
   assert.ok(recordResult(progress,courses[0].id,result));assert.ok(isCourseAvailable(1));assert.ok(isCourseAvailable(2));
   assert.ok(!recordResult(progress,courses[0].id,{...result,total:30}));assert.equal(progress.records[courses[0].id].total,27);
   assert.ok(saveProgress(storage,progress));const restored=loadProgress(storage,'sv');assert.equal(restored.language,'nl');assert.equal(restored.records[courses[0].id].total,27);assert.ok(isCourseAvailable(1));
@@ -34,7 +34,7 @@ test('all interface keys exist in English, Dutch and Swedish',()=> {
 test('wildlife is reproducible with a seed, variable across attempts and starts clear of the road',()=> {
   for(const definition of courses) {
     const course=new Course(definition);const a=wildlifePlan(course,45),b=wildlifePlan(course,46);
-    assert.deepEqual(a,wildlifePlan(course,45));assert.notDeepEqual(a,b);assert.equal(a.length,definition.wildlifeCount);
+    assert.deepEqual(a,wildlifePlan(course,45));if(definition.wildlifeCount)assert.notDeepEqual(a,b);assert.equal(a.length,definition.wildlifeCount);
     for(const plan of a) {
       const center=course.sample(plan.progress),offset=plan.side*(definition.width/2+5);
       const x=center.point.x-center.tangent.z*offset,z=center.point.z+center.tangent.x*offset;
@@ -43,7 +43,7 @@ test('wildlife is reproducible with a seed, variable across attempts and starts 
   }
 });
 
-test('all six course records survive a reload without restricting selection',async()=> {
+test('all seven course records survive a reload without restricting selection',async()=> {
   const {Race}=await import('../src/race.ts');
   const progress=loadProgress(null,'en');
   for(let i=0;i<courses.length;i++) {
@@ -54,5 +54,5 @@ test('all six course records survive a reload without restricting selection',asy
   }
   let saved='';saveProgress({getItem:()=>saved,setItem:(_key,value)=>{saved=value;}},progress);
   const restored=loadProgress({getItem:()=>saved,setItem:()=>{}},'en');
-  assert.equal(Object.keys(restored.records).length,6);assert.ok(isCourseAvailable(5));
+  assert.equal(Object.keys(restored.records).length,courses.length);assert.ok(isCourseAvailable(5));
 });

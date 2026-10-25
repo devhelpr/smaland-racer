@@ -11,15 +11,15 @@ function drive(car:Vehicle,seconds:number,throttle:number,steer=0,handbrake=fals
   for(let i=0;i<seconds*120;i++) car.update(1/120,{throttle,steer,handbrake},world);
 }
 
-test('six unique routes have safe roads, terrain, water clearance and gates',()=> {
-  assert.equal(new Set(courses.map(c=>JSON.stringify(c.points))).size,6);
+test('seven unique routes have safe roads, terrain, water clearance and gates',()=> {
+  assert.equal(new Set(courses.map(c=>JSON.stringify(c.points))).size,7);
   for(const def of courses) {
     const course=new Course(def);
     for(const point of course.points) {
       assert.ok(course.nearest(point.x,point.z).distance<.001);
       assert.ok(!course.inWater(point.x,point.z),`${def.id}: road under water`);
       assert.ok(Math.abs(point.x)<400&&Math.abs(point.z)<400);
-      for(const lake of def.lakes) assert.ok(Math.hypot((point.x-lake.x)/(lake.rx+def.width/2+2),(point.z-lake.z)/(lake.rz+def.width/2+2))>1,`${def.id}: lake too close`);
+      for(const lake of def.setting==='sandsjon'?[]:def.lakes) assert.ok(Math.hypot((point.x-lake.x)/(lake.rx+def.width/2+2),(point.z-lake.z)/(lake.rz+def.width/2+2))>1,`${def.id}: lake too close`);
     }
     for(const gate of course.checkpoints)assert.ok(course.nearest(gate.point.x,gate.point.z).distance<.08);
     assert.equal(course.checkpoints.length-1,6);
@@ -90,7 +90,8 @@ for(const definition of courses) test(`controller completes ${definition.id}; me
     const target=course.sample(Math.min(1,road.progress+9/course.length));
     const ahead=course.sample(Math.min(1,road.progress+25/course.length));
     const turn=Math.acos(Math.max(-1,Math.min(1,road.tangent.dot(ahead.tangent))));
-    const targetSpeed=turn>.5?11:turn>.25?15:22;
+    // Ice needs a slower approach to bends because braking and lateral grip are reduced.
+    const targetSpeed=(turn>.5?11:turn>.25?15:22)*(course.onIce(car.position.x,car.position.z)?.5:1);
     const desired=Math.atan2(target.point.x-car.position.x,target.point.z-car.position.z);
     const error=Math.atan2(Math.sin(desired-car.heading),Math.cos(desired-car.heading));
     const previous=car.position.clone();

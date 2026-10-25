@@ -53,3 +53,6 @@
   #race-hud .speed-unit{font-size:6px;letter-spacing:.5px}
   #race-hud .speed-unit span{display:none}
 }
+
+.driving-picker{border:0;padding:0;margin:18px 0}.driving-picker legend{font-size:9px;text-transform:uppercase;letter-spacing:2px;margin-bottom:9px}.driving-options{display:flex;gap:8px}.driving-options button{flex:1;text-align:left;background:#203c3266;border:1px solid #f4f0de44;border-radius:4px;padding:11px 13px}.driving-options button[aria-pressed=true]{border-color:var(--gold);background:#203c32cc}.driving-options strong{display:block;font-size:12px}.driving-options span{display:block;font-size:10px;line-height:1.45;opacity:.8;margin-top:4px}.title-copy{max-height:calc(100dvh - 120px);overflow-y:auto;scrollbar-width:thin}.selection-panel>.driving-picker{max-width:560px}
+@media(max-width:560px){.title-copy{max-height:none;overflow:visible}.driving-options button{padding:9px}.driving-options span{font-size:9px}}

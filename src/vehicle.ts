@@ -1,3 +1,4 @@
+import { drivingProfiles, type DrivingStyle } from './driving.ts';
 import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course } from './track.ts';
@@ -21,7 +22,9 @@ export class Vehicle {
   private wheels: THREE.Group[] = [];
 
   readonly course: Course;
-  constructor(course: Course) {
+  readonly drivingStyle: DrivingStyle;
+  constructor(course: Course, drivingStyle: DrivingStyle = 'cruising') {
+    this.drivingStyle=drivingStyle;
     this.course=course;
     const paint = new THREE.MeshStandardMaterial(asset.paint);
     const trim = new THREE.MeshStandardMaterial(asset.trim);
@@ -85,12 +88,15 @@ export class Vehicle {
     this.steering=THREE.MathUtils.damp(this.steering,input.steer,9,dt);
     const braking=input.throttle!==0&&Math.sign(input.throttle)!==Math.sign(longitudinal)&&Math.abs(longitudinal)>0.8;
     const power=1-Math.max(0,this.damage-50)/50*.25;
-    const acceleration=braking?24:(input.throttle<0?8:12)*power;
+    const profile=drivingProfiles[this.drivingStyle];
+    const ice=this.course.onIce(this.position.x,this.position.z);
+    const surface=ice?drivingProfiles.ice:this.onRoad?profile.road:profile.grass;
+    const acceleration=braking?profile.braking*(ice?drivingProfiles.ice.brakingScale:1):(input.throttle<0?profile.reverseAcceleration:profile.acceleration)*power*(ice?drivingProfiles.ice.accelerationScale:1);
     longitudinal+=input.throttle*acceleration*dt;
-    longitudinal*=Math.exp(-(this.onRoad?.16:1.2)*dt);
-    if(input.handbrake) longitudinal*=Math.exp(-1.35*dt);
-    longitudinal=THREE.MathUtils.clamp(longitudinal,-9,(this.onRoad?36:14)*power);
-    lateral*=Math.exp(-(input.handbrake?1.4:this.onRoad?5.2:7)*dt);
+    longitudinal*=Math.exp(-surface.drag*dt);
+    if(input.handbrake) longitudinal*=Math.exp(-(ice?drivingProfiles.ice.handbrakeDrag:1.35)*dt);
+    longitudinal=THREE.MathUtils.clamp(longitudinal,-profile.reverseSpeed,(ice?profile.road.speed:surface.speed)*power);
+    lateral*=Math.exp(-(input.handbrake?Math.min(1.4,surface.grip):surface.grip)*dt);
     this.heading+=this.steering*longitudinal*(.08/(1+Math.abs(longitudinal)*.045))*dt*(input.handbrake?1.6:1);
     this.velocity.copy(forward).multiplyScalar(longitudinal).addScaledVector(right,lateral);
     let remaining=dt;

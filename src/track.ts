@@ -1,12 +1,15 @@
+import sandsjon from '../parcours/sandsjon.json' with { type: 'json' };
 import world from '../parcours/world.json' with { type: 'json' };
 import roadAsset from '../assets/road.json' with { type: 'json' };
 import * as THREE from 'three';
 import courseData from '../parcours/courses.json' with { type: 'json' };
 
-export interface Lake { x: number; z: number; rx: number; rz: number; level: number }
+export interface Lake { x: number; z: number; rx: number; rz: number; level: number; outline?: [number,number][] }
 export interface CourseDefinition {
   id: string;
-  setting?: 'holmahult';
+  setting?: 'holmahult' | 'sandsjon';
+  bridge?: {position:[number,number,number];angle:number};
+  shore?: {height:number;blendDistance:number;sceneryClearance:number};
   region: 'forest' | 'lakes' | 'hills';
   name: string;
   closed: boolean;
@@ -20,7 +23,7 @@ export interface CourseDefinition {
   medals: { gold: number; silver: number; bronze: number };
 }
 
-export const courses: CourseDefinition[] = courseData as CourseDefinition[];
+export const courses: CourseDefinition[] = [...courseData, sandsjon] as CourseDefinition[];
 
 export interface RoadSample { point: THREE.Vector3; tangent: THREE.Vector3; distance: number; progress: number }
 export interface Checkpoint { point: THREE.Vector3; tangent: THREE.Vector3; progress: number }
@@ -33,7 +36,7 @@ function naturalHeight(x: number, z: number, hills: number): number {
 /** Add visible roadside water without letting the basin reach any part of the road. */
 function roadsideLakes(definition: CourseDefinition, curve: THREE.CatmullRomCurve3): Lake[] {
   const lakes = definition.lakes.map(lake => ({...lake}));
-  if (definition.setting === 'holmahult') return lakes;
+  if (definition.setting === 'holmahult' || definition.setting === 'sandsjon') return lakes;
   const random = randomGenerator(definition.seed + world.lakes.seedOffset);
   const road = curve.getSpacedPoints(Math.ceil(curve.getLength() / world.lakes.roadSampleSpacing));
   const target = lakes.length + (definition.region === 'lakes' ? world.lakes.lakeRegionCount : world.lakes.otherRegionCount);
@@ -57,6 +60,28 @@ function roadsideLakes(definition: CourseDefinition, curve: THREE.CatmullRomCurv
     }
   }
   return lakes;
+}
+
+/** The same shoreline drives ice rendering, terrain, grip and scenery placement. */
+export function lakeContains(lake:Lake,x:number,z:number):boolean {
+  if(!lake.outline)return Math.hypot((x-lake.x)/lake.rx,(z-lake.z)/lake.rz)<=1;
+  let inside=false;
+  for(let i=0,j=lake.outline.length-1;i<lake.outline.length;j=i++) {
+    const a=lake.outline[i],b=lake.outline[j];
+    if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+  }
+  return inside;
+}
+
+export function shoreDistance(lake:Lake,x:number,z:number):number {
+  if(!lake.outline)return Math.abs(Math.hypot((x-lake.x)/lake.rx,(z-lake.z)/lake.rz)-1)*Math.min(lake.rx,lake.rz);
+  let distance=Infinity;
+  for(let i=0;i<lake.outline.length;i++) {
+    const a=lake.outline[i],b=lake.outline[(i+1)%lake.outline.length],dx=b[0]-a[0],dz=b[1]-a[1];
+    const t=THREE.MathUtils.clamp(((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz),0,1);
+    distance=Math.min(distance,Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t));
+  }
+  return distance;
 }
 
 export class Course {
@@ -83,6 +108,11 @@ export class Course {
     let height = naturalHeight(x, z, this.definition.hills);
     for (const lake of this.lakes) {
       const radius = Math.hypot((x-lake.x)/lake.rx, (z-lake.z)/lake.rz);
+      if(this.definition.setting==='sandsjon') {
+        const shore=this.definition.shore!;
+        height=lake.level+(lakeContains(lake,x,z)?0:shore.height*THREE.MathUtils.smoothstep(shoreDistance(lake,x,z),0,shore.blendDistance));
+        continue;
+      }
       const blend = THREE.MathUtils.smoothstep(radius, world.lakes.basinInner, world.lakes.basinOuter);
       const shoreline = 1 - THREE.MathUtils.smoothstep(radius, world.lakes.basinOuter, world.lakes.shoreOuter);
       const bank = THREE.MathUtils.lerp(height, Math.max(height, lake.level + world.lakes.bankHeight), shoreline);
@@ -113,7 +143,12 @@ export class Course {
     return { point, tangent: b.clone().sub(a).setY(0).normalize(), distance: Math.sqrt(best), progress: (index+fraction)/(this.points.length-1) };
   }
 
+  onIce(x: number, z: number): boolean {
+    return this.definition.setting==='sandsjon' && this.lakes.some(l=>lakeContains(l,x,z));
+  }
+
   inWater(x: number, z: number): boolean {
+    if(this.definition.setting==='sandsjon')return false;
     return this.lakes.some(l => Math.hypot((x-l.x)/l.rx,(z-l.z)/l.rz)<world.lakes.waterRadius && this.height(x,z)<l.level);
   }
 

@@ -1,0 +1,42 @@
+{
+  "cruising": {
+    "acceleration": 12,
+    "reverseAcceleration": 8,
+    "braking": 24,
+    "reverseSpeed": 9,
+    "road": {
+      "drag": 0.16,
+      "speed": 36,
+      "grip": 5.2
+    },
+    "grass": {
+      "drag": 1.2,
+      "speed": 14,
+      "grip": 7
+    }
+  },
+  "rally": {
+    "acceleration": 21,
+    "reverseAcceleration": 11,
+    "braking": 30,
+    "reverseSpeed": 12,
+    "road": {
+      "drag": 0.16,
+      "speed": 54,
+      "grip": 4.6
+    },
+    "grass": {
+      "drag": 0.38,
+      "speed": 38,
+      "grip": 3.2
+    }
+  },
+  "ice": {
+    "drag": 0.065,
+    "speed": 1,
+    "grip": 0.65,
+    "brakingScale": 0.42,
+    "accelerationScale": 0.6,
+    "handbrakeDrag": 0.25
+  }
+}

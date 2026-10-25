@@ -1,0 +1,119 @@
+{
+  "ice": {
+    "color": "#8bb5c7",
+    "roughness": 0.24,
+    "metalness": 0.25
+  },
+  "cracks": {
+    "color": "#d9edf4",
+    "transparent": true,
+    "opacity": 0.46
+  },
+  "crackCount": 105,
+  "crackLength": [
+    4,
+    15
+  ],
+  "crackWidth": 0.12,
+  "crackElevation": 0.025,
+  "lakeSegments": 128,
+  "bridge": {
+    "name": "Road 120",
+    "parts": [
+      {
+        "size": [
+          140,
+          1.2,
+          12
+        ],
+        "position": [
+          0,
+          7.8,
+          0
+        ],
+        "material": "concrete"
+      },
+      {
+        "size": [
+          140,
+          0.12,
+          10
+        ],
+        "position": [
+          0,
+          8.46,
+          0
+        ],
+        "material": "asphalt"
+      }
+    ],
+    "pierX": [
+      -56,
+      56
+    ],
+    "pierZ": [
+      -4.5,
+      4.5
+    ],
+    "pierSize": [
+      3,
+      7.2,
+      3
+    ],
+    "pierY": 3.6,
+    "railZ": [
+      -5.7,
+      5.7
+    ],
+    "railSize": [
+      140,
+      0.25,
+      0.2
+    ],
+    "railY": [
+      8.8,
+      9.5
+    ],
+    "postSpacing": 12,
+    "postSize": [
+      0.18,
+      1.4,
+      0.18
+    ],
+    "postY": 9,
+    "dashSize": [
+      6,
+      0.02,
+      0.16
+    ],
+    "dashY": 8.54,
+    "dashSpacing": 14,
+    "startX": -68,
+    "endX": 68,
+    "materials": {
+      "concrete": {
+        "color": "#919c9f",
+        "roughness": 0.95
+      },
+      "asphalt": {
+        "color": "#424c54",
+        "roughness": 0.9
+      },
+      "rail": {
+        "color": "#c7d4da",
+        "metalness": 0.6,
+        "roughness": 0.35
+      },
+      "marking": {
+        "color": "#f3ead0"
+      }
+    }
+  },
+  "surfaceElevation": 0.015,
+  "map": {
+    "fill": "#8bb5c733",
+    "stroke": "#b8d5e2",
+    "bridge": "#edbf75",
+    "bridgeWidth": 5
+  }
+}

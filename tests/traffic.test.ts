@@ -10,7 +10,10 @@ import { disposeGroup } from '../src/dispose.ts';
 
 for(const definition of courses)test(`${definition.id}: scenery follows the setting and leaves roads safe`,()=> {
   const course=new Course(definition),cottages=roadsideCottages(course);
-  if(definition.setting==='holmahult') {
+  if(definition.setting==='sandsjon') {
+    assert.equal(course.lakes.length,1);
+    assert.ok(course.points.every(point=>course.onIce(point.x,point.z)));
+  } else if(definition.setting==='holmahult') {
     assert.equal(course.lakes.length,0,'the real lane has no lakes alongside it');
     assert.equal(cottages.length,0,'fixed farmyards replace random cottages');
   } else {
@@ -23,13 +26,14 @@ for(const definition of courses)test(`${definition.id}: scenery follows the sett
     assert.ok(!course.inWater(site.x,site.z));
   }
   for(const point of course.points) {
-    for(const lake of course.lakes)assert.ok(Math.hypot((point.x-lake.x)/(lake.rx+definition.width/2+2),(point.z-lake.z)/(lake.rz+definition.width/2+2))>1,`${definition.id}: shoreline reaches road`);
+    for(const lake of definition.setting==='sandsjon'?[]:course.lakes)assert.ok(Math.hypot((point.x-lake.x)/(lake.rx+definition.width/2+2),(point.z-lake.z)/(lake.rz+definition.width/2+2))>1,`${definition.id}: shoreline reaches road`);
   }
 });
 
 for(const definition of courses)test(`${definition.id}: slow traffic follows the road facing forward and leaves passing room`,()=> {
   const course=new Course(definition),world=new CollisionWorld(),group=new THREE.Group(),traffic=new Traffic(course,world,group);
-  assert.ok(traffic.vehicles.length>=3&&traffic.vehicles.length<=7);
+  if(definition.setting==='sandsjon')assert.equal(traffic.vehicles.length,0);
+  else assert.ok(traffic.vehicles.length>=3&&traffic.vehicles.length<=7);
   for(const vehicle of traffic.vehicles) {
     assert.ok(vehicle.speed>=6.4&&vehicle.speed<=7.8);
     const sample=course.sample(vehicle.distance/course.length);

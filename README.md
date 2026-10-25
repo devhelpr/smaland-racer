@@ -113,3 +113,7 @@ Edit the matching file in `assets/` to change a model or palette. Numeric arrays
 JSON imports are bundled by Vite and work in the Node test runner through `with { type: 'json' }`. No runtime data fetch is required. Run the checks above after editing data to catch invalid JSON, type errors and road/collision regressions.
 
 The game supports desktop keyboard play and mobile/touchscreen gestures. Multiplayer, AI opponents, online leaderboards, vehicle upgrades and audio are outside this version.
+
+Driving styles are selected from the title screen or route menu. **Cruising** preserves the original handling; **Rally** increases acceleration and top speed and reduces grass drag. Best times are saved separately for each style. Existing saves default to Cruising.
+
+**Sandsjön · Isrally** uses a shoreline hand-traced from the supplied Sandsjön satellite reference, including the eastern peninsulas, bays, and southern outlet. The Road 120 bridge crosses the southern narrows; the marked ice stage runs beneath it. The frozen lake has low grip across its whole surface, snowy shores, and an elevated road bridge with solid piers and open passages underneath. Select **Free drive** to explore without a timer target. This level always uses winter, independently of the season selected for the other routes. Lake/route data lives in `parcours/sandsjon.json`; visual geometry and materials in `assets/sandsjon.json`; handling profiles in `assets/driving.json`.

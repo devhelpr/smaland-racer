@@ -1,7 +1,8 @@
+import { createSandsjon } from './sandsjon.ts';
 import placement from '../parcours/scenery.json' with { type: 'json' };
 import asset from '../assets/scenery.json' with { type: 'json' };
 import * as THREE from 'three';
-import { Course, randomGenerator, WORLD_SIZE } from './track.ts';
+import { Course, lakeContains, shoreDistance, randomGenerator, WORLD_SIZE } from './track.ts';
 import { CollisionWorld } from './collision.ts';
 import { SnowPoles } from './snow-poles.ts';
 import { holmahultBuildings, holmahultFieldAt, onHolmahultSideRoad } from './holmahult-data.ts';
@@ -73,9 +74,10 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   gravelTexture.generateMipmaps = true; gravelTexture.anisotropy = 4; gravelTexture.needsUpdate = true;
   const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, asset.roadElevation), new THREE.MeshStandardMaterial({ ...asset.road, map: gravelTexture, side: THREE.DoubleSide }));
   shoulder.userData.seasonalSurface=road.userData.seasonalSurface='gravel';
-  shoulder.receiveShadow = true; road.receiveShadow = true; scene.add(shoulder, road);
+  shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.setting!=='sandsjon')scene.add(shoulder, road);
+  else { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();gravelTexture.dispose();createSandsjon(scene,course,collisions); }
 
-  for (const lake of lakes) {
+  for (const lake of course.definition.setting==='sandsjon'?[]:lakes) {
     const water = new THREE.Mesh(new THREE.CircleGeometry(...asset.waterGeometry as [number, number]), new THREE.MeshStandardMaterial(asset.waterMaterial));
     water.userData.seasonalSurface='water';
     water.rotation.x = -Math.PI / 2; water.scale.set(lake.rx, lake.rz, 1); water.position.set(lake.x, lake.level, lake.z); scene.add(water);
@@ -105,7 +107,8 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
       if (holmahultFieldAt(x, z) >= 0 || onHolmahultSideRoad(x, z, clearance)) return false;
       if (holmahultBuildings.some(b => Math.hypot(x-b.x, z-b.z) < Math.hypot(b.width, b.depth)/2 + (b.id === 'holmahult-25' ? placement.clearance.holmahultHome : placement.clearance.holmahultBuilding))) return false;
     }
-    if (lakes.some(l => Math.hypot((x - l.x) / l.rx, (z - l.z) / l.rz) < placement.clearance.lake)) return false;
+    if(course.definition.setting==='sandsjon'&&lakes.some(l=>lakeContains(l,x,z)||shoreDistance(l,x,z)<course.definition.shore!.sceneryClearance))return false;
+    if (course.definition.setting!=='sandsjon' && lakes.some(l => Math.hypot((x - l.x) / l.rx, (z - l.z) / l.rz) < placement.clearance.lake)) return false;
     return !cottageSites.some(c => Math.hypot(x - c.x, z - c.z) < placement.clearance.cottage);
   };
   const treePositions: { x: number; z: number; scale: number; rotation: number }[] = [];

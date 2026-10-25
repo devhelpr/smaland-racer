@@ -64,6 +64,7 @@ export class Traffic {
 
   constructor(course: Course, world: CollisionWorld, group: THREE.Group) {
     this.course = course;
+    if(course.definition.setting==='sandsjon')return;
     const random = randomGenerator(course.definition.seed + placement.seedOffset);
     const count = Math.max(placement.minCount, Math.min(placement.maxCount, Math.ceil(course.length / placement.lengthPerVehicle)));
     for (let i=0;i<count;i++) {

@@ -21,3 +21,35 @@
 @media(max-width:850px){.title-copy{width:72%;margin-left:6%}}
 @media(max-width:560px){.title-menu{overflow-y:auto;pointer-events:auto!important}.title-copy{position:relative;top:auto;left:auto;right:auto;transform:none;width:auto;margin:115px 22px 35px}.season-options{gap:5px}.season-options button{font-size:10px;padding:9px 6px;gap:6px}.title-actions{margin-top:20px}}
 @media(max-height:550px){.title-menu{overflow-y:auto;pointer-events:auto!important}.title-copy{position:relative;top:auto;left:auto;transform:none;margin:85px 6% 25px;width:65%}.season-picker{margin-top:14px}.season-picker legend{margin-bottom:6px}.season-picker p{margin-top:5px}}
+
+/* Keep the road visible on phones, including landscape touch screens. */
+@media(max-width:850px), (pointer:coarse) and (max-height:550px){
+  #race-hud .route-card{display:none}
+  #race-hud .timing{
+    top:max(76px,calc(env(safe-area-inset-top) + 56px));
+    left:max(8px,env(safe-area-inset-left));
+    right:max(8px,env(safe-area-inset-right));
+    width:auto;min-width:0;padding:6px 10px 8px;
+    display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+    grid-template-rows:auto auto;column-gap:12px;align-items:center;
+  }
+  #race-hud .timing .eyebrow{grid-column:1;grid-row:1;font-size:6px;letter-spacing:1px;line-height:1.2}
+  #race-hud .timing>strong{grid-column:1;grid-row:2;font-size:20px;line-height:1.1;letter-spacing:-.5px;margin:2px 0 0}
+  #race-hud #split{grid-column:2;grid-row:1 / 3;font-size:8px;min-height:0;margin:0;text-align:center;overflow-wrap:anywhere}
+  #race-hud .checkpoint-line{grid-column:3;grid-row:1 / 3;gap:6px;font-size:8px;margin:0}
+  #race-hud .progress-track{position:absolute;bottom:0;left:0;right:0;height:2px;margin:0}
+  #race-hud .dashboard{
+    left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));
+    bottom:max(10px,env(safe-area-inset-bottom));gap:10px;align-items:end;
+  }
+  #race-hud .drive-tools{width:auto;max-width:none;flex:1;min-width:0}
+  #race-hud .condition-heading{max-width:none;font-size:6px;letter-spacing:.5px}
+  #race-hud .condition-track{max-width:none;height:2px;margin:4px 0 6px}
+  #race-hud .touch-controls{font-size:7px;line-height:1.3;max-width:none}
+  #race-hud .touch-controls span+span{font-size:6px;margin-top:2px}
+  #race-hud .speedometer{gap:5px}
+  #race-hud .speedometer strong{font-size:28px;letter-spacing:-1px}
+  #race-hud .speedometer>#gear{font-size:8px;padding:3px 5px}
+  #race-hud .speed-unit{font-size:6px;letter-spacing:.5px}
+  #race-hud .speed-unit span{display:none}
+}

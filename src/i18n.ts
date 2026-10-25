@@ -1,5 +1,6 @@
 import type { Language } from './storage.ts';
 const en={
+  timeOfDay:'Time of day',day:'Golden hour',night:'Night',nightInfo:'No streetlights. Just you, the forest and your headlights.',headlights:'Car lights',off:'Off',dipped:'Dipped headlights',beam:'Full beam',led:'Full beam + LED bar',lightsHint:'L · switch lights',
   airborne:'Airborne',twoWheels:'Two wheels',overturned:'Overturned · R to right the car',
   drivingStyle:'Driving style',cruising:'Cruising',rally:'Rally',cruisingInfo:'The original handling. Easy pace, grass slows you down.',rallyInfo:'More speed, quicker acceleration, less drag on grass.',ice:'Ice',iceLake:'Winter lake · Road 120 underpass',
   country:'Sweden',
@@ -10,7 +11,7 @@ const en={
   routeIntro:'All levels are open. Choose a rally route or explore the open world.',
   best:'Personal best', noRecord:'No time set', gold:'Gold', silver:'Silver', bronze:'Bronze', none:'No medal', target:'Medal targets',
   drive:'Drive · arrows auto drift', handbrake:'Handbrake', recover:'Right car +5s', pause:'Pause', resume:'Resume', restart:'Try again', menu:'Routes', next:'Next route',
-  controls:'Controls', controlInfo:'WASD / arrows to drive · ↑ + ←/→ to auto drift at speed · Space for handbrake · R to right the car · Esc to pause',
+  controls:'Controls', controlInfo:'WASD / arrows to drive · ↑ + ←/→ to auto drift at speed · Space for handbrake · R to right the car · L to switch lights · Esc to pause',
   touchInfo:'Drag up for gas, down to brake or reverse, and left/right to steer. Hold your finger to maintain input; release to coast. A second finger holds the handbrake. Double tap to right the car in place (+5s).',
   touchHint:'Swipe {up} gas · {down} brake / reverse · {steer} steer. Hold to drive.',
   touchExtras:'2 fingers: handbrake · Double tap: right car (+5s)',
@@ -33,6 +34,7 @@ const en={
 };
 export type TextKey=keyof typeof en;
 const nl: Record<TextKey,string>={
+  timeOfDay:'Tijdstip',day:'Gouden uurtje',night:'Nacht',nightInfo:'Geen straatverlichting. Alleen jij, het bos en je koplampen.',headlights:'Autoverlichting',off:'Uit',dipped:'Dimlicht',beam:'Grootlicht',led:'Grootlicht + ledbar',lightsHint:'L · wissel verlichting',
   airborne:'In de lucht',twoWheels:'Twee wielen',overturned:'Omgeslagen · R om recht te zetten',
   drivingStyle:'Rijstijl',cruising:'Cruising',rally:'Rally',cruisingInfo:'Het originele rijgedrag. Rustig rijden; gras remt je af.',rallyInfo:'Meer snelheid, sneller optrekken, minder weerstand op gras.',ice:'IJs',iceLake:'Wintermeer · Onder de brug van weg 120',
   country:'Zweden',
@@ -43,7 +45,7 @@ const nl: Record<TextKey,string>={
   routeIntro:'Alle levels zijn beschikbaar. Kies een rallyroute of verken de open wereld.',
   best:'Persoonlijk record',noRecord:'Nog geen tijd',gold:'Goud',silver:'Zilver',bronze:'Brons',none:'Geen medaille',target:'Medailletijden',
   drive:'Rijden · pijltjes auto-drift',handbrake:'Handrem',recover:'Rechtzetten +5s',pause:'Pauze',resume:'Verder rijden',restart:'Opnieuw proberen',menu:'Parcoursen',next:'Volgend parcours',
-  controls:'Besturing',controlInfo:'WASD / pijltjes om te rijden · ↑ + ←/→ voor auto-drift op snelheid · Spatie voor handrem · R om recht te zetten · Esc voor pauze',
+  controls:'Besturing',controlInfo:'WASD / pijltjes om te rijden · ↑ + ←/→ voor auto-drift op snelheid · Spatie voor handrem · R om recht te zetten · L voor verlichting · Esc voor pauze',
   touchInfo:'Sleep omhoog voor gas, omlaag om te remmen of achteruit te rijden en links/rechts om te sturen. Houd vast om je invoer aan te houden; laat los om uit te rollen. Een tweede vinger bedient de handrem. Dubbeltik om de auto ter plekke recht te zetten (+5s).',
   touchHint:'Veeg {up} gas · {down} rem / achteruit · {steer} stuur. Houd vast om te rijden.',
   touchExtras:'2 vingers: handrem · Dubbeltik: rechtzetten (+5s)',
@@ -65,6 +67,7 @@ const nl: Record<TextKey,string>={
   exitPractice:'Stop vrij rijden',distance:'km',selectLabel:'Kies een parcours',countdownLabel:'Aftellen voor de start',
 };
 const sv: Record<TextKey,string>={
+  timeOfDay:'Tid på dygnet',day:'Gyllene timmen',night:'Natt',nightInfo:'Ingen gatubelysning. Bara du, skogen och bilens strålkastare.',headlights:'Bilbelysning',off:'Av',dipped:'Halvljus',beam:'Helljus',led:'Helljus + LED-ramp',lightsHint:'L · byt belysning',
   airborne:'I luften',twoWheels:'Två hjul',overturned:'Vält · R för att räta upp',
   drivingStyle:'Körstil',cruising:'Cruising',rally:'Rally',cruisingInfo:'Den ursprungliga körkänslan. Lugn fart, gräset bromsar.',rallyInfo:'Högre fart, snabbare acceleration, mindre motstånd på gräs.',ice:'Is',iceLake:'Vintersjö · Under bron på väg 120',
   country:'Sverige',
@@ -75,7 +78,7 @@ const sv: Record<TextKey,string>={
   routeIntro:'Alla nivåer är öppna. Välj en rallybana eller utforska den öppna världen.',
   best:'Personbästa',noRecord:'Ingen tid ännu',gold:'Guld',silver:'Silver',bronze:'Brons',none:'Ingen medalj',target:'Medaljtider',
   drive:'Kör · pilar ger autodrift',handbrake:'Handbroms',recover:'Räta upp +5s',pause:'Paus',resume:'Fortsätt',restart:'Försök igen',menu:'Banor',next:'Nästa bana',
-  controls:'Kontroller',controlInfo:'WASD / piltangenter för att köra · ↑ + ←/→ ger autodrift i fart · Mellanslag för handbroms · R för att räta upp · Esc för paus',
+  controls:'Kontroller',controlInfo:'WASD / piltangenter för att köra · ↑ + ←/→ ger autodrift i fart · Mellanslag för handbroms · R för att räta upp · L för belysning · Esc för paus',
   touchInfo:'Dra uppåt för gas, nedåt för att bromsa eller backa och åt sidorna för att styra. Håll kvar fingret för att behålla inmatningen; släpp för att rulla fritt. Ett andra finger håller handbromsen. Dubbeltryck för att räta upp bilen på plats (+5s).',
   touchHint:'Svep {up} gas · {down} broms / back · {steer} styr. Håll kvar för att köra.',
   touchExtras:'2 fingrar: handbroms · Dubbeltryck: räta upp (+5s)',

@@ -1,20 +1,23 @@
+import { isTimeOfDay, isHeadlightMode, type TimeOfDay, type HeadlightMode } from './lighting.ts';
 import { drivingStyles, isDrivingStyle, type DrivingStyle } from './driving.ts';
 import { isSeason, type Season } from './seasons.ts';
 import { courses } from './track.ts';
 import type { RaceResult } from './race.ts';
 export type Language = 'en' | 'nl' | 'sv';
-export interface Progress { version: 1; language: Language; season: Season; drivingStyle?: DrivingStyle; records: Record<string,RaceResult> }
+export interface Progress { version: 1; language: Language; season: Season; timeOfDay?: TimeOfDay; headlights?: HeadlightMode; drivingStyle?: DrivingStyle; records: Record<string,RaceResult> }
 export interface StorageLike { getItem(key: string): string|null; setItem(key: string,value: string): void }
 const key='smaland-racer:v1';
 const validNumber=(n: unknown): n is number => typeof n==='number'&&Number.isFinite(n)&&n>=0;
 export function detectLanguage(locale: string): Language { const lang=locale.toLowerCase().split('-')[0]; return lang==='nl'||lang==='sv'?lang:'en'; }
 export function loadProgress(storage: StorageLike|null, locale='en'): Progress {
-  const result: Progress={version:1,language:detectLanguage(locale),season:'summer',drivingStyle:'cruising',records:{}};
+  const result: Progress={version:1,language:detectLanguage(locale),season:'summer',timeOfDay:'day',headlights:'dipped',drivingStyle:'cruising',records:{}};
   try {
     const data=JSON.parse(storage?.getItem(key)??'null');
     if(!data||data.version!==1) return result;
     if(['en','nl','sv'].includes(data.language)) result.language=data.language;
     if(isDrivingStyle(data.drivingStyle))result.drivingStyle=data.drivingStyle;
+    if(isTimeOfDay(data.timeOfDay))result.timeOfDay=data.timeOfDay;
+    if(isHeadlightMode(data.headlights))result.headlights=data.headlights;
     if(isSeason(data.season))result.season=data.season;
     for(const course of courses) for(const style of drivingStyles) {
       const recordKey=courseRecordKey(course.id,style);

@@ -1,0 +1,27 @@
+{
+  "night": {
+    "sky": "#02040b",
+    "fog": "#03060d",
+    "ambientSky": "#7288bc",
+    "ambientGround": "#101724",
+    "ambientIntensity": 0.045,
+    "moonColor": "#859ac4",
+    "moonIntensity": 0.025,
+    "fogNear": 55,
+    "fogFar": 240,
+    "exposure": 1.1
+  },
+  "dayExposure": 1.1,
+  "beamPosition": [0, 0.94, 2.05],
+  "shadow": { "mapSize": 1024, "near": 0.3, "bias": -0.0002, "normalBias": 0.035 },
+  "ledHousing": { "size": [1.2, 0.16, 0.18], "position": [0, 1.91, 0.55], "color": "#15201f" },
+  "ledLens": { "size": [1.08, 0.09, 0.02], "position": [0, 1.91, 0.65], "color": "#dcecff", "emissive": "#dcecff" },
+  "tailEmissive": "#ff2010",
+  "tailIntensity": 1.4,
+  "modes": {
+    "off": { "color": "#fff0cc", "intensity": 0, "distance": 65, "angle": 0.48, "penumbra": 0.55, "target": [0, -0.2, 24], "lampIntensity": 0, "ledIntensity": 0 },
+    "dipped": { "color": "#fff0cc", "intensity": 2200, "distance": 65, "angle": 0.48, "penumbra": 0.55, "target": [0, -0.2, 24], "lampIntensity": 2, "ledIntensity": 0 },
+    "beam": { "color": "#fff4dc", "intensity": 9500, "distance": 135, "angle": 0.38, "penumbra": 0.5, "target": [0, 0.3, 85], "lampIntensity": 4, "ledIntensity": 0 },
+    "led": { "color": "#e1eeff", "intensity": 26000, "distance": 210, "angle": 0.56, "penumbra": 0.45, "target": [0, 0.3, 120], "lampIntensity": 4, "ledIntensity": 6 }
+  }
+}

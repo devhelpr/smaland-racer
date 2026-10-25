@@ -1,3 +1,4 @@
+import { timesOfDay, headlightModes, isTimeOfDay, isHeadlightMode, nextHeadlightMode, type HeadlightMode, type TimeOfDay } from './lighting.ts';
 import openWorldAsset from '../assets/open-world.json' with { type: 'json' };
 import { DrivingTuner } from './tuning.ts';
 import { icon, iconText } from './icons.ts';
@@ -31,7 +32,7 @@ function start(): void {
   let language=progress.language;
   const t=(key:TextKey)=>text(language,key);
   const time=(value:number)=>formatTime(value,language);
-  const {renderer,scene,camera,follow,setSeason}=createRendering(el('viewport'));
+  const {renderer,scene,camera,follow,setSeason,setTimeOfDay}=createRendering(el('viewport'));
   const input=new Input(renderer.domElement);
   const tuner=new DrivingTuner(()=>progress.drivingStyle??'cruising',()=>input.clear());
   el('keyboard-arrows').innerHTML=icon('arrowKeys');
@@ -68,6 +69,8 @@ function start(): void {
     selected=index;course=new Course(courses[index]);world=new CollisionWorld();group=new THREE.Group();scene.add(group);
     snowPoles=createScenery(group,course,world);
     car=new Vehicle(course,progress.drivingStyle,tuner.profiles);group.add(car.mesh);
+    car.lighting.setMode(progress.headlights??'dipped');
+    setTimeOfDay(progress.timeOfDay??'day');
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
     traffic=new Traffic(course,world,group);
@@ -124,6 +127,13 @@ function start(): void {
     document.documentElement.lang=language;
     el('app').classList.toggle('touch-input',input.usingTouch);
     tuner.refresh();
+    el('lights-label').textContent=t('headlights');
+    el('headlights').setAttribute('aria-label',t('headlights'));
+    el('lights-hint').textContent=t('lightsHint');
+    el<HTMLSelectElement>('headlights').value=progress.headlights??'dipped';
+    for(const option of el<HTMLSelectElement>('headlights').options)option.textContent=t(option.value as HeadlightMode);
+    el('night-toggle').textContent=t('night');
+    el('night-toggle').setAttribute('aria-pressed',String(progress.timeOfDay==='night'));
     el('keyboard-controls').hidden=input.usingTouch;
     el('touch-controls').hidden=!input.usingTouch;
     el('touch-controls').innerHTML=`<span>${iconText(t('touchHint'))}</span><span>${t('touchExtras')}</span>`;
@@ -147,6 +157,7 @@ function start(): void {
   const targets=()=>course.definition.openWorld?`<p>${t('openWorldInfo')}</p>`:`<div class="targets">${(['gold','silver','bronze'] as const).map(m=>`<span class="medal-target ${m}"><i></i>${t(m)}<b>${time(course.definition.medals[m])}</b></span>`).join('')}</div>`;
 
   const drivingOptions=()=>`<fieldset class="driving-picker"><legend>${t('drivingStyle')}</legend><div class="driving-options">${drivingStyles.map(style=>`<button type="button" data-driving-style="${style}" aria-pressed="${(progress.drivingStyle??'cruising')===style}"><strong>${t(style)}</strong><span>${t(style==='cruising'?'cruisingInfo':'rallyInfo')}</span></button>`).join('')}</div></fieldset>`;
+  const lightingOptions=()=>`<fieldset class="lighting-picker"><legend>${t('timeOfDay')}</legend><div class="season-options time-options">${timesOfDay.map(mode=>`<button type="button" data-time="${mode}" aria-pressed="${(progress.timeOfDay??'day')===mode}">${t(mode)}</button>`).join('')}</div><p>${t('nightInfo')}</p><label class="lighting-select">${t('headlights')}<select data-headlights>${headlightModes.map(mode=>`<option value="${mode}" ${mode===(progress.headlights??'dipped')?'selected':''}>${t(mode)}</option>`).join('')}</select></label></fieldset>`;
   const languageOptions=()=>`<label class="language pause-language"><span>${t('language')}</span><select data-language aria-label="${t('language')}">${(['en','nl','sv'] as const).map(code=>`<option value="${code}" ${code===language?'selected':''}>${{en:'English',nl:'Nederlands',sv:'Svenska'}[code]}</option>`).join('')}</select></label>`;
   function renderMenus(): void {
     const state=race.state;
@@ -158,7 +169,7 @@ function start(): void {
     el('countdown').hidden=state!=='countdown';
     menus.className=state==='title'?'title-menu':state==='select'?'selection-menu':state==='paused'||state==='finished'||state==='crashed'?'center-menu':'';
     if(state==='title') {
-      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div><p>${t('goldenHour')}</p></fieldset><div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${icon('chevronRight')}${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
+      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div></fieldset>${lightingOptions()}<div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${icon('chevronRight')}${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
       menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">${icon('arrowLeft')}${t('back')}</button></div><div class="selection-controls">${drivingOptions()}${button('start',course.definition.openWorld?'practice':'play',true)}</div><div class="course-grid">${courses.map((def,i)=> {
         const record=progress.records[courseRecordKey(def.id,progress.drivingStyle)];
@@ -167,7 +178,7 @@ function start(): void {
         return `<button class="course-tile ${i===selected?'selected':''}" data-course="${i}" aria-pressed="${i===selected}"><div class="tile-top"><span>0${i+1} / ${t(def.region)}</span><span>${record?t(record.medal):icon('arrowUpRight')}</span></div><svg class="route-preview" viewBox="${x} ${z} ${size} ${size}" aria-hidden="true">${mapLandscape(preview)}${def.openWorld?'':`<path d="${path}"/>`}</svg><h2>${def.name}</h2><span class="course-type">${def.setting==='sandsjon'?t('iceLake')+' · ':''}${t(def.openWorld?'openWorld':def.closed?'circuit':'stage')} · ${(preview.drivingLength/1000).toLocaleString(language,{maximumFractionDigits:2})} km</span><div class="tile-record">${record?`${t('best')} <strong>${time(record.total)}</strong>`:t('noRecord')}</div></button>`;
       }).join('')}</div><div class="selection-bottom"><div><h3>${course.definition.name}</h3>${targets()}</div><div class="selection-actions">${button('practice','practice')}<small>${t('practiceNote')}</small></div></div></section>`;
     } else if(state==='paused') {
-      menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t(input.usingTouch?'touchInfo':'controlInfo')}</p></section>`;
+      menus.innerHTML=`<section class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${t(race.practice?'freeDrive':'racing')} / ${course.definition.name}</span><h1 id="dialog-title">${t('paused')}</h1><p>${t('pausedInfo')}</p>${languageOptions()}${lightingOptions()}<div class="dialog-actions">${button('resume','resume',true)}${button('retry','restart')}${button('select','menu')}</div><p class="fine-print">${t(input.usingTouch?'touchInfo':'controlInfo')}</p></section>`;
     } else if(state==='finished') {
       const result=race.result!;
       menus.innerHTML=`<section class="dialog-panel result-panel" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><span class="eyebrow">${course.definition.name} / ${t(result.medal)}</span><h1 id="dialog-title">${t('finished')}</h1>${personalBest?`<div class="record-badge">${t('newRecord')}</div>`:''}<div class="result-time">${time(result.total)}</div><dl class="result-breakdown"><div><dt>${t('drivingTime')}</dt><dd>${time(result.elapsed)}</dd></div><div><dt>${t('damagePenalty')} (${result.damage.toLocaleString(language,{maximumFractionDigits:1})})</dt><dd>+${time(result.damage*.2)}</dd></div><div><dt>${t('recoveryPenalty')} (${result.recoveries})</dt><dd>+${time(result.recoveries*5)}</dd></div>${previousBest!==null?`<div><dt>${t('improvement')}</dt><dd>${time(previousBest)}</dd></div>`:''}</dl>${targets()}${result.medal==='none'?`<p>${t('noMedalInfo')}</p>`:''}<div class="dialog-actions">${button('retry','restart',true)}${selected<courses.length-1&&isCourseAvailable(selected+1)?button('next','next'):''}${button('select','menu')}</div></section>`;
@@ -180,6 +191,7 @@ function start(): void {
 
   menus.addEventListener('click',event=> {
     const target=(event.target as HTMLElement).closest<HTMLButtonElement>('button');if(!target)return;
+    if(isTimeOfDay(target.dataset.time)) {changeTime(target.dataset.time);return;}
     if(isDrivingStyle(target.dataset.drivingStyle)) {
       progress.drivingStyle=target.dataset.drivingStyle;persist();renderMenus();return;
     }
@@ -203,6 +215,16 @@ function start(): void {
     }
     target.blur();
   });
+  function changeTime(value: TimeOfDay): void {
+    progress.timeOfDay=value;setTimeOfDay(value);persist();
+    menus.querySelectorAll<HTMLButtonElement>('[data-time]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.time===value)));
+    updateLabels();
+  }
+  function changeHeadlights(value: HeadlightMode): void {
+    progress.headlights=value;car.lighting.setMode(value);persist();updateLabels();
+  }
+  el('headlights').addEventListener('change',event=>{const select=event.target as HTMLSelectElement;if(isHeadlightMode(select.value))changeHeadlights(select.value);select.blur();});
+  el('night-toggle').addEventListener('click',()=>{changeTime(progress.timeOfDay==='night'?'day':'night');el('night-toggle').blur();});
   function setLanguage(value: string): void {
     if(!['en','nl','sv'].includes(value))return;
     language=value as Language;progress.language=language;persist();renderMenus();
@@ -210,12 +232,17 @@ function start(): void {
   languageSelect.addEventListener('change',()=>{setLanguage(languageSelect.value);languageSelect.blur();});
   menus.addEventListener('change',event=> {
     const select=event.target as HTMLSelectElement;
+    if(select.matches('select[data-headlights]')&&isHeadlightMode(select.value))changeHeadlights(select.value);
     if(select.matches('select[data-language]'))setLanguage(select.value);
   });
   el('home').addEventListener('click',()=> {showTitle();el('home').blur();});
   el('pause-button').addEventListener('click',pause);
   el('recover-button').addEventListener('click',()=>{recover();el('recover-button').blur();});
   window.addEventListener('keydown',event=> {
+    if(event.code==='KeyL'&&!event.repeat&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&['racing','countdown'].includes(race.state)) {
+      const target=event.target as HTMLElement|null;
+      if(!target?.closest('button,select,input,textarea,[contenteditable]')) {event.preventDefault();changeHeadlights(nextHeadlightMode(progress.headlights??'dipped'));}
+    }
     if(event.code==='Tab') {
       const dialog=menus.querySelector('[role=dialog]');
       if(dialog) {

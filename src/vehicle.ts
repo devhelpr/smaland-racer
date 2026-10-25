@@ -1,3 +1,4 @@
+import { VehicleLighting } from './lighting.ts';
 import { StuntDynamics } from './stunts.ts';
 import stuntAsset from '../assets/stunts.json' with { type: 'json' };
 import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
@@ -9,6 +10,7 @@ import type { DriveInput } from './input.ts';
 
 export class Vehicle {
   readonly mesh = new THREE.Group();
+  readonly lighting: VehicleLighting;
   readonly position = new THREE.Vector3();
   readonly velocity = new THREE.Vector3();
   readonly stunts = new StuntDynamics();
@@ -57,6 +59,8 @@ export class Vehicle {
       box(...asset.headlampSize as [number, number, number], x, ...asset.headlampYZ as [number, number], lamp);
       box(...asset.tailLampSize as [number, number, number], x, ...asset.tailLampYZ as [number, number], red);
     }
+    this.lighting = new VehicleLighting(lamp, red);
+    this.mesh.add(this.lighting.root);
     for (const x of asset.wheelX) for (const z of asset.wheelZ) {
       const pivot = new THREE.Group(); pivot.position.set(x, asset.wheelHeight, z);
       const tire = new THREE.Mesh(new THREE.CylinderGeometry(...asset.tire as [number, number, number, number]), trim);

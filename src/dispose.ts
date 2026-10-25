@@ -2,6 +2,7 @@ import * as THREE from 'three';
 export function disposeGroup(group:THREE.Group): void {
   const geometries=new Set<THREE.BufferGeometry>();const materials=new Set<THREE.Material>();const textures=new Set<THREE.Texture>();
   group.traverse(object=> {
+    if(object instanceof THREE.Light && 'shadow' in object) (object as THREE.SpotLight).shadow.dispose();
     if(object instanceof THREE.Mesh) {
       geometries.add(object.geometry);
       for(const material of Array.isArray(object.material)?object.material:[object.material]) {

@@ -3,7 +3,7 @@ import stuntAsset from '../assets/stunts.json' with { type: 'json' };
 import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
 import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
-import { Course } from './track.ts';
+import type { DrivingWorld } from './driving-world.ts';
 import { CollisionWorld, impactDamage } from './collision.ts';
 import type { DriveInput } from './input.ts';
 
@@ -24,10 +24,10 @@ export class Vehicle {
   private steering = 0;
   private wheels: THREE.Group[] = [];
 
-  readonly course: Course;
+  readonly course: DrivingWorld;
   readonly drivingStyle: DrivingStyle;
   readonly profiles: DrivingProfiles;
-  constructor(course: Course, drivingStyle: DrivingStyle = 'cruising', profiles: DrivingProfiles = drivingProfiles) {
+  constructor(course: DrivingWorld, drivingStyle: DrivingStyle = 'cruising', profiles: DrivingProfiles = drivingProfiles) {
     this.profiles=profiles;
     this.drivingStyle=drivingStyle;
     this.course=course;
@@ -77,12 +77,12 @@ export class Vehicle {
 
   restart(): void {
     this.damage=0; this.impact=0; this.age=0; this.contacts.clear();
-    const start=this.course.sample(0); this.recover(start.point,start.tangent,false);
+    const start=this.course.spawn; this.recover(start.point,start.tangent,false);
   }
 
   recover(point: THREE.Vector3, tangent: THREE.Vector3, advance=true): void {
     this.position.copy(point).addScaledVector(tangent,advance?1.8:0);
-    this.position.y=this.course.height(this.position.x,this.position.z);
+    this.position.y=this.course.heightAt(this.position.x,this.position.z);
     this.heading=Math.atan2(tangent.x,tangent.z);
     this.stunts.reset();
     this.velocity.set(0,0,0); this.forwardSpeed=0; this.steering=0; this.onRoad=true; this.contacts.clear(); this.syncMesh();
@@ -91,23 +91,23 @@ export class Vehicle {
   /** Right the car at its current X/Z, retaining damage and its facing direction. */
   rightInPlace(collisions?:CollisionWorld):void {
     const sin=Math.sin(this.heading),cos=Math.cos(this.heading);
-    let support=this.course.height(this.position.x,this.position.z);
+    let support=this.course.heightAt(this.position.x,this.position.z);
     // Clear stones under either axle or the chassis without shifting sideways.
     const points=[[0,0],...asset.wheelX.flatMap(x=>asset.wheelZ.map(z=>[x,z]))];
     for(const [x,z] of points) {
       const worldX=this.position.x+x*cos+z*sin,worldZ=this.position.z-x*sin+z*cos;
-      const terrain=this.course.height(worldX,worldZ);
+      const terrain=this.course.heightAt(worldX,worldZ);
       support=Math.max(support,collisions?.surfaceAt(worldX,worldZ,terrain).height??terrain);
     }
     this.position.y=Math.max(this.position.y,support);
     this.velocity.set(0,0,0);this.forwardSpeed=0;this.steering=0;this.impact=0;this.contacts.clear();
-    this.onRoad=this.course.nearest(this.position.x,this.position.z).distance<=this.course.definition.width/2;
+    this.onRoad=['gravel','asphalt','ice'].includes(this.course.surfaceAt(this.position.x,this.position.z));
     this.stunts.placeUpright(this.heading);this.syncMesh();
   }
 
   update(dt: number, input: DriveInput, collisions?: CollisionWorld): void {
     this.age+=dt; this.impact=Math.max(0,this.impact-dt*2.5);
-    this.onRoad=this.course.nearest(this.position.x,this.position.z).distance<=this.course.definition.width/2;
+    this.onRoad=['gravel','asphalt','ice'].includes(this.course.surfaceAt(this.position.x,this.position.z));
     const forward=new THREE.Vector3(Math.sin(this.heading),0,Math.cos(this.heading));
     const right=new THREE.Vector3(Math.cos(this.heading),0,-Math.sin(this.heading));
     let longitudinal=this.velocity.dot(forward); let lateral=this.velocity.dot(right);
@@ -116,7 +116,7 @@ export class Vehicle {
     this.steering=THREE.MathUtils.damp(this.steering,input.steer,handling.steeringResponse,dt);
     const braking=input.throttle!==0&&Math.sign(input.throttle)!==Math.sign(longitudinal)&&Math.abs(longitudinal)>0.8;
     const power=1-Math.max(0,this.damage-50)/50*.25;
-    const ice=this.course.onIce(this.position.x,this.position.z);
+    const ice=this.course.surfaceAt(this.position.x,this.position.z)==='ice';
     const surface=ice?this.profiles.ice:this.onRoad?profile.road:profile.grass;
     const traction=this.stunts.traction;
     const verticalSpeed=this.velocity.y;
@@ -172,7 +172,7 @@ export class Vehicle {
     const landingDamage=this.stunts.update(dt,this.position,this.velocity,this.heading,this.course,collisions);
     this.heading=this.stunts.groundedHeading()??this.heading;
     if(landingDamage>0) {this.damage=Math.min(100,this.damage+landingDamage);this.impact=Math.min(1,landingDamage/20);}
-    if(!this.stunts.active) {this.position.y=this.course.height(this.position.x,this.position.z);this.velocity.y=0;}
+    if(!this.stunts.active) {this.position.y=this.course.heightAt(this.position.x,this.position.z);this.velocity.y=0;}
     this.forwardSpeed=this.velocity.dot(forward);
     this.syncMesh();
     for(const wheel of this.wheels) {
@@ -196,7 +196,7 @@ export class Vehicle {
     this.mesh.rotation.order='YXZ';
     this.mesh.rotation.set(0, this.heading, 0);
     const dx = Math.sin(this.heading); const dz = Math.cos(this.heading);
-    this.mesh.rotation.x = -Math.atan((this.course.height(this.position.x + dx, this.position.z + dz) - this.course.height(this.position.x - dx, this.position.z - dz)) / 2);
-    this.mesh.rotation.z = Math.atan((this.course.height(this.position.x + dz, this.position.z - dx) - this.course.height(this.position.x - dz, this.position.z + dx)) / 2) + this.steering * Math.min(Math.abs(this.forwardSpeed) * 0.002, 0.045);
+    this.mesh.rotation.x = -Math.atan((this.course.heightAt(this.position.x + dx, this.position.z + dz) - this.course.heightAt(this.position.x - dx, this.position.z - dz)) / 2);
+    this.mesh.rotation.z = Math.atan((this.course.heightAt(this.position.x + dz, this.position.z - dx) - this.course.heightAt(this.position.x - dz, this.position.z + dx)) / 2) + this.steering * Math.min(Math.abs(this.forwardSpeed) * 0.002, 0.045);
   }
 }

@@ -1,0 +1,32 @@
+{
+  "asphalt": {
+    "color": "#555653",
+    "roughness": 0.95
+  },
+  "gravel": {
+    "color": "#c4b18a",
+    "roughness": 1
+  },
+  "rail": {
+    "color": "#b4b6ac",
+    "roughness": 0.65,
+    "metalness": 0.3
+  },
+  "water": {
+    "color": "#65989c",
+    "roughness": 0.3,
+    "metalness": 0.25
+  },
+  "roadElevation": 0.065,
+  "railHeight": 0.85,
+  "railThickness": 0.18,
+  "railOffset": 0.2,
+  "map": {
+    "asphalt": "#b6baad",
+    "gravel": "#d7c49d",
+    "text": "#f2ead4",
+    "fontSize": 125,
+    "labelOffset": 60,
+    "roadWidthDivisor": 260
+  }
+}

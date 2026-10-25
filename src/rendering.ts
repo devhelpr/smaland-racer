@@ -23,7 +23,7 @@ export function createRendering(container: HTMLElement) {
   function follow(vehicle: Vehicle, dt: number, snap = false) {
     const forward = new THREE.Vector3(Math.sin(vehicle.heading), 0, Math.cos(vehicle.heading));
     desired.copy(vehicle.position).addScaledVector(forward, -10.5 - Math.abs(vehicle.forwardSpeed) * 0.065); desired.y += 6.8;
-    desired.y = Math.max(desired.y, vehicle.course.height(desired.x, desired.z) + 2.5);
+    desired.y = Math.max(desired.y, vehicle.course.heightAt(desired.x, desired.z) + 2.5);
     target.copy(vehicle.position).addScaledVector(forward, 7); target.y += 1.1;
     camera.position.lerp(desired, snap ? 1 : 1 - Math.exp(-5 * dt));
     lookAt.lerp(target, snap ? 1 : 1 - Math.exp(-7 * dt)); camera.lookAt(lookAt);

@@ -31,6 +31,7 @@ export class SnowPoles {
         const offset = (course.definition.width / 2 + asset.roadOffset) * side;
         const x = sample.point.x - sample.tangent.z * offset;
         const z = sample.point.z + sample.tangent.x * offset;
+        if(course.roadNetwork) {const road=course.nearestRoad(x,z);if(road.distance<road.width/2+asset.colliderRadius)continue;}
         mesh.position.set(x, course.height(x, z), z);
         const shaft = new THREE.Mesh(shaftGeometry, orange);
         shaft.position.y = height / 2;

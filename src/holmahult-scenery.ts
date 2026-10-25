@@ -115,7 +115,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
       collisions.add({id:`${site.id}-porch`,x:site.x+Math.cos(site.angle)*localX+Math.sin(site.angle)*localZ,z:site.z-Math.sin(site.angle)*localX+Math.cos(site.angle)*localZ,kind:'building',halfX,halfZ,angle:site.angle,radius:Math.hypot(halfX,halfZ)} as BoxCollider);
     }
   };
-  holmahultBuildings.forEach(building);
+  [...holmahultBuildings,...(course.definition.openWorld?.buildings??[]) as HolmahultBuilding[]].forEach(building);
 
   const gravel=new THREE.MeshStandardMaterial({...asset.gravel,side:THREE.DoubleSide});
   const asphalt=new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide});
@@ -129,6 +129,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     geometry.computeVertexNormals();const yard=new THREE.Mesh(geometry,gravel);yard.userData.seasonalSurface='gravel';yard.receiveShadow=true;scene.add(yard);
   }
   for(const [index,road] of holmahultSideRoads.entries()) {
+    if(course.roadNetwork)continue;
     const curve=new THREE.CatmullRomCurve3(road.points.map(([x,z])=>new THREE.Vector3(x,0,z)),false,'centripetal');
     const count=Math.ceil(curve.getLength()/details.roadSampleSpacing),positions:number[]=[],indices:number[]=[];
     for(let i=0;i<=count;i++) {
@@ -149,7 +150,8 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     const [ax,az]=points[j-1],[bx,bz]=points[j],length=Math.hypot(bx-ax,bz-az);
     for(let d=0;d<length;d+=details.wallSpacing) {
       const x=ax+(bx-ax)*d/length,z=az+(bz-az)*d/length;
-      if(course.nearest(x,z).distance<course.definition.width/2+2)continue;
+      const nearest=course.nearestRoad(x,z);
+      if(nearest.distance<nearest.width/2+2)continue;
       wallPositions.push(new THREE.Vector3(x,course.height(x,z)+details.wallElevation,z));
     }
   }
@@ -168,7 +170,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     const [a,b]=[wall[i],wall[i+1]];
     for(let t=details.boundaryTreeStart;t<1;t+=details.boundaryTreeSpacing)sites.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+details.boundaryTreeOffset]);
   }
-  const clear=sites.filter(([x,z])=>course.nearest(x,z).distance>course.definition.width/2+4&&!holmahultBuildings.some(b=>Math.hypot(x-b.x,z-b.z)<Math.hypot(b.width,b.depth)/2+2));
+  const clear=sites.filter(([x,z])=>course.nearestRoad(x,z).distance>course.nearestRoad(x,z).width/2+4&&!holmahultBuildings.some(b=>Math.hypot(x-b.x,z-b.z)<Math.hypot(b.width,b.depth)/2+2));
   const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(...asset.trunkGeometry as [number, number, number, number]),white,clear.length);
   const crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(...asset.crownGeometry as [number, number]),new THREE.MeshStandardMaterial(asset.crownMaterial),clear.length);
   crowns.userData.seasonalSurface='deciduous';

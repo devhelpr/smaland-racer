@@ -1,3 +1,6 @@
+import openWorld from '../parcours/holmahult-open-world.json' with { type: 'json' };
+import { RoadNetwork } from './road-network.ts';
+import type { DrivingWorld, SurfaceType, WorldRoadSample } from './driving-world.ts';
 import sandsjon from '../parcours/sandsjon.json' with { type: 'json' };
 import world from '../parcours/world.json' with { type: 'json' };
 import roadAsset from '../assets/road.json' with { type: 'json' };
@@ -7,6 +10,7 @@ import courseData from '../parcours/courses.json' with { type: 'json' };
 export interface Lake { x: number; z: number; rx: number; rz: number; level: number; outline?: [number,number][] }
 export interface CourseDefinition {
   id: string;
+  openWorld?: Omit<typeof openWorld.openWorld, 'roads'> & { roads: import('./road-network.ts').RoadDefinition[] };
   setting?: 'holmahult' | 'sandsjon';
   bridge?: {position:[number,number,number];angle:number};
   shore?: {height:number;blendDistance:number;sceneryClearance:number};
@@ -23,14 +27,14 @@ export interface CourseDefinition {
   medals: { gold: number; silver: number; bronze: number };
 }
 
-export const courses: CourseDefinition[] = [...courseData, sandsjon] as CourseDefinition[];
+export const courses: CourseDefinition[] = [...courseData, sandsjon, openWorld] as CourseDefinition[];
 
 export interface RoadSample { point: THREE.Vector3; tangent: THREE.Vector3; distance: number; progress: number }
 export interface Checkpoint { point: THREE.Vector3; tangent: THREE.Vector3; progress: number }
 export const WORLD_SIZE = world.size;
 
-function naturalHeight(x: number, z: number, hills: number): number {
-  return (Math.sin(x * world.terrain.xFrequency) * world.terrain.xAmplitude + Math.cos(z * world.terrain.zFrequency) * world.terrain.zAmplitude + Math.sin((x + z) * world.terrain.diagonalFrequency) * world.terrain.diagonalAmplitude) * hills;
+function naturalHeight(x: number, z: number, hills: number, terrain=world.terrain): number {
+  return (Math.sin(x * terrain.xFrequency) * terrain.xAmplitude + Math.cos(z * terrain.zFrequency) * terrain.zAmplitude + Math.sin((x + z) * terrain.diagonalFrequency) * terrain.diagonalAmplitude) * hills;
 }
 
 /** Add visible roadside water without letting the basin reach any part of the road. */
@@ -84,8 +88,11 @@ export function shoreDistance(lake:Lake,x:number,z:number):number {
   return distance;
 }
 
-export class Course {
+export class Course implements DrivingWorld {
   readonly definition: CourseDefinition;
+  readonly roadNetwork?: RoadNetwork;
+  get drivingLength():number {return this.roadNetwork?.roads.reduce((sum,road)=>sum+road.length,0)??this.length;}
+  get worldSize():number { return this.definition.openWorld?.size??WORLD_SIZE; }
   readonly points: THREE.Vector3[];
   readonly curve: THREE.CatmullRomCurve3;
   readonly length: number;
@@ -99,13 +106,43 @@ export class Course {
     this.lakes = roadsideLakes(definition, this.curve);
     const count = Math.ceil(this.length / world.road.sampleSpacing);
     this.points = this.curve.getSpacedPoints(count).map(p => { p.y = this.height(p.x, p.z); return p; });
+    if(definition.openWorld)this.roadNetwork=new RoadNetwork(definition.openWorld.roads,(x,z)=>this.height(x,z),world.road.sampleSpacing);
     // Index zero is the recovery/start anchor; the six numbered gates follow it.
     const gates = world.road.checkpointCount;
     this.checkpoints = Array.from({length: gates + 1}, (_, i) => this.sample(i / gates));
   }
 
+  get spawn() { return this.sample(0); }
+  heightAt(x:number,z:number):number { return this.height(x,z); }
+  nearestRoad(x:number,z:number):WorldRoadSample { return this.roadNetwork?.nearest(x,z)??{...this.nearest(x,z),width:this.definition.width,surface:'gravel'}; }
+  surfaceAt(x:number,z:number):SurfaceType {
+    if(this.onIce(x,z))return 'ice';
+    const road=this.nearestRoad(x,z);
+    return road.distance<=road.width/2?road.surface:'grass';
+  }
+  isWater(x:number,z:number):boolean { return this.inWater(x,z); }
+
   height(x: number, z: number): number {
-    let height = naturalHeight(x, z, this.definition.hills);
+    const config=this.definition.openWorld;
+    let height = naturalHeight(x, z, this.definition.hills,config?.terrain);
+    if(config) {
+      const b=config.bridge,{across,along}=this.bridgeCoordinates(x,z);
+      const deck=naturalHeight(b.position[0],b.position[1],this.definition.hills,config.terrain);
+      const blend=1-THREE.MathUtils.smoothstep(Math.abs(along),b.length/2,b.length/2+b.blend);
+      if(Math.abs(across)<b.streamLength/2+b.blend) {
+        const acrossBlend=1-THREE.MathUtils.smoothstep(Math.abs(across),b.streamLength/2,b.streamLength/2+b.blend);
+        height=THREE.MathUtils.lerp(height,deck,blend*acrossBlend);
+        const bank=THREE.MathUtils.smoothstep(Math.abs(across),b.width/2,b.width/2+4);
+        const stream=1-THREE.MathUtils.smoothstep(Math.abs(along),b.streamWidth/2,b.streamWidth/2+4);
+        let clearance=Infinity;
+        if(bank*stream>0)for(const road of config.roads)for(let i=1;i<road.points.length;i++) {
+          const [ax,az]=road.points[i-1],[bx,bz]=road.points[i],dx=bx-ax,dz=bz-az;
+          const t=THREE.MathUtils.clamp(((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz||1),0,1);
+          clearance=Math.min(clearance,Math.hypot(x-ax-dx*t,z-az-dz*t)-road.width/2);
+        }
+        height-=bank*stream*b.waterDrop*acrossBlend*THREE.MathUtils.smoothstep(clearance,0,4);
+      }
+    }
     for (const lake of this.lakes) {
       const radius = Math.hypot((x-lake.x)/lake.rx, (z-lake.z)/lake.rz);
       if(this.definition.setting==='sandsjon') {
@@ -147,7 +184,16 @@ export class Course {
     return this.definition.setting==='sandsjon' && this.lakes.some(l=>lakeContains(l,x,z));
   }
 
+  bridgeCoordinates(x:number,z:number):{across:number;along:number} {
+    const b=this.definition.openWorld!.bridge,dx=x-b.position[0],dz=z-b.position[1];
+    return {across:dx*Math.cos(b.angle)-dz*Math.sin(b.angle),along:dx*Math.sin(b.angle)+dz*Math.cos(b.angle)};
+  }
+
   inWater(x: number, z: number): boolean {
+    if(this.definition.openWorld) {
+      const {across,along}=this.bridgeCoordinates(x,z),b=this.definition.openWorld.bridge;
+      return Math.abs(along)<b.streamWidth/2&&Math.abs(across)>b.width/2+1&&Math.abs(across)<b.streamLength/2;
+    }
     if(this.definition.setting==='sandsjon')return false;
     return this.lakes.some(l => Math.hypot((x-l.x)/l.rx,(z-l.z)/l.rz)<world.lakes.waterRadius && this.height(x,z)<l.level);
   }

@@ -1,9 +1,10 @@
+import { createOpenWorldScenery, refineBridgeTerrain } from './open-world-scenery.ts';
 import roadRockData from '../parcours/road-rocks.json' with { type: 'json' };
 import { createSandsjon } from './sandsjon.ts';
 import placement from '../parcours/scenery.json' with { type: 'json' };
 import asset from '../assets/scenery.json' with { type: 'json' };
 import * as THREE from 'three';
-import { Course, lakeContains, shoreDistance, randomGenerator, WORLD_SIZE } from './track.ts';
+import { Course, lakeContains, shoreDistance, randomGenerator } from './track.ts';
 import { CollisionWorld } from './collision.ts';
 import { SnowPoles } from './snow-poles.ts';
 import { holmahultBuildings, holmahultFieldAt, onHolmahultSideRoad } from './holmahult-data.ts';
@@ -53,10 +54,11 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   const lakes = course.lakes;
   const ROAD_WIDTH = course.definition.width;
   const terrainHeight = (x: number,z: number) => course.height(x,z);
-  const nearestRoad = (x: number,z: number) => course.nearest(x,z);
+  const nearestRoad = (x: number,z: number) => course.nearestRoad(x,z);
   const roadRibbon = (width: number,elevation: number) => course.ribbon(width,elevation);
-  const groundGeometry = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, asset.groundSegments, asset.groundSegments);
+  let groundGeometry:THREE.BufferGeometry = new THREE.PlaneGeometry(course.worldSize, course.worldSize, course.definition.openWorld?.groundSegments??asset.groundSegments, course.definition.openWorld?.groundSegments??asset.groundSegments);
   groundGeometry.rotateX(-Math.PI / 2);
+  if(course.definition.openWorld)groundGeometry=refineBridgeTerrain(groundGeometry as THREE.PlaneGeometry,course);
   const vertices = groundGeometry.getAttribute('position');
   const colors: number[] = [];
   const grassColors = asset.grassColors.map(c => new THREE.Color(c));
@@ -86,7 +88,8 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   gravelTexture.generateMipmaps = true; gravelTexture.anisotropy = 4; gravelTexture.needsUpdate = true;
   const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, asset.roadElevation), new THREE.MeshStandardMaterial({ ...asset.road, map: gravelTexture, side: THREE.DoubleSide }));
   shoulder.userData.seasonalSurface=road.userData.seasonalSurface='gravel';
-  shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.setting!=='sandsjon')scene.add(shoulder, road);
+  shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.openWorld) { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();gravelTexture.dispose();createOpenWorldScenery(scene,course,collisions); }
+  else if(course.definition.setting!=='sandsjon')scene.add(shoulder, road);
   else { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();gravelTexture.dispose();createSandsjon(scene,course,collisions); }
 
   for (const lake of course.definition.setting==='sandsjon'?[]:lakes) {
@@ -114,10 +117,12 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
 
   const cottageSites = roadsideCottages(course);
   const clearScenery = (x: number, z: number, clearance: number) => {
-    if (nearestRoad(x, z).distance < ROAD_WIDTH / 2 + clearance) return false;
+    if(course.definition.openWorld&&course.inWater(x,z))return false;
+    const nearest=nearestRoad(x,z);
+    if (nearest.distance < nearest.width / 2 + clearance) return false;
     if (course.definition.setting === 'holmahult') {
       if (holmahultFieldAt(x, z) >= 0 || onHolmahultSideRoad(x, z, clearance)) return false;
-      if (holmahultBuildings.some(b => Math.hypot(x-b.x, z-b.z) < Math.hypot(b.width, b.depth)/2 + (b.id === 'holmahult-25' ? placement.clearance.holmahultHome : placement.clearance.holmahultBuilding))) return false;
+      if ([...holmahultBuildings,...course.definition.openWorld?.buildings??[]].some(b => Math.hypot(x-b.x, z-b.z) < Math.hypot(b.width, b.depth)/2 + (b.id === 'holmahult-25' ? placement.clearance.holmahultHome : placement.clearance.holmahultBuilding))) return false;
     }
     if(course.definition.setting==='sandsjon'&&lakes.some(l=>lakeContains(l,x,z)||shoreDistance(l,x,z)<course.definition.shore!.sceneryClearance))return false;
     if (course.definition.setting!=='sandsjon' && lakes.some(l => Math.hypot((x - l.x) / l.rx, (z - l.z) / l.rz) < placement.clearance.lake)) return false;
@@ -125,8 +130,18 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   };
   const treePositions: { x: number; z: number; scale: number; rotation: number }[] = [];
   for (let i = 0; i < course.definition.treeDensity; i++) {
-    const x = (random() - 0.5) * placement.trees.area; const z = (random() - 0.5) * placement.trees.area;
+    const x = (random() - 0.5) * (course.definition.openWorld?.treeArea??placement.trees.area); const z = (random() - 0.5) * (course.definition.openWorld?.treeArea??placement.trees.area);
     if (clearScenery(x, z, placement.trees.roadClearance)) treePositions.push({ x, z, scale: placement.trees.scale + random() * placement.trees.scaleRange, rotation: random() * Math.PI * 2 });
+  }
+  if(course.roadNetwork) {
+    const config=course.definition.openWorld!.roadsideTrees;
+    for(const road of course.roadNetwork.roads)for(let i=0;i<road.points.length;i+=Math.max(1,Math.round(config.spacing/1.5))) {
+      const point=road.points[i],tangent=road.points[Math.min(i+1,road.points.length-1)].clone().sub(road.points[Math.max(0,i-1)]).normalize();
+      for(const side of [-1,1])for(let row=0;row<config.rows;row++) {
+        const offset=side*(config.offset+random()*config.spread),x=point.x-tangent.z*offset,z=point.z+tangent.x*offset;
+        if(clearScenery(x,z,placement.trees.roadClearance))treePositions.push({x,z,scale:placement.trees.scale+random()*placement.trees.scaleRange,rotation:random()*Math.PI*2});
+      }
+    }
   }
   const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(...asset.trunkGeometry as [number, number, number, number]), new THREE.MeshStandardMaterial(asset.trunkMaterial), treePositions.length);
   const foliageMaterial = new THREE.MeshStandardMaterial(asset.foliageMaterial);
@@ -147,7 +162,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
 
   const rockPositions: THREE.Vector3[] = [];
   for (let i = 0; i < placement.rocks.count; i++) {
-    const x = (random() - 0.5) * placement.rocks.area; const z = (random() - 0.5) * placement.rocks.area;
+    const x = (random() - 0.5) * (course.definition.openWorld?.treeArea??placement.rocks.area); const z = (random() - 0.5) * (course.definition.openWorld?.treeArea??placement.rocks.area);
     if (clearScenery(x, z, placement.rocks.roadClearance)) rockPositions.push(new THREE.Vector3(x, terrainHeight(x, z), z));
   }
   const roadRocks=roadRockPlacements(course);

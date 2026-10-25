@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import data from '../assets/stunts.json' with { type: 'json' };
 import vehicle from '../assets/vehicle.json' with { type: 'json' };
-import type { Course } from './track.ts';
+import type { DrivingWorld } from './driving-world.ts';
 import type { CollisionWorld } from './collision.ts';
 
 interface Probe { point:THREE.Vector3; wheel:boolean }
@@ -62,14 +62,14 @@ export class StuntDynamics {
     this.angularVelocity.addScaledVector(this.inverseInertia(lever.cross(impulse)),data.tireTorqueScale);
   }
 
-  update(dt:number,position:THREE.Vector3,velocity:THREE.Vector3,heading:number,course:Course,world?:CollisionWorld):number {
+  update(dt:number,position:THREE.Vector3,velocity:THREE.Vector3,heading:number,course:DrivingWorld,world?:CollisionWorld):number {
     this.age+=dt;
     const nearRock=world?.hasRockNear(position.x,position.z,reach)??false;
     if(!this.active) {
       if(!nearRock)return 0;
       const dx=Math.sin(heading),dz=Math.cos(heading);
-      const pitch=-Math.atan((course.height(position.x+dx,position.z+dz)-course.height(position.x-dx,position.z-dz))/2);
-      const roll=Math.atan((course.height(position.x+dz,position.z-dx)-course.height(position.x-dz,position.z+dx))/2);
+      const pitch=-Math.atan((course.heightAt(position.x+dx,position.z+dz)-course.heightAt(position.x-dx,position.z-dz))/2);
+      const roll=Math.atan((course.heightAt(position.x+dz,position.z-dx)-course.heightAt(position.x-dz,position.z+dx))/2);
       this.rotation.setFromEuler(new THREE.Euler(pitch,heading,roll,'YXZ'));
       this.lastHeading=heading;this.active=true;
     }
@@ -84,8 +84,8 @@ export class StuntDynamics {
       for(const [index,probe] of probes.entries()) {
         const offset=probe.point.clone().applyQuaternion(this.rotation);
         const point=position.clone().add(offset);point.y+=data.centerOfMassHeight;
-        const ground=course.height(point.x,point.z);
-        const normal=new THREE.Vector3(course.height(point.x-.5,point.z)-course.height(point.x+.5,point.z),1,course.height(point.x,point.z-.5)-course.height(point.x,point.z+.5)).normalize();
+        const ground=course.heightAt(point.x,point.z);
+        const normal=new THREE.Vector3(course.heightAt(point.x-.5,point.z)-course.heightAt(point.x+.5,point.z),1,course.heightAt(point.x,point.z-.5)-course.heightAt(point.x,point.z+.5)).normalize();
         const surface=world?.surfaceAt(point.x,point.z,ground,normal)??{height:ground,normal,rock:false};
         const penetration=(surface.height-point.y)*surface.normal.y;
         if(penetration < -data.contactSlop)continue;
@@ -121,7 +121,7 @@ export class StuntDynamics {
         Math.max(0,maxBodySpeed-data.landingDamageThreshold)**1.4*data.bodyDamageScale;
       if(damage>0)this.damageAfter=this.age+data.damageCooldown;
     }
-    const ground=course.height(position.x,position.z);
+    const ground=course.heightAt(position.x,position.z);
     if(!nearRock&&this.wheelsOnGround>=3&&this.upright>data.settleUp&&Math.abs(position.y-ground)<data.settleHeight&&Math.abs(velocity.y)<data.settleSpeed&&this.angularVelocity.length()<data.settleAngularSpeed) {
       this.active=false;this.airborne=false;this.wheelsOnGround=4;velocity.y=0;
       position.y=ground;this.angularVelocity.set(0,0,0);

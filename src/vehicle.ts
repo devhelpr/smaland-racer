@@ -95,12 +95,18 @@ export class Vehicle {
     const ice=this.course.onIce(this.position.x,this.position.z);
     const surface=ice?this.profiles.ice:this.onRoad?profile.road:profile.grass;
     const acceleration=braking?profile.braking*(ice?this.profiles.ice.brakingScale:1):(input.throttle<0?profile.reverseAcceleration:profile.acceleration)*power*(ice?this.profiles.ice.accelerationScale:1);
+    // Cursor-key assistance eases into a slide at speed without holding the full handbrake.
+    const autoDrift=input.autoDrift&&input.throttle>0&&input.steer!==0
+      ?handling.autoDriftStrength*THREE.MathUtils.clamp((longitudinal-handling.autoDriftMinSpeed)/handling.autoDriftFadeInSpeed,0,1):0;
     longitudinal+=input.throttle*acceleration*dt;
     longitudinal*=Math.exp(-surface.drag*dt);
     if(input.handbrake) longitudinal*=Math.exp(-(ice?this.profiles.ice.handbrakeDrag:handling.handbrakeDrag)*dt);
+    if(!input.handbrake&&autoDrift>0)longitudinal*=Math.exp(-handling.autoDriftDrag*autoDrift*dt);
     longitudinal=THREE.MathUtils.clamp(longitudinal,-profile.reverseSpeed,(ice?profile.road.speed:surface.speed)*power);
-    lateral*=Math.exp(-(input.handbrake?Math.min(handling.handbrakeGrip,surface.grip):surface.grip/handling.drift)*dt);
-    this.heading+=this.steering*longitudinal*(handling.steeringStrength/(1+Math.abs(longitudinal)*handling.speedSensitivity))*dt*(input.handbrake?handling.handbrakeTurn:1);
+    const normalGrip=surface.grip/handling.drift;
+    const slideGrip=Math.min(handling.handbrakeGrip,normalGrip);
+    lateral*=Math.exp(-(input.handbrake?Math.min(handling.handbrakeGrip,surface.grip):THREE.MathUtils.lerp(normalGrip,slideGrip,autoDrift))*dt);
+    this.heading+=this.steering*longitudinal*(handling.steeringStrength/(1+Math.abs(longitudinal)*handling.speedSensitivity))*dt*(input.handbrake?handling.handbrakeTurn:THREE.MathUtils.lerp(1,handling.handbrakeTurn,autoDrift));
     this.velocity.copy(forward).multiplyScalar(longitudinal).addScaledVector(right,lateral);
     let remaining=dt;
     for(let iteration=0;iteration<3&&remaining>0;iteration++) {

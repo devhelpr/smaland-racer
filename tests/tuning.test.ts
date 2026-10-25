@@ -40,3 +40,20 @@ test('live ice drag changes affect frozen lake coasting',()=> {
   assert.ok(coastOnIce()<lowDrag);
   disposeGroup(car.mesh);
 });
+
+test('automatic drift adds slide at speed, retains momentum and leaves low-speed and reverse handling alone',()=> {
+  const profiles=createDrivingProfiles(),car=new Vehicle(straight,'cruising',profiles);
+  function step(speed:number,assist:boolean,throttle=1) {
+    car.restart();car.position.set(0,0,0);car.heading=0;car.velocity.set(4,0,speed);
+    car.update(.1,{throttle,steer:1,handbrake:false,autoDrift:assist});
+    return {heading:car.heading,lateral:car.velocity.x,speed:car.velocity.z};
+  }
+  const normal=step(20,false),drift=step(20,true);
+  assert.ok(drift.heading>normal.heading);assert.ok(drift.lateral>normal.lateral);
+  assert.ok(drift.speed>normal.speed*.95);
+  assert.deepEqual(step(3,true),step(3,false));
+  assert.deepEqual(step(-5,true,-1),step(-5,false,-1));
+  profiles.cruising.handling.autoDriftStrength=0;
+  assert.deepEqual(step(20,true),step(20,false));
+  disposeGroup(car.mesh);
+});

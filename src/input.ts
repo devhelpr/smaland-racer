@@ -1,6 +1,6 @@
 import { GestureControls } from './gestures.ts';
 
-export interface DriveInput { throttle: number; steer: number; handbrake: boolean }
+export interface DriveInput { throttle: number; steer: number; handbrake: boolean; autoDrift?: boolean }
 
 export class Input {
   private keys = new Set<string>();
@@ -80,7 +80,10 @@ export class Input {
   read(): DriveInput {
     const held = (...codes: string[]) => codes.some(code => this.keys.has(code)) ? 1 : 0;
     const touch = this.gestures.read();
+    const arrowDrift=!this.keys.has('Space')&&this.keys.has('ArrowUp')&&!held('KeyS','ArrowDown')&&
+      held('ArrowLeft')!==held('ArrowRight');
     return {
+      ...(arrowDrift?{autoDrift:true}:{}),
       throttle: (held('KeyW', 'ArrowUp') - held('KeyS', 'ArrowDown')) || touch.throttle,
       steer: (held('KeyA', 'ArrowLeft') - held('KeyD', 'ArrowRight')) || touch.steer,
       handbrake: this.keys.has('Space') || touch.handbrake,

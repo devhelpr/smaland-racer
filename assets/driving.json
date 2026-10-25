@@ -21,7 +21,11 @@
       "drift": 1,
       "handbrakeGrip": 1.4,
       "handbrakeDrag": 1.35,
-      "handbrakeTurn": 1.6
+      "handbrakeTurn": 1.6,
+      "autoDriftStrength": 0.8,
+      "autoDriftMinSpeed": 7,
+      "autoDriftFadeInSpeed": 7,
+      "autoDriftDrag": 0.2
     }
   },
   "rally": {
@@ -46,7 +50,11 @@
       "drift": 1,
       "handbrakeGrip": 1.4,
       "handbrakeDrag": 1.35,
-      "handbrakeTurn": 1.6
+      "handbrakeTurn": 1.6,
+      "autoDriftStrength": 0.8,
+      "autoDriftMinSpeed": 7,
+      "autoDriftFadeInSpeed": 7,
+      "autoDriftDrag": 0.2
     }
   },
   "ice": {

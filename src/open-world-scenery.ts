@@ -3,10 +3,12 @@ import asset from '../assets/open-world.json' with { type: 'json' };
 import type { Course } from './track.ts';
 import type { BoxCollider, CollisionWorld } from './collision.ts';
 
-export function createOpenWorldScenery(scene:THREE.Group,course:Course,collisions:CollisionWorld):void {
-  const materials={asphalt:new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide}),gravel:new THREE.MeshStandardMaterial({...asset.gravel,side:THREE.DoubleSide})};
+export function createOpenWorldScenery(scene:THREE.Group,course:Course,collisions:CollisionWorld,gravelTexture:THREE.Texture):void {
+  const materials={asphalt:new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide}),gravel:new THREE.MeshStandardMaterial({...asset.gravel,map:gravelTexture,side:THREE.DoubleSide})};
   for(const road of course.roadNetwork!.roads) {
-    const mesh=new THREE.Mesh(course.roadNetwork!.ribbon(road,asset.roadElevation),materials[road.definition.surface]);
+    // Independent ribbons interpolate the terrain differently; separate their surfaces to prevent junction flicker.
+    const elevation=asset.roadElevation+(road.definition.surface==='asphalt'?asset.asphaltElevationOffset:0);
+    const mesh=new THREE.Mesh(course.roadNetwork!.ribbon(road,elevation),materials[road.definition.surface]);
     mesh.name=road.definition.id;mesh.receiveShadow=true;
     if(road.definition.surface==='gravel')mesh.userData.seasonalSurface='gravel';scene.add(mesh);
   }

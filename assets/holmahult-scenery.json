@@ -59,7 +59,7 @@
   "sideDoor": [3.65,3.25,0.18,0,1.63,0.06],
   "sideDoorDivider": [0.07,3.25,0.2,0,1.63,0.09],
   "gravel": {
-    "color": "#b5a68b",
+    "color": "#b0b5bb",
     "roughness": 1
   },
   "asphalt": {

@@ -1,3 +1,4 @@
+import { applyGravelUVs, createGravelTexture } from './gravel.ts';
 import asset from '../assets/holmahult-scenery.json' with { type: 'json' };
 import sceneryData from '../parcours/holmahult.json' with { type: 'json' };
 import * as THREE from 'three';
@@ -10,7 +11,7 @@ import { holmahultBuildings, holmahultSideRoads, holmahultWalls, type HolmahultB
 const details=asset.details;
 
 /** Authored farmyards rather than the random roadside cottages used by other routes. */
-export function createHolmahultScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld): void {
+export function createHolmahultScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld,gravelTexture?:THREE.Texture): void {
   const white = new THREE.MeshStandardMaterial(asset.white);
   const roof = new THREE.MeshStandardMaterial(asset.roof);
   const glass = new THREE.MeshStandardMaterial(asset.glass);
@@ -117,7 +118,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   };
   [...holmahultBuildings,...(course.definition.openWorld?.buildings??[]) as HolmahultBuilding[]].forEach(building);
 
-  const gravel=new THREE.MeshStandardMaterial({...asset.gravel,side:THREE.DoubleSide});
+  const gravel=new THREE.MeshStandardMaterial({...asset.gravel,map:gravelTexture??createGravelTexture(randomGenerator(sceneryData.seed)),side:THREE.DoubleSide});
   const asphalt=new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide});
   for(const [x,z,w,d] of course.definition.openWorld?.yards??sceneryData.yards) {
     const geometry=new THREE.PlaneGeometry(w,d,details.yardSegments,details.yardSegments);geometry.rotateX(-Math.PI/2);
@@ -126,7 +127,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
       const px=positions.getX(i)+x,pz=positions.getZ(i)+z;
       positions.setXYZ(i,px,course.height(px,pz)+details.yardElevation,pz);
     }
-    geometry.computeVertexNormals();const yard=new THREE.Mesh(geometry,gravel);yard.userData.seasonalSurface='gravel';yard.receiveShadow=true;scene.add(yard);
+    applyGravelUVs(geometry);geometry.computeVertexNormals();const yard=new THREE.Mesh(geometry,gravel);yard.userData.seasonalSurface='gravel';yard.receiveShadow=true;scene.add(yard);
   }
   for(const [index,road] of holmahultSideRoads.entries()) {
     if(course.roadNetwork)continue;
@@ -140,7 +141,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
       }
       if(i<count){const a=i*2;indices.push(a,a+2,a+1,a+1,a+2,a+3);}
     }
-    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);applyGravelUVs(geometry);geometry.computeVertexNormals();
     const mesh=new THREE.Mesh(geometry,road.asphalt?asphalt:gravel);mesh.name=`holmahult-side-road-${index}`;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
   }
 

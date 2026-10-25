@@ -1,3 +1,4 @@
+import { createGravelTexture } from './gravel.ts';
 import { createOpenWorldScenery, refineBridgeTerrain } from './open-world-scenery.ts';
 import roadRockData from '../parcours/road-rocks.json' with { type: 'json' };
 import { createSandsjon } from './sandsjon.ts';
@@ -76,19 +77,10 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   terrain.userData.seasonalSurface='grass';
   terrain.receiveShadow = true; scene.add(terrain);
   const shoulder = new THREE.Mesh(roadRibbon(ROAD_WIDTH + asset.shoulderExtraWidth, asset.shoulderElevation), new THREE.MeshStandardMaterial({ ...asset.shoulder, side: THREE.DoubleSide }));
-  const gravelPixels = new Uint8Array(asset.gravelTexture.size * asset.gravelTexture.size * 4);
-  for (let i = 0; i < asset.gravelTexture.size * asset.gravelTexture.size; i++) {
-    const shade = asset.gravelTexture.minShade + Math.floor(random() * asset.gravelTexture.shadeRange);
-    gravelPixels.set([shade, Math.round(shade * asset.gravelTexture.greenRatio), Math.round(shade * asset.gravelTexture.blueRatio), asset.gravelTexture.opacity], i * 4);
-  }
-  const gravelTexture = new THREE.DataTexture(gravelPixels, asset.gravelTexture.size, asset.gravelTexture.size);
-  gravelTexture.colorSpace = THREE.SRGBColorSpace;
-  gravelTexture.wrapS = gravelTexture.wrapT = THREE.RepeatWrapping;
-  gravelTexture.magFilter = THREE.LinearFilter; gravelTexture.minFilter = THREE.LinearMipmapLinearFilter;
-  gravelTexture.generateMipmaps = true; gravelTexture.anisotropy = 4; gravelTexture.needsUpdate = true;
+  const gravelTexture = createGravelTexture(random);
   const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, asset.roadElevation), new THREE.MeshStandardMaterial({ ...asset.road, map: gravelTexture, side: THREE.DoubleSide }));
   shoulder.userData.seasonalSurface=road.userData.seasonalSurface='gravel';
-  shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.openWorld) { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();gravelTexture.dispose();createOpenWorldScenery(scene,course,collisions); }
+  shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.openWorld) { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();createOpenWorldScenery(scene,course,collisions,gravelTexture); }
   else if(course.definition.setting!=='sandsjon')scene.add(shoulder, road);
   else { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();gravelTexture.dispose();createSandsjon(scene,course,collisions); }
 
@@ -204,6 +196,6 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     const collider: import('./collision.ts').BoxCollider={id:`cottage-${site.x}`,x:site.x,z:site.z,radius:asset.cottageCollider.radius*site.scale,kind:'building',halfX:asset.cottageCollider.halfX*site.scale,halfZ:asset.cottageCollider.halfZ*site.scale,angle:site.angle}; collisions.add(collider);
   }
 
-  if (course.definition.setting === 'holmahult') createHolmahultScenery(scene, course, collisions);
+  if (course.definition.setting === 'holmahult') createHolmahultScenery(scene, course, collisions,gravelTexture);
   return new SnowPoles(course, collisions, scene);
 }

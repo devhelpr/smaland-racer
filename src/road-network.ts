@@ -1,3 +1,4 @@
+import { applyGravelUVs } from './gravel.ts';
 import * as THREE from 'three';
 import asset from '../assets/road.json' with { type: 'json' };
 import type { WorldRoadSample } from './driving-world.ts';
@@ -85,6 +86,6 @@ export class RoadNetwork {
         indices.push(center,previous,next);previous=next;
       }
     }
-    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);applyGravelUVs(geometry);geometry.computeVertexNormals();return geometry;
   }
 }

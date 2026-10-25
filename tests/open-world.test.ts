@@ -120,3 +120,61 @@ test('rounded road ends render the drivable approach and barn drives reach grave
     assert.ok(definition.openWorld!.yards.some(([cx,cz,w,d])=>Math.abs(x-cx)<=w/2&&Math.abs(z-cz)<=d/2),`${id}: grass gap before the courtyard`);
   }
 });
+
+test('open-world gravel and farmyards retain grain, world-scale UVs and gray seasonal colors',async()=>{
+  const {applySeason,seasons}=await import('../src/seasons.ts');
+  const {default:roadAsset}=await import('../assets/road.json',{with:{type:'json'}});
+  const scene=new THREE.Group(),course=new Course(definition);createScenery(scene,course,new CollisionWorld());
+  const meshes:THREE.Mesh[]=[];
+  scene.traverse(object=>{if(object instanceof THREE.Mesh&&object.userData.seasonalSurface==='gravel')meshes.push(object);});
+  assert.ok(meshes.length>course.roadNetwork!.roads.filter(r=>r.definition.surface==='gravel').length,'missing gravel farmyards');
+  for(const mesh of meshes) {
+    const material=mesh.material as THREE.MeshStandardMaterial,map=material.map;
+    assert.ok(map instanceof THREE.DataTexture,`${mesh.name}: missing gravel grain`);
+    const pixels=map.image.data!;
+    assert.ok(new Set(Array.from(pixels)).size>2,'flat texture');
+    for(let i=0;i<pixels.length;i+=4)assert.ok(pixels[i]===pixels[i+1]&&pixels[i]===pixels[i+2],'grain adds a yellow tint');
+    const positions=mesh.geometry.getAttribute('position'),uv=mesh.geometry.getAttribute('uv');
+    assert.equal(uv.count,positions.count);
+    for(const i of [0,Math.floor(positions.count/2),positions.count-1]) {
+      assert.ok(Math.abs(uv.getX(i)-positions.getX(i)/roadAsset.textureScale)<.0001);
+      assert.ok(Math.abs(uv.getY(i)-positions.getZ(i)/roadAsset.textureScale)<.0001);
+    }
+  }
+  for(const season of seasons) {
+    applySeason(scene,season);
+    for(const mesh of meshes) {
+      const material=mesh.material as THREE.MeshStandardMaterial;
+      assert.ok(material.map instanceof THREE.DataTexture,'season removed texture');
+      const hex=material.color.getHexString(),rgb=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16));
+      assert.ok(Math.max(...rgb)-Math.min(...rgb)<18,`${season}: gravel became strongly tinted`);
+    }
+  }
+  disposeGroup(scene);
+});
+
+test('the road 120 / Holmahult gravel junction has continuous coverage and stable asphalt priority',async()=>{
+  const {createOpenWorldScenery}=await import('../src/open-world-scenery.ts');
+  const {createGravelTexture}=await import('../src/gravel.ts');
+  const {default:asset}=await import('../assets/open-world.json',{with:{type:'json'}});
+  const scene=new THREE.Group(),course=new Course(definition),network=course.roadNetwork!;
+  createOpenWorldScenery(scene,course,new CollisionWorld(),createGravelTexture(()=>.5));
+  const approach=network.roads.find(r=>r.definition.id==='village-connection-0')!,parent=network.roads.find(r=>r.definition.id==='osm-120074113-0')!;
+  const gravel=scene.getObjectByName(approach.definition.id)!,asphalt=scene.getObjectByName(parent.definition.id)!;
+  const p=approach.points[0],direction=approach.points[1].clone().sub(p).setY(0).normalize();
+  const normal=new THREE.Vector3(-direction.z,0,direction.x);
+  let overlaps=0;
+  // Walk both road edges and the interior from inside 120 onto the gravel approach.
+  for(let along=-parent.definition.width/4;along<=parent.definition.width*2;along+=.25)for(let across=-approach.definition.width/2+.1;across<=approach.definition.width/2-.1;across+=.25) {
+    const position=p.clone().addScaledVector(direction,along).addScaledVector(normal,across);
+    const ray=new THREE.Raycaster(position.clone().setY(position.y+10),new THREE.Vector3(0,-1,0));
+    const a=ray.intersectObject(asphalt),g=ray.intersectObject(gravel);
+    assert.ok(a.length||g.length,`gap in the visible road at ${along}, ${across}`);
+    if(a.length&&g.length) {
+      overlaps++;
+      assert.ok(a[0].point.y-g[0].point.y>asset.asphaltElevationOffset/2,'surfaces swap priority or flicker');
+    }
+  }
+  assert.ok(overlaps>100,'junction overlap was not exercised');
+  disposeGroup(scene);
+});

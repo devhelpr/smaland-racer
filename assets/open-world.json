@@ -1,13 +1,10 @@
 {
   "asphalt": {
     "color": "#555653",
-    "roughness": 0.95,
-    "polygonOffset": true,
-    "polygonOffsetFactor": -1,
-    "polygonOffsetUnits": -1
+    "roughness": 0.95
   },
   "gravel": {
-    "color": "#c4b18a",
+    "color": "#b0b5bb",
     "roughness": 1
   },
   "rail": {
@@ -26,10 +23,11 @@
   "railOffset": 0.2,
   "map": {
     "asphalt": "#b6baad",
-    "gravel": "#d7c49d",
+    "gravel": "#b8bcbf",
     "text": "#f2ead4",
     "fontSize": 125,
     "labelOffset": 60,
     "roadWidthDivisor": 260
-  }
+  },
+  "asphaltElevationOffset": 0.02
 }

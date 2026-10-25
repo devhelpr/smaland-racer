@@ -7,12 +7,12 @@
     "flatShading": true
   },
   "shoulder": {
-    "color": "#a69c75",
+    "color": "#979c9f",
     "vertexColors": true,
     "roughness": 1
   },
   "road": {
-    "color": "#e4d1ad",
+    "color": "#b0b5bb",
     "vertexColors": true,
     "roughness": 1
   },
@@ -90,8 +90,8 @@
     "size": 128,
     "minShade": 160,
     "shadeRange": 95,
-    "greenRatio": 0.94,
-    "blueRatio": 0.82,
+    "greenRatio": 1,
+    "blueRatio": 1,
     "opacity": 255
   },
   "glintCount": 65,

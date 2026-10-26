@@ -79,7 +79,7 @@ export class StuntDynamics {
     position.y+=velocity.y*dt;
     const spin=this.angularVelocity.length();
     if(spin>0)this.rotation.premultiply(new THREE.Quaternion().setFromAxisAngle(this.angularVelocity.clone().divideScalar(spin),spin*dt)).normalize();
-    const wheels=new Set<number>();let bodyContact=false,anyContact=false,maxLandingSpeed=0,maxBodySpeed=0;
+    const wheels=new Set<number>();let bodyContact=false,anyContact=false,maxLandingSpeed=0,maxBodySpeed=0,maxRockImpactSpeed=0;
     for(let iteration=0;iteration<data.solverIterations;iteration++) {
       for(const [index,probe] of probes.entries()) {
         const offset=probe.point.clone().applyQuaternion(this.rotation);
@@ -93,6 +93,7 @@ export class StuntDynamics {
         const approach=contactVelocity.dot(surface.normal);
         // A rising wheel at the edge of a ramp releases naturally into free flight.
         if(approach>0&&penetration<=0)continue;
+        if(surface.rock)maxRockImpactSpeed=Math.max(maxRockImpactSpeed,-approach);
         anyContact=true;
         if(probe.wheel&&this.upright>data.wheelContactMinimumUp)wheels.add(index);
         else if(!probe.wheel)bodyContact=true;
@@ -108,6 +109,12 @@ export class StuntDynamics {
         this.angularVelocity.addScaledVector(angularResponse,impulse);
         if(penetration>data.contactSlop)position.addScaledVector(surface.normal,Math.min(data.maxCorrection,(penetration-data.contactSlop)*data.positionCorrection));
       }
+    }
+    // Dissipate part of a stone impact instead of turning almost all forward speed into launch and spin.
+    const rockImpactSpeed=Math.max(0,maxRockImpactSpeed-data.rockImpact.minimumSpeed);
+    if(rockImpactSpeed>0) {
+      velocity.multiplyScalar(1-Math.min(data.rockImpact.maximumLinearLoss,rockImpactSpeed*data.rockImpact.linearLossPerSpeed));
+      this.angularVelocity.multiplyScalar(1-Math.min(data.rockImpact.maximumAngularLoss,rockImpactSpeed*data.rockImpact.angularLossPerSpeed));
     }
     this.wheelsOnGround=wheels.size;this.airborne=!anyContact;
     this.angularVelocity.multiplyScalar(Math.exp(-(anyContact?data.angularGroundDrag:data.angularAirDrag)*dt));

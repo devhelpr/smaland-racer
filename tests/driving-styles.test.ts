@@ -23,7 +23,19 @@ test('Cruising is the default; Rally accelerates faster, reaches higher speeds a
   simulate(cruising,5);simulate(rally,5);
   assert.ok(rally.forwardSpeed>cruising.forwardSpeed*1.3);
   for(const car of [cruising,rally]) {car.position.set(100,0,0);car.heading=0;car.velocity.set(0,0,12);simulate(car,1,0);assert.equal(car.onRoad,false);}
-  assert.ok(rally.forwardSpeed>cruising.forwardSpeed*2);
+  assert.ok(rally.forwardSpeed>cruising.forwardSpeed*1.6);
+});
+
+test('grass coasting is milder in both styles while still slowing more than the road',()=> {
+  for(const [style,minimum,maximum] of [['cruising',.35,.5],['rally',.7,.8]] as const) {
+    const grass=new Vehicle(straight,style),road=new Vehicle(straight,style);
+    for(const car of [grass,road]){car.heading=0;car.velocity.set(0,0,20);}
+    grass.position.set(100,0,0);road.position.set(0,0,0);
+    simulate(grass,1,0);simulate(road,1,0);
+    assert.ok(grass.forwardSpeed>20*minimum&&grass.forwardSpeed<20*maximum,`${style}: grass loses too much or too little speed`);
+    assert.ok(grass.forwardSpeed<road.forwardSpeed*.9,'grass should still resist more than the road');
+    disposeGroup(grass.mesh);disposeGroup(road.mesh);
+  }
 });
 
 test('frozen lake supports the car off the marked route and has much less lateral grip',()=> {

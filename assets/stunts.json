@@ -2,20 +2,20 @@
   "gravity": 9.81,
   "centerOfMassHeight": 0.95,
   "inertia": [
-    1.55,
-    1.65,
-    0.5
+    2.1,
+    1.85,
+    1.0
   ],
   "contactSlop": 0.025,
   "contactBias": 0.035,
   "positionCorrection": 0.18,
   "maxCorrection": 0.12,
   "solverIterations": 6,
-  "restitution": 0.12,
+  "restitution": 0.04,
   "bounceThreshold": 3,
   "airDrag": 0.015,
-  "angularAirDrag": 0.12,
-  "angularGroundDrag": 1.4,
+  "angularAirDrag": 0.45,
+  "angularGroundDrag": 2.2,
   "bodyDrag": 2.8,
   "surfaceFriction": 0.65,
   "landingDamageThreshold": 5.5,
@@ -42,11 +42,18 @@
     "samplesZ": 5
   },
   "maxBiasSpeed": 0.75,
-  "tireTorqueScale": 0.3,
+  "tireTorqueScale": 0.22,
   "autoRight": {
     "delay": 5,
     "maximumUp": 0.25,
     "maximumLinearSpeed": 0.25,
     "maximumAngularSpeed": 0.3
+  },
+  "rockImpact": {
+    "minimumSpeed": 2.5,
+    "linearLossPerSpeed": 0.018,
+    "maximumLinearLoss": 0.2,
+    "angularLossPerSpeed": 0.035,
+    "maximumAngularLoss": 0.35
   }
 }

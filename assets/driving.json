@@ -10,7 +10,7 @@
       "grip": 5.2
     },
     "grass": {
-      "drag": 1.2,
+      "drag": 0.9,
       "speed": 14,
       "grip": 7
     },
@@ -39,7 +39,7 @@
       "grip": 4.6
     },
     "grass": {
-      "drag": 0.38,
+      "drag": 0.3,
       "speed": 38,
       "grip": 3.2
     },

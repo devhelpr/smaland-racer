@@ -18,15 +18,20 @@ function setup(speed:number,offset=0,stoneHeight=.35,angle=0) {
   return {car,world,rock,dispose:()=>{disposeGroup(car.mesh);rock.geometry.dispose();rock.material.dispose();}};
 }
 function run(env:ReturnType<typeof setup>,seconds=5) {
-  let peak=0,minUp=1,flight=0,twoWheels=0;
+  let peak=0,minUp=1,flight=0,twoWheels=0,spinAngle=0,maxSpin=0,maxFlightDistance=0;
+  let flightStart:THREE.Vector3|null=null;
   for(let i=0;i<seconds/dt;i++) {
     env.car.update(dt,neutral,env.world);
     peak=Math.max(peak,env.car.position.y);minUp=Math.min(minUp,env.car.stunts.upright);
     flight+=Number(env.car.stunts.airborne)*dt;
     twoWheels+=Number(env.car.stunts.wheelsOnGround===2)*dt;
+    const spin=env.car.stunts.angularVelocity.length();maxSpin=Math.max(maxSpin,spin);spinAngle+=spin*dt;
+    if(env.car.stunts.airborne) {
+      flightStart??=env.car.position.clone();maxFlightDistance=Math.max(maxFlightDistance,flightStart.distanceTo(env.car.position));
+    } else flightStart=null;
     assert.ok([...env.car.position.toArray(),...env.car.velocity.toArray(),...env.car.mesh.quaternion.toArray()].every(Number.isFinite));
   }
-  return {peak,minUp,flight,twoWheels};
+  return {peak,minUp,flight,twoWheels,maxSpin,maxFlightDistance,rotations:spinAngle/(2*Math.PI)};
 }
 
 test('rock support follows visible rotated and nonuniformly scaled facets, including correct normals',()=> {
@@ -46,7 +51,8 @@ test('slow contact stays small; a faster approach launches off the same rock and
   const slow=setup(6),fast=setup(20);
   const a=run(slow),b=run(fast);
   assert.ok(a.peak<.4);assert.equal(a.flight,0);assert.equal(slow.car.damage,0);
-  assert.ok(b.peak>.6&&b.peak<2);assert.ok(b.flight>.3);assert.ok(b.peak>a.peak*3);
+  assert.ok(b.peak>.4&&b.peak<.8);assert.ok(b.flight>.3&&b.flight<.6);
+  assert.ok(b.maxFlightDistance>2&&b.maxFlightDistance<8,'ordinary rock jump travels too far');assert.ok(b.rotations<.5);assert.ok(b.peak>a.peak*3);
   assert.equal(fast.car.stunts.airborne,false);assert.ok(fast.car.stunts.upright>.95);
   slow.dispose();fast.dispose();
 });
@@ -57,9 +63,11 @@ test('off-center angled contact lifts two wheels and can roll past the balance p
   env.dispose();
 });
 
-test('a fast rock strike can fully overturn; the roof settles on the ground until recovery',()=> {
-  const env=setup(30,0,.95),result=run(env,9);
-  assert.ok(result.minUp<-.95);assert.ok(env.car.stunts.upright<-.9);
+test('a high-speed large rock impact loses energy without an extreme launch or repeated flips',()=> {
+  const env=setup(40,0,.95),result=run(env,9);
+  assert.ok(result.peak>.5&&result.peak<3);assert.ok(result.maxFlightDistance<15);
+  assert.ok(result.flight<1.5);assert.ok(result.maxSpin<7);assert.ok(result.rotations<1);
+  assert.ok(env.car.stunts.upright>.9);assert.equal(env.car.stunts.airborne,false);
   assert.ok(env.car.damage>0&&env.car.damage<=100);
   const damage=env.car.damage;
   env.car.recover(course.sample(0).point,course.sample(0).tangent);
@@ -67,6 +75,12 @@ test('a fast rock strike can fully overturn; the roof settles on the ground unti
   assert.equal(env.car.stunts.wheelsOnGround,4);assert.equal(env.car.stunts.angularVelocity.length(),0);
   assert.equal(env.car.velocity.length(),0);assert.equal(env.car.damage,damage);
   env.dispose();
+});
+
+test('a fast strike on a smaller stone stays below a full tumble and a large launch',()=> {
+  const env=setup(30),result=run(env);
+  assert.ok(result.peak<1.3);assert.ok(result.rotations<1);assert.ok(result.maxSpin<8);
+  assert.ok(result.maxFlightDistance<8);env.dispose();
 });
 
 test('flight follows gravity and momentum, with no steering or throttle force in midair',()=> {

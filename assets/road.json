@@ -4,6 +4,7 @@
   "shadeVariation": 0.035,
   "network": {
     "miterLimit": 2,
+    "curveMinSegments": 8,
     "capSegments": 12,
     "junctionTolerance": 0.0001
   }

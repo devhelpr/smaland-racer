@@ -16,13 +16,37 @@ export class RoadNetwork {
   constructor(definitions:RoadDefinition[],height:(x:number,z:number)=>number,spacing:number) {
     this.height=height;
     this.roads=definitions.map(definition=>{
+      const controls=definition.points.map(([x,z])=>new THREE.Vector3(x,0,z));
+      // Extend degree-two joins with their neighbour's control point so the
+      // spline bends smoothly across independently authored road sections.
+      const neighbour=(start:boolean):THREE.Vector3|null=>{
+        const p=start?controls[0]:controls.at(-1)!,matches:THREE.Vector3[]=[];
+        for(const other of definitions) {
+          if(other===definition)continue;
+          for(let i=0;i<other.points.length;i++) {
+            const [x,z]=other.points[i];
+            if(Math.hypot(x-p.x,z-p.z)>asset.network.junctionTolerance)continue;
+            if(other.width!==definition.width)return null;
+            if(i>0)matches.push(new THREE.Vector3(other.points[i-1][0],0,other.points[i-1][1]));
+            if(i<other.points.length-1)matches.push(new THREE.Vector3(other.points[i+1][0],0,other.points[i+1][1]));
+          }
+        }
+        return matches.length===1?matches[0]:null;
+      };
+      const before=neighbour(true),after=neighbour(false),offset=before?1:0;
+      const extended=[...(before?[before]:[]),...controls,...(after?[after]:[])];
+      const curve=new THREE.CatmullRomCurve3(extended,false,'centripetal');
       const points:THREE.Vector3[]=[];let length=0;
-      definition.points.slice(1).forEach(([bx,bz],i)=>{
-        const [ax,az]=definition.points[i],distance=Math.hypot(bx-ax,bz-az),count=Math.max(1,Math.ceil(distance/spacing));
-        length+=distance;
-        for(let j=0;j<count;j++) {const x=THREE.MathUtils.lerp(ax,bx,j/count),z=THREE.MathUtils.lerp(az,bz,j/count);points.push(new THREE.Vector3(x,height(x,z),z));}
-      });
-      const [x,z]=definition.points.at(-1)!;points.push(new THREE.Vector3(x,height(x,z),z));
+      for(let i=0;i<controls.length-1;i++) {
+        // Sampling each span separately retains every authored junction exactly.
+        const count=Math.max(asset.network.curveMinSegments,Math.ceil(controls[i].distanceTo(controls[i+1])/spacing));
+        for(let j=0;j<count;j++) {
+          const p=curve.getPoint((offset+i+j/count)/(extended.length-1));
+          p.y=height(p.x,p.z);points.push(p);
+        }
+      }
+      const end=controls.at(-1)!.clone();end.y=height(end.x,end.z);points.push(end);
+      for(let i=1;i<points.length;i++)length+=Math.hypot(points[i].x-points[i-1].x,points[i].z-points[i-1].z);
       return {definition,points,length};
     });
   }

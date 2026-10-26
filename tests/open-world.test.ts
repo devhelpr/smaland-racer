@@ -162,11 +162,23 @@ test('the road 120 / Holmahult gravel junction has continuous coverage and stabl
   const approach=network.roads.find(r=>r.definition.id==='village-connection-0')!,parent=network.roads.find(r=>r.definition.id==='osm-120074113-0')!;
   const gravel=scene.getObjectByName(approach.definition.id)!,asphalt=scene.getObjectByName(parent.definition.id)!;
   const p=approach.points[0],direction=approach.points[1].clone().sub(p).setY(0).normalize();
-  const normal=new THREE.Vector3(-direction.z,0,direction.x);
   let overlaps=0;
   // Walk both road edges and the interior from inside 120 onto the gravel approach.
   for(let along=-parent.definition.width/4;along<=parent.definition.width*2;along+=.25)for(let across=-approach.definition.width/2+.1;across<=approach.definition.width/2-.1;across+=.25) {
-    const position=p.clone().addScaledVector(direction,along).addScaledVector(normal,across);
+    // Follow the curved approach; a straight tangent leaves its outer edge.
+    let center=p.clone().addScaledVector(direction,along),tangent=direction;
+    if(along>0) {
+      let remaining=along;
+      for(let i=1;i<approach.points.length;i++) {
+        const a=approach.points[i-1],b=approach.points[i],length=Math.hypot(b.x-a.x,b.z-a.z);
+        if(remaining<=length) {
+          center=a.clone().lerp(b,remaining/length);tangent=b.clone().sub(a).setY(0).normalize();break;
+        }
+        remaining-=length;
+      }
+    }
+    const normal=new THREE.Vector3(-tangent.z,0,tangent.x);
+    const position=center.addScaledVector(normal,across);
     const ray=new THREE.Raycaster(position.clone().setY(position.y+10),new THREE.Vector3(0,-1,0));
     const a=ray.intersectObject(asphalt),g=ray.intersectObject(gravel);
     assert.ok(a.length||g.length,`gap in the visible road at ${along}, ${across}`);

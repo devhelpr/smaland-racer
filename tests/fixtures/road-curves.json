@@ -1,0 +1,8 @@
+{
+  "roads": [
+    {"id":"bend","name":"Bend","width":6,"surface":"gravel","points":[[0,0],[0,40],[40,40],[40,80]]},
+    {"id":"straight","name":"Straight","width":6,"surface":"asphalt","points":[[100,0],[100,80]]},
+    {"id":"join-a","name":"Join A","width":6,"surface":"gravel","points":[[200,0],[200,40]]},
+    {"id":"join-b","name":"Join B","width":6,"surface":"gravel","points":[[200,40],[240,40]]}
+  ]
+}

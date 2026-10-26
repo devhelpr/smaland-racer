@@ -1,3 +1,4 @@
+import materialAsset from '../assets/materials/lighting.json' with { type: 'json' };
 import * as THREE from 'three';
 import asset from '../assets/lighting.json' with { type: 'json' };
 
@@ -28,9 +29,9 @@ export class VehicleLighting {
     this.beam.shadow.normalBias = asset.shadow.normalBias;
     this.root.add(this.beam, this.beam.target);
     const housing = asset.ledHousing, lens = asset.ledLens;
-    const body = new THREE.Mesh(new THREE.BoxGeometry(...housing.size as [number, number, number]), new THREE.MeshStandardMaterial({color: housing.color}));
+    const body = new THREE.Mesh(new THREE.BoxGeometry(...housing.size as [number, number, number]), new THREE.MeshStandardMaterial(materialAsset.ledHousing));
     body.position.fromArray(housing.position);
-    this.lens = new THREE.MeshStandardMaterial({color: lens.color, emissive: lens.emissive});
+    this.lens = new THREE.MeshStandardMaterial(materialAsset.ledLens);
     const glass = new THREE.Mesh(new THREE.BoxGeometry(...lens.size as [number, number, number]), this.lens);
     glass.position.fromArray(lens.position);
     this.root.add(body, glass);

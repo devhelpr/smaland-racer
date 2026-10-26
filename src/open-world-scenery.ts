@@ -1,27 +1,29 @@
+import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
+import materialAsset from '../assets/materials/open-world.json' with { type: 'json' };
 import * as THREE from 'three';
 import asset from '../assets/open-world.json' with { type: 'json' };
 import type { Course } from './track.ts';
 import type { BoxCollider, CollisionWorld } from './collision.ts';
 
 export function createOpenWorldScenery(scene:THREE.Group,course:Course,collisions:CollisionWorld,gravelTexture:THREE.Texture):void {
-  const materials={asphalt:new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide}),gravel:new THREE.MeshStandardMaterial({...asset.gravel,map:gravelTexture,side:THREE.DoubleSide})};
+  const materials={asphalt:createSceneryMaterial('open-world.asphalt',{...materialAsset.asphalt,side:THREE.DoubleSide}),asphaltMain:createSceneryMaterial('open-world.asphaltMain',{...materialAsset.asphaltMain,side:THREE.DoubleSide}),gravel:createSurfaceMaterial('gravel',gravelTexture)};
   for(const road of course.roadNetwork!.roads) {
     // Independent ribbons interpolate the terrain differently; separate their surfaces to prevent junction flicker.
     const elevation=asset.roadElevation+(road.definition.surface==='asphalt'?asset.asphaltElevationOffset:0);
-    const mesh=new THREE.Mesh(course.roadNetwork!.ribbon(road,elevation),materials[road.definition.surface]);
+    const mesh=new THREE.Mesh(course.roadNetwork!.ribbon(road,elevation),materials[road.definition.surface==='asphalt'?road.definition.material??'asphalt':'gravel']);
     mesh.name=road.definition.id;mesh.receiveShadow=true;
     if(road.definition.surface==='gravel')mesh.userData.seasonalSurface='gravel';scene.add(mesh);
   }
   const b=course.definition.openWorld!.bridge,[x,z]=b.position,y=course.height(x,z);
   const bridge=new THREE.Group();bridge.name='bro-bridge';bridge.position.set(x,y,z);bridge.rotation.y=b.angle;scene.add(bridge);
-  const rail=new THREE.MeshStandardMaterial(asset.rail);
+  const rail=createSceneryMaterial('open-world.rail',materialAsset.rail);
   for(const side of [-1,1]) {
     const offset=side*(b.width/2+asset.railOffset);
     const mesh=new THREE.Mesh(new THREE.BoxGeometry(asset.railThickness,asset.railThickness,b.length),rail);
     mesh.position.set(offset,asset.railHeight,0);mesh.castShadow=true;bridge.add(mesh);
     collisions.add({id:`bro-bridge-rail-${side}`,kind:'building',x:x+offset*Math.cos(b.angle),z:z-offset*Math.sin(b.angle),halfX:asset.railThickness/2,halfZ:b.length/2,angle:b.angle,radius:Math.hypot(asset.railThickness,b.length/2)} as BoxCollider);
   }
-  const water=new THREE.Mesh(new THREE.PlaneGeometry(b.streamLength,b.streamWidth),new THREE.MeshStandardMaterial({...asset.water,side:THREE.DoubleSide}));
+  const water=new THREE.Mesh(new THREE.PlaneGeometry(b.streamLength,b.streamWidth),createSceneryMaterial('open-world.water',{...materialAsset.water,side:THREE.DoubleSide}));
   water.rotation.x=-Math.PI/2;water.position.y=-b.waterDrop/2;water.userData.seasonalSurface='water';bridge.add(water);
 }
 

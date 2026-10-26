@@ -1,3 +1,4 @@
+import materialAsset from '../assets/materials/wildlife.json' with { type: 'json' };
 import placement from '../parcours/wildlife.json' with { type: 'json' };
 import asset from '../assets/wildlife.json' with { type: 'json' };
 import * as THREE from 'three';
@@ -18,9 +19,9 @@ interface Animal { plan: WildlifePlan; mesh: THREE.Group; legs: THREE.Mesh[]; co
 function animalMesh(species: 'moose'|'deer'): {mesh:THREE.Group;legs:THREE.Mesh[]} {
   const mesh=new THREE.Group(); const legs: THREE.Mesh[]=[];
   const moose=species==='moose'; const scale=moose?1:asset.deerScale;
-  const fur=new THREE.MeshStandardMaterial({color:moose?asset.mooseColor:asset.deerColor,...asset.fur});
-  const pale=new THREE.MeshStandardMaterial(asset.pale);
-  const dark=new THREE.MeshStandardMaterial(asset.dark);
+  const fur=new THREE.MeshStandardMaterial({color:moose?materialAsset.mooseColor:materialAsset.deerColor,...materialAsset.fur});
+  const pale=new THREE.MeshStandardMaterial(materialAsset.pale);
+  const dark=new THREE.MeshStandardMaterial(materialAsset.dark);
   const part=(w:number,h:number,d:number,x:number,y:number,z:number,material:THREE.Material=fur)=> {
     const p=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);p.position.set(x,y,z);p.castShadow=true;mesh.add(p);return p;
   };
@@ -64,12 +65,12 @@ export class Wildlife {
   private addSign(group:THREE.Group,progress:number): void {
     const sample=this.course.sample(progress);const side=this.course.definition.width/2+placement.signRoadOffset;
     const sign=new THREE.Group();
-    const pole=new THREE.Mesh(new THREE.CylinderGeometry(...asset.signPoleGeometry as [number, number, number, number]),new THREE.MeshStandardMaterial(asset.signPoleMaterial));pole.position.set(...asset.signPolePosition as [number,number,number]);sign.add(pole);
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(...asset.signPoleGeometry as [number, number, number, number]),new THREE.MeshStandardMaterial(materialAsset.signPoleMaterial));pole.position.set(...asset.signPolePosition as [number,number,number]);sign.add(pole);
     const shape=new THREE.Shape();shape.moveTo(...asset.signTop as [number, number]);shape.lineTo(...asset.signLeft as [number, number]);shape.lineTo(...asset.signRight as [number, number]);shape.closePath();
-    const triangle=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({...asset.triangle,side:THREE.DoubleSide}));triangle.position.y=asset.signHeight;sign.add(triangle);
-    const inside=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({...asset.inside,side:THREE.DoubleSide}));inside.scale.setScalar(asset.signInsetScale);inside.position.set(...asset.signInsetPosition as [number,number,number]);sign.add(inside);
+    const triangle=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({...materialAsset.triangle,side:THREE.DoubleSide}));triangle.position.y=asset.signHeight;sign.add(triangle);
+    const inside=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshBasicMaterial({...materialAsset.inside,side:THREE.DoubleSide}));inside.scale.setScalar(asset.signInsetScale);inside.position.set(...asset.signInsetPosition as [number,number,number]);sign.add(inside);
     // Simple dark antlered silhouette, readable without language-specific text.
-    const ink=new THREE.MeshBasicMaterial({...asset.ink,side:THREE.DoubleSide});
+    const ink=new THREE.MeshBasicMaterial({...materialAsset.ink,side:THREE.DoubleSide});
     for(const [w,h,x,y] of asset.signSilhouette) {
       const part=new THREE.Mesh(new THREE.PlaneGeometry(w,h),ink);part.position.set(x,y,asset.signInkDepth);sign.add(part);
     }

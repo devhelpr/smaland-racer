@@ -124,6 +124,7 @@
     "roads": [
       {
         "id": "osm-38752727-0",
+        "material": "asphalt",
         "name": "Sandsjövägen",
         "width": 6.2,
         "surface": "asphalt",
@@ -268,6 +269,7 @@
       },
       {
         "id": "osm-82138175-0",
+        "material": "asphalt",
         "name": "Väg 812",
         "width": 6.2,
         "surface": "asphalt",
@@ -740,6 +742,7 @@
       },
       {
         "id": "osm-120074111-0",
+        "material": "asphalt",
         "name": "Sandsjövägen",
         "width": 6.2,
         "surface": "asphalt",
@@ -1020,6 +1023,7 @@
       },
       {
         "id": "osm-120074113-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1112,6 +1116,7 @@
       },
       {
         "id": "osm-120074114-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1216,6 +1221,7 @@
       },
       {
         "id": "osm-124945444-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1240,6 +1246,7 @@
       },
       {
         "id": "osm-124945445-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1328,6 +1335,7 @@
       },
       {
         "id": "osm-604043449-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1344,6 +1352,7 @@
       },
       {
         "id": "osm-604043450-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1392,6 +1401,7 @@
       },
       {
         "id": "osm-1119772471-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1420,6 +1430,7 @@
       },
       {
         "id": "osm-1127711924-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1440,6 +1451,7 @@
       },
       {
         "id": "osm-1127711925-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1464,6 +1476,7 @@
       },
       {
         "id": "osm-1127711927-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1484,6 +1497,7 @@
       },
       {
         "id": "osm-1130695939-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1500,6 +1514,7 @@
       },
       {
         "id": "osm-1145063084-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1540,6 +1555,7 @@
       },
       {
         "id": "osm-1145460049-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1556,6 +1572,7 @@
       },
       {
         "id": "osm-1291582129-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1576,6 +1593,7 @@
       },
       {
         "id": "osm-1291582137-0",
+        "material": "asphaltMain",
         "name": "Väg 120",
         "width": 8.2,
         "surface": "asphalt",
@@ -1596,6 +1614,7 @@
       },
       {
         "id": "osm-120074103-0",
+        "material": "asphalt",
         "name": "Väg 812",
         "width": 6.2,
         "surface": "asphalt",
@@ -1612,6 +1631,7 @@
       },
       {
         "id": "osm-120074105-0",
+        "material": "asphalt",
         "name": "Väg 820",
         "width": 6.2,
         "surface": "asphalt",
@@ -2024,6 +2044,7 @@
       },
       {
         "id": "osm-610174225-0",
+        "material": "asphalt",
         "name": "Pålsabacken",
         "width": 5.6,
         "surface": "asphalt",
@@ -2052,6 +2073,7 @@
       },
       {
         "id": "osm-1135063579-0",
+        "material": "asphalt",
         "name": "Pålsabacken",
         "width": 5.6,
         "surface": "asphalt",
@@ -2120,6 +2142,7 @@
       },
       {
         "id": "osm-257224154-0",
+        "material": "asphalt",
         "name": "Sörgårdsvägen",
         "width": 5.6,
         "surface": "asphalt",
@@ -2176,6 +2199,7 @@
       },
       {
         "id": "osm-257224151-0",
+        "material": "asphalt",
         "name": "Askevägen",
         "width": 5.6,
         "surface": "asphalt",

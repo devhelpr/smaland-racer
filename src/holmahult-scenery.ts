@@ -1,3 +1,5 @@
+import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
+import materialAsset from '../assets/materials/holmahult-scenery.json' with { type: 'json' };
 import roadAsset from '../assets/road.json' with { type: 'json' };
 import sceneryAsset from '../assets/scenery.json' with { type: 'json' };
 import { applyGravelUVs, createGravelTexture } from './gravel.ts';
@@ -14,11 +16,11 @@ const details=asset.details;
 
 /** Authored farmyards rather than the random roadside cottages used by other routes. */
 export function createHolmahultScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld,gravelTexture?:THREE.Texture): void {
-  const white = new THREE.MeshStandardMaterial(asset.white);
-  const roof = new THREE.MeshStandardMaterial(asset.roof);
-  const glass = new THREE.MeshStandardMaterial(asset.glass);
-  const timber = new THREE.MeshStandardMaterial(asset.timber);
-  const stone = new THREE.MeshStandardMaterial(asset.stone);
+  const white = createSceneryMaterial('holmahult-scenery.white',materialAsset.white);
+  const roof = createSceneryMaterial('holmahult-scenery.roof',materialAsset.roof);
+  const glass = createSceneryMaterial('holmahult-scenery.glass',materialAsset.glass);
+  const timber = createSceneryMaterial('holmahult-scenery.timber',materialAsset.timber);
+  const stone = createSceneryMaterial('holmahult-scenery.stone',materialAsset.stone);
   const unitBox = new THREE.BoxGeometry(...asset.unitBox as [number, number, number]);
   const box = (group:THREE.Group,w:number,h:number,d:number,x:number,y:number,z:number,material:THREE.Material) => {
     const mesh=new THREE.Mesh(unitBox,material);
@@ -39,7 +41,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     const group=new THREE.Group();group.name=site.id;
     group.position.set(site.x,course.height(site.x,site.z),site.z);group.rotation.y=site.angle;scene.add(group);
     const {width:w,depth:d,height:h,roofHeight:rh}=site;
-    const paint=new THREE.MeshStandardMaterial({color:site.color,...asset.paint});
+    const paint=createSceneryMaterial('holmahult-scenery.paint',{color:site.color,...materialAsset.paint});
     if(site.id==='holmahult-25') {
       createHolmahultHome(group,site,box,{white,roof,glass,stone,paint});
     } else {
@@ -120,8 +122,8 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   };
   [...holmahultBuildings,...(course.definition.openWorld?.buildings??[]) as HolmahultBuilding[]].forEach(building);
 
-  const gravel=new THREE.MeshStandardMaterial({...asset.gravel,map:gravelTexture??createGravelTexture(randomGenerator(sceneryData.seed)),side:THREE.DoubleSide});
-  const asphalt=new THREE.MeshStandardMaterial({...asset.asphalt,side:THREE.DoubleSide});
+  const gravel=createSurfaceMaterial('gravel',gravelTexture??createGravelTexture(randomGenerator(sceneryData.seed)));
+  const asphalt=createSceneryMaterial('holmahult-scenery.asphalt',{...materialAsset.asphalt,side:THREE.DoubleSide});
   for(const [x,z,w,d] of course.definition.openWorld?.yards??sceneryData.yards) {
     const geometry=new THREE.PlaneGeometry(w,d,details.yardSegments,details.yardSegments);geometry.rotateX(-Math.PI/2);
     const positions=geometry.getAttribute('position');
@@ -153,10 +155,10 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
       geometry.setIndex(indices);applyGravelUVs(geometry);geometry.computeVertexNormals();return geometry;
     };
     const elevation=road.joinsCourseStart?sceneryAsset.roadElevation:details.roadElevation;
-    const material=road.joinsCourseStart?new THREE.MeshStandardMaterial({...sceneryAsset.road,map:gravel.map,side:THREE.DoubleSide}):road.asphalt?asphalt:gravel;
+    const material=road.joinsCourseStart?createSurfaceMaterial('road',gravel.map!):road.asphalt?asphalt:gravel;
     const mesh=new THREE.Mesh(ribbon(road.width,elevation),material);mesh.name=`holmahult-side-road-${index}`;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
     if(road.joinsCourseStart) {
-      const shoulder=new THREE.Mesh(ribbon(road.width+sceneryAsset.shoulderExtraWidth,sceneryAsset.shoulderElevation),new THREE.MeshStandardMaterial({...sceneryAsset.shoulder,side:THREE.DoubleSide}));
+      const shoulder=new THREE.Mesh(ribbon(road.width+sceneryAsset.shoulderExtraWidth,sceneryAsset.shoulderElevation),createSurfaceMaterial('shoulder',gravel.map!));
       shoulder.name='holmahult-start-shoulder';shoulder.userData.seasonalSurface='gravel';shoulder.receiveShadow=true;scene.add(shoulder);
     }
   }
@@ -189,7 +191,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   }
   const clear=sites.filter(([x,z])=>course.nearestRoad(x,z).distance>course.nearestRoad(x,z).width/2+4&&!holmahultBuildings.some(b=>Math.hypot(x-b.x,z-b.z)<Math.hypot(b.width,b.depth)/2+2));
   const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(...asset.trunkGeometry as [number, number, number, number]),white,clear.length);
-  const crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(...asset.crownGeometry as [number, number]),new THREE.MeshStandardMaterial(asset.crownMaterial),clear.length);
+  const crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(...asset.crownGeometry as [number, number]),createSceneryMaterial('holmahult-scenery.crownMaterial',materialAsset.crownMaterial),clear.length);
   crowns.userData.seasonalSurface='deciduous';
   clear.forEach(([x,z],i)=>{
     const base=course.height(x,z),s=details.treeScale+random()*details.treeScaleRange;dummy.rotation.set(0,random()*details.treeRotation,0);

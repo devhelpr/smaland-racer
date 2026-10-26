@@ -1,0 +1,36 @@
+{
+  "white": {
+    "color": "#eeeadd",
+    "roughness": 0.85
+  },
+  "roof": {
+    "color": "#414441",
+    "roughness": 1
+  },
+  "glass": {
+    "color": "#79989c",
+    "roughness": 0.35,
+    "metalness": 0.15
+  },
+  "timber": {
+    "color": "#493d32",
+    "roughness": 1
+  },
+  "stone": {
+    "color": "#939187",
+    "roughness": 1,
+    "flatShading": true
+  },
+  "paint": {
+    "roughness": 1
+  },
+  "asphalt": {
+    "color": "#777972",
+    "roughness": 1
+  },
+  "crownMaterial": {
+    "color": "#79945b",
+    "roughness": 1,
+    "flatShading": true
+  }
+}

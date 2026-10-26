@@ -1,3 +1,5 @@
+import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
+import materialAsset from '../assets/materials/scenery.json' with { type: 'json' };
 import { applyGravelUVs, createGravelTexture } from './gravel.ts';
 import { createOpenWorldScenery, refineBridgeTerrain } from './open-world-scenery.ts';
 import roadRockData from '../parcours/road-rocks.json' with { type: 'json' };
@@ -29,7 +31,7 @@ export function roadsideCottages(course: Course): CottageSite[] {
         if (course.nearest(x, z).distance < course.definition.width / 2 + placement.cottages.roadClearance) continue;
         if (course.lakes.some(l => Math.hypot((x - l.x) / (l.rx + placement.cottages.lakeMargin), (z - l.z) / (l.rz + placement.cottages.lakeMargin)) < placement.cottages.lakeClearance)) continue;
         if (sites.some(site => Math.hypot(site.x - x, site.z - z) < placement.cottages.spacing)) continue;
-        sites.push({x, z, angle: Math.atan2(sample.point.x - x, sample.point.z - z), scale: placement.cottages.scale + random() * placement.cottages.scaleRange, color: sites.length % asset.cottageColors.length});
+        sites.push({x, z, angle: Math.atan2(sample.point.x - x, sample.point.z - z), scale: placement.cottages.scale + random() * placement.cottages.scaleRange, color: sites.length % materialAsset.cottageColors.length});
         placed = true;
         break;
       }
@@ -62,8 +64,8 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   if(course.definition.openWorld)groundGeometry=refineBridgeTerrain(groundGeometry as THREE.PlaneGeometry,course);
   const vertices = groundGeometry.getAttribute('position');
   const colors: number[] = [];
-  const grassColors = asset.grassColors.map(c => new THREE.Color(c));
-  const meadowColors = asset.meadowColors.map(c => new THREE.Color(c));
+  const grassColors = materialAsset.grassColors.map(c => new THREE.Color(c));
+  const meadowColors = materialAsset.meadowColors.map(c => new THREE.Color(c));
   for (let i = 0; i < vertices.count; i++) {
     vertices.setY(i, terrainHeight(vertices.getX(i), vertices.getZ(i)));
     const variation = random();
@@ -73,25 +75,25 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   }
   groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   groundGeometry.computeVertexNormals();
-  const terrain = new THREE.Mesh(groundGeometry, new THREE.MeshStandardMaterial(asset.terrain));
+  const terrain = new THREE.Mesh(groundGeometry, createSceneryMaterial('scenery.terrain',materialAsset.terrain));
   terrain.userData.seasonalSurface='grass';
   terrain.receiveShadow = true; scene.add(terrain);
-  const shoulder = new THREE.Mesh(roadRibbon(ROAD_WIDTH + asset.shoulderExtraWidth, asset.shoulderElevation), new THREE.MeshStandardMaterial({ ...asset.shoulder, side: THREE.DoubleSide }));
   const gravelTexture = createGravelTexture(random);
-  const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, asset.roadElevation), new THREE.MeshStandardMaterial({ ...asset.road, map: gravelTexture, side: THREE.DoubleSide }));
+  const shoulder = new THREE.Mesh(roadRibbon(ROAD_WIDTH + asset.shoulderExtraWidth, asset.shoulderElevation), createSurfaceMaterial('shoulder',gravelTexture));
+  const road = new THREE.Mesh(roadRibbon(ROAD_WIDTH, asset.roadElevation), createSurfaceMaterial('road',gravelTexture));
   road.name='course-road';shoulder.name='course-shoulder';
-  if(course.definition.setting==='holmahult')applyGravelUVs(road.geometry);
+  applyGravelUVs(road.geometry);applyGravelUVs(shoulder.geometry);
   shoulder.userData.seasonalSurface=road.userData.seasonalSurface='gravel';
   shoulder.receiveShadow = true; road.receiveShadow = true; if(course.definition.openWorld) { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();createOpenWorldScenery(scene,course,collisions,gravelTexture); }
   else if(course.definition.setting!=='sandsjon')scene.add(shoulder, road);
   else { shoulder.geometry.dispose();road.geometry.dispose();(shoulder.material as THREE.Material).dispose();(road.material as THREE.Material).dispose();gravelTexture.dispose();createSandsjon(scene,course,collisions); }
 
   for (const lake of course.definition.setting==='sandsjon'?[]:lakes) {
-    const water = new THREE.Mesh(new THREE.CircleGeometry(...asset.waterGeometry as [number, number]), new THREE.MeshStandardMaterial(asset.waterMaterial));
+    const water = new THREE.Mesh(new THREE.CircleGeometry(...asset.waterGeometry as [number, number]), createSceneryMaterial('scenery.waterMaterial',materialAsset.waterMaterial));
     water.userData.seasonalSurface='water';
     water.rotation.x = -Math.PI / 2; water.scale.set(lake.rx, lake.rz, 1); water.position.set(lake.x, lake.level, lake.z); scene.add(water);
     // Thin broken highlights suggest calm water without textures or a water shader.
-    const material = new THREE.MeshBasicMaterial(asset.glintMaterial);
+    const material = new THREE.MeshBasicMaterial(materialAsset.glintMaterial);
     const glints = new THREE.InstancedMesh(new THREE.PlaneGeometry(...asset.glintGeometry as [number, number]), material, asset.glintCount);
     const glint = new THREE.Object3D();
     glint.rotation.x = -Math.PI / 2;
@@ -137,8 +139,8 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
       }
     }
   }
-  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(...asset.trunkGeometry as [number, number, number, number]), new THREE.MeshStandardMaterial(asset.trunkMaterial), treePositions.length);
-  const foliageMaterial = new THREE.MeshStandardMaterial(asset.foliageMaterial);
+  const trunk = new THREE.InstancedMesh(new THREE.CylinderGeometry(...asset.trunkGeometry as [number, number, number, number]), createSceneryMaterial('scenery.trunkMaterial',materialAsset.trunkMaterial), treePositions.length);
+  const foliageMaterial = createSceneryMaterial('scenery.foliageMaterial',materialAsset.foliageMaterial);
   const tiers = [new THREE.ConeGeometry(...asset.lowerFoliage as [number, number, number]), new THREE.ConeGeometry(...asset.middleFoliage as [number, number, number]), new THREE.ConeGeometry(...asset.upperFoliage as [number, number, number])].map(geometry => new THREE.InstancedMesh(geometry, foliageMaterial, treePositions.length));
   const dummy = new THREE.Object3D();
   treePositions.forEach((tree, i) => {
@@ -146,7 +148,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     collisions.add({id:`tree-${i}`,x:tree.x,z:tree.z,radius:placement.trees.colliderRadius*tree.scale,kind:'tree'});
     dummy.rotation.set(0, tree.rotation, 0); dummy.scale.setScalar(tree.scale);
     dummy.position.set(tree.x, base + asset.trunkHeight * tree.scale, tree.z); dummy.updateMatrix(); trunk.setMatrixAt(i, dummy.matrix);
-    const color = new THREE.Color().setHSL(asset.foliageColor.hue + random() * asset.foliageColor.hueRange, asset.foliageColor.saturation + random() * asset.foliageColor.saturationRange, asset.foliageColor.lightness + random() * asset.foliageColor.lightnessRange);
+    const color = new THREE.Color().setHSL(materialAsset.foliageColor.hue + random() * materialAsset.foliageColor.hueRange, materialAsset.foliageColor.saturation + random() * materialAsset.foliageColor.saturationRange, materialAsset.foliageColor.lightness + random() * materialAsset.foliageColor.lightnessRange);
     tiers.forEach((tier, j) => {
       dummy.position.y = base + asset.foliageHeights[j] * tree.scale; dummy.updateMatrix(); tier.setMatrixAt(i, dummy.matrix); tier.setColorAt(i, color);
     });
@@ -160,7 +162,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     if (clearScenery(x, z, placement.rocks.roadClearance)) rockPositions.push(new THREE.Vector3(x, terrainHeight(x, z), z));
   }
   const roadRocks=roadRockPlacements(course);
-  const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(...asset.rockGeometry as [number, number]), new THREE.MeshStandardMaterial(asset.rockMaterial), rockPositions.length+roadRocks.length);
+  const rocks = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(...asset.rockGeometry as [number, number]), createSceneryMaterial('scenery.rockMaterial',materialAsset.rockMaterial), rockPositions.length+roadRocks.length);
   rockPositions.forEach((p, i) => {
     dummy.position.copy(p); dummy.rotation.set(random(), random() * placement.rocks.rotationY, random()); dummy.scale.set(placement.rocks.scaleX + random() * placement.rocks.scaleXRange, placement.rocks.scaleY + random() * placement.rocks.scaleYRange, placement.rocks.scaleZ + random() * placement.rocks.scaleZRange); dummy.updateMatrix(); rocks.setMatrixAt(i, dummy.matrix);
     collisions.addRock(`rock-${i}`,rocks.geometry,rocks.material,dummy.matrix);
@@ -177,10 +179,10 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
 
   for (const site of cottageSites) {
     const cottage = new THREE.Group();
-    const red = new THREE.MeshStandardMaterial({ color: asset.cottageColors[site.color], ...asset.cottagePaint });
-    const white = new THREE.MeshStandardMaterial(asset.white);
-    const roofMaterial = new THREE.MeshStandardMaterial(asset.roofMaterial);
-    const windowMaterial = new THREE.MeshStandardMaterial(asset.windowMaterial);
+    const red = createSceneryMaterial('scenery.cottagePaint',{ color: materialAsset.cottageColors[site.color], ...materialAsset.cottagePaint });
+    const white = createSceneryMaterial('scenery.white',materialAsset.white);
+    const roofMaterial = createSceneryMaterial('scenery.roofMaterial',materialAsset.roofMaterial);
+    const windowMaterial = createSceneryMaterial('scenery.windowMaterial',materialAsset.windowMaterial);
     const part = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material); mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; cottage.add(mesh); return mesh;
     };

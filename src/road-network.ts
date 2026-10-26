@@ -1,10 +1,12 @@
+import { textureDefinitions } from './textures.ts';
+import roadMaterials from '../assets/materials/open-world.json' with { type: 'json' };
 import { applyGravelUVs } from './gravel.ts';
 import * as THREE from 'three';
 import asset from '../assets/road.json' with { type: 'json' };
 import type { WorldRoadSample } from './driving-world.ts';
 
 export interface RoadDefinition {
-  id: string; name: string; width: number; surface: 'asphalt' | 'gravel'; points: [number,number][];
+  id: string; name: string; width: number; surface: 'asphalt' | 'gravel'; material?:'asphalt'|'asphaltMain'; points: [number,number][];
 }
 
 /** Segment endpoints stay exact, so independently authored roads meet at their junctions. */
@@ -57,10 +59,14 @@ export class RoadNetwork {
   }
 
   ribbon(road:RoadNetwork['roads'][number],elevation:number):THREE.BufferGeometry {
-    const positions:number[]=[],indices:number[]=[],half=road.definition.width/2;
+    const positions:number[]=[],indices:number[]=[],uvs:number[]=[],half=road.definition.width/2;
+    const asphalt=road.definition.surface==='asphalt';
+    const textureScale=asphalt?textureDefinitions[roadMaterials[road.definition.material??'asphalt'].map].worldScale:1;
+    let distance=0;
     const startNeighbour=this.continuation(road,true),endNeighbour=this.continuation(road,false);
-    const vertex=(x:number,z:number)=>{const index=positions.length/3;positions.push(x,this.height(x,z)+elevation,z);return index;};
+    const vertex=(x:number,z:number,u=0,v=0)=>{const index=positions.length/3;positions.push(x,this.height(x,z)+elevation,z);uvs.push(u,v);return index;};
     road.points.forEach((p,i)=>{
+      if(i>0)distance+=Math.hypot(p.x-road.points[i-1].x,p.z-road.points[i-1].z);
       const before=i>0?road.points[i-1]:startNeighbour??p;
       const after=i<road.points.length-1?road.points[i+1]:endNeighbour??p;
       const incoming=p.clone().sub(before).setY(0).normalize(),outgoing=after.clone().sub(p).setY(0).normalize();
@@ -71,7 +77,7 @@ export class RoadNetwork {
       const denominator=miter.dot(normal);
       if(denominator<=0)miter.copy(normal).multiplyScalar(half);
       else miter.multiplyScalar(Math.min(half/denominator,half*asset.network.miterLimit));
-      for(const side of [-1,1])vertex(p.x+miter.x*side,p.z+miter.z*side);
+      for(const side of [-1,1])vertex(p.x+miter.x*side,p.z+miter.z*side,(side+1)/2,distance/textureScale);
       if(i<road.points.length-1){const n=i*2;indices.push(n,n+2,n+1,n+1,n+2,n+3);}
     });
     // Rounded mouths cover T-junctions and match the finite-segment grip calculation.
@@ -86,6 +92,8 @@ export class RoadNetwork {
         indices.push(center,previous,next);previous=next;
       }
     }
-    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);applyGravelUVs(geometry);geometry.computeVertexNormals();return geometry;
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);
+    if(asphalt)geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));else applyGravelUVs(geometry);
+    geometry.computeVertexNormals();return geometry;
   }
 }

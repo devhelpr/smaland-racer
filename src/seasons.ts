@@ -1,4 +1,5 @@
-import seasonData from '../assets/seasons.json' with { type: 'json' };
+import { applyMaterialSeason } from './materials.ts';
+import seasonData from '../assets/materials/seasons.json' with { type: 'json' };
 import * as THREE from 'three';
 
 export const seasons=['spring','summer','autumn','winter'] as const;
@@ -14,8 +15,15 @@ const luminance=(color:THREE.Color)=>color.r*.2126+color.g*.7152+color.b*.0722;
 /** Only tagged environmental colors change. Geometry, transforms, physics and assets stay intact. */
 export function applySeason(root:THREE.Object3D,season:Season):void {
   const seenMaterials=new Set<THREE.Material>();
+  const exactColors=new Set<THREE.Material>();
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh))return;
+    for(const material of Array.isArray(object.material)?object.material:[object.material]) {
+      if(seenMaterials.has(material))continue;
+      seenMaterials.add(material);
+      if('color' in material&&material.color instanceof THREE.Color&&!sourceMaterials.has(material))sourceMaterials.set(material,material.color.clone());
+      if(applyMaterialSeason(material,season))exactColors.add(material);
+    }
     const role=object.userData.seasonalSurface as SeasonalSurface|undefined;if(!role)return;
     const target=new THREE.Color(seasonPalettes[season][role]);
     const reference=luminance(new THREE.Color(baselines[role]));
@@ -31,9 +39,7 @@ export function applySeason(root:THREE.Object3D,season:Season):void {
       attribute.needsUpdate=true;
     } else {
       for(const material of Array.isArray(object.material)?object.material:[object.material]) {
-        if(seenMaterials.has(material)||!('color' in material)||!(material.color instanceof THREE.Color))continue;
-        seenMaterials.add(material);
-        if(!sourceMaterials.has(material))sourceMaterials.set(material,material.color.clone());
+        if(exactColors.has(material)||!('color' in material)||!(material.color instanceof THREE.Color))continue;
         material.color.copy(tint(sourceMaterials.get(material)!));
       }
     }

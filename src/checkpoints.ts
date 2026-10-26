@@ -1,3 +1,4 @@
+import materialAsset from '../assets/materials/checkpoints.json' with { type: 'json' };
 import * as THREE from 'three';
 import asset from '../assets/checkpoints.json' with { type: 'json' };
 import type { Course } from './track.ts';
@@ -19,9 +20,9 @@ export class CheckpointGates {
     this.closed = course.definition.closed;
     for (const [index, sample] of course.checkpoints.slice(1).entries()) {
       const mesh = new THREE.Group();
-      const metal = new THREE.MeshStandardMaterial(asset.metal);
-      const sign = new THREE.MeshStandardMaterial(asset.sign);
-      const lettering = new THREE.MeshStandardMaterial(asset.lettering);
+      const metal = new THREE.MeshStandardMaterial(materialAsset.metal);
+      const sign = new THREE.MeshStandardMaterial(materialAsset.sign);
+      const lettering = new THREE.MeshStandardMaterial(materialAsset.lettering);
       const materials = [metal, sign, lettering];
       const bar = (a: THREE.Vector3, b: THREE.Vector3, radius: number, material: THREE.MeshStandardMaterial) => {
         const direction = b.clone().sub(a);
@@ -67,7 +68,7 @@ export class CheckpointGates {
       // Fill depth after the scenery, before blending the gantry. This prevents
       // hidden bars and the back of the sign showing through during the fade.
       const depthMask = new THREE.Group(); depthMask.visible = false;
-      const maskMaterial = new THREE.MeshBasicMaterial({transparent:true, colorWrite:false, depthWrite:true});
+      const maskMaterial = new THREE.MeshBasicMaterial(materialAsset.mask);
       for (const child of [...mesh.children]) {
         if (!(child instanceof THREE.Mesh)) continue;
         const mask = child.clone(false);

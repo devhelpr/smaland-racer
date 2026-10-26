@@ -1,16 +1,4 @@
 {
-  "fur": {
-    "roughness": 1
-  },
-  "mooseColor": "#665440",
-  "deerColor": "#a47b4d",
-  "pale": {
-    "color": "#e4d5ae",
-    "roughness": 1
-  },
-  "dark": {
-    "color": "#242c24"
-  },
   "body": [0.85,1,2,0,1.65,0],
   "neck": [0.55,1.1,0.65,0,2.05,0.95],
   "head": [0.62,0.6,0.9,0,2.55,1.25],
@@ -26,21 +14,9 @@
   "tineSize": [0.13,0.45,0.12],
   "tail": [0.24,0.25,0.35,0,1.95,-1.12],
   "signPoleGeometry": [0.06,0.06,2.5,6],
-  "signPoleMaterial": {
-    "color": "#9a9e91"
-  },
   "signTop": [0,0.65],
   "signLeft": [-0.65,-0.45],
   "signRight": [0.65,-0.45],
-  "triangle": {
-    "color": "#c65d41"
-  },
-  "inside": {
-    "color": "#f5d878"
-  },
-  "ink": {
-    "color": "#263c31"
-  },
   "signSilhouette": [
     [0.34,0.16,0,2.34],
     [0.12,0.25,0.17,2.44],

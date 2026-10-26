@@ -1,3 +1,4 @@
+import { textureDefinitions } from '../src/textures.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -123,7 +124,6 @@ test('rounded road ends render the drivable approach and barn drives reach grave
 
 test('open-world gravel and farmyards retain grain, world-scale UVs and gray seasonal colors',async()=>{
   const {applySeason,seasons}=await import('../src/seasons.ts');
-  const {default:roadAsset}=await import('../assets/road.json',{with:{type:'json'}});
   const scene=new THREE.Group(),course=new Course(definition);createScenery(scene,course,new CollisionWorld());
   const meshes:THREE.Mesh[]=[];
   scene.traverse(object=>{if(object instanceof THREE.Mesh&&object.userData.seasonalSurface==='gravel')meshes.push(object);});
@@ -137,8 +137,8 @@ test('open-world gravel and farmyards retain grain, world-scale UVs and gray sea
     const positions=mesh.geometry.getAttribute('position'),uv=mesh.geometry.getAttribute('uv');
     assert.equal(uv.count,positions.count);
     for(const i of [0,Math.floor(positions.count/2),positions.count-1]) {
-      assert.ok(Math.abs(uv.getX(i)-positions.getX(i)/roadAsset.textureScale)<.0001);
-      assert.ok(Math.abs(uv.getY(i)-positions.getZ(i)/roadAsset.textureScale)<.0001);
+      assert.ok(Math.abs(uv.getX(i)-positions.getX(i)/textureDefinitions.gravel.worldScale)<.0001);
+      assert.ok(Math.abs(uv.getY(i)-positions.getZ(i)/textureDefinitions.gravel.worldScale)<.0001);
     }
   }
   for(const season of seasons) {

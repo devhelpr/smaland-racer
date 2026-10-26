@@ -1,0 +1,9 @@
+{
+  "ledHousing": {
+    "color": "#15201f"
+  },
+  "ledLens": {
+    "color": "#dcecff",
+    "emissive": "#dcecff"
+  }
+}

@@ -89,7 +89,8 @@ npm run preview
 ## Architecture
 
 - `parcours/`: JSON course definitions, world/terrain and placement settings, and authored Holmahult roads, fields, buildings, yards, walls and trees.
-- `assets/`: JSON model dimensions, vector/shape coordinates, materials, color palettes, road surfaces, lighting and roadside markers.
+- `assets/`: JSON model dimensions, vector/shape coordinates, lighting and roadside markers.
+- `assets/materials/`: material properties, color palettes, texture definitions and seasonal overrides.
 - `track.ts`: typed course loading, terrain, lake basins, road geometry and projection.
 - `holmahult-data.ts`, `holmahult-scenery.ts`, `holmahult-home.ts`: authored real-location route, fields, farmyards, buildings and surrounding lanes.
 - `race.ts`: state machine, directional checkpoints, splits, medals and penalties.
@@ -101,6 +102,7 @@ npm run preview
 - `storage.ts`, `i18n.ts`: validated local saves and typed translation dictionaries.
 - `input.ts`, `gestures.ts`: keyboard/pointer bindings, analog drag gestures, handbrake, double-tap recovery and interruption handling.
 - `main.ts`: application orchestration, menus and adaptive HUD.
+- `materials.ts`, `textures.ts`, `gravel.ts`: material inheritance, seasonal properties, shared textures and world-space gravel UVs.
 - `seasons.ts`: JSON palette loading, reversible tinting and saved season validation.
 - `rendering.ts`, `dispose.ts`: reusable renderer, camera, lighting and graphics-resource lifecycle.
 
@@ -110,18 +112,43 @@ Edit `parcours/courses.json` to change route points, names, widths, seeds, lakes
 
 Edit the matching file in `assets/` to change a model or palette. Numeric arrays follow the consuming Three.js constructor or function: box parts use `[width, height, depth, x, y, z]`, size arrays use `[width, height, depth]`, and vector/shape arrays use their axis order. Named `XY`, `YZ` and `SizeXY` fields identify partial box arguments. Building `details` hold offsets, proportions and repeated-detail spacing. Rendering and generation algorithms stay in TypeScript; authored geometry, colors and level settings live in JSON.
 
+Material definitions live in `assets/materials/`, grouped by model or scenery system. Their geometry stays in the matching file directly under `assets/`. The shared `surfaces.json` defines `gravel`, `road` and `shoulder`: roads and shoulders inherit gravel's color, texture and physical appearance, with optional overrides. Every gravel road, side road, shoulder and farmyard uses the same scene-local texture and world-space UVs.
+
+`textures.json` defines named textures. The shipped `gravel` entry generates the existing gray grain; `worldScale` controls its size in meters and `anisotropy` controls filtering at shallow viewing angles. To use a photo instead, place it in `public/textures/` and replace that entry with:
+
+```json
+"gravel": {
+  "type": "image",
+  "url": "/textures/gravel.jpg",
+  "worldScale": 3,
+  "anisotropy": 4
+}
+```
+
+The open-world asphalt roads use two generated textures in `textures.json`: `asphaltMain` has a dashed white center line for road 120; `asphaltEdges` has thinner dashed white edge lines for the smaller roads around Dångebo and toward Bro. Their asphalt grain, paint color, stripe width, edge inset and dash lengths are editable JSON. Each asphalt road selects `asphaltMain` or `asphalt` through its `material` property in `parcours/holmahult-open-world.json`. Road UVs run across the width and along accumulated road distance, so markings follow bends and retain their length. Rounded junction mouths sample unpainted asphalt. These markings are part of the asphalt texture.
+
+`assets/materials/seasons.json` contains the environmental color palettes and baseline colors used to preserve tree/terrain variation. Its `materials` section supports additional seasonal material properties, including named texture maps. Overrides under `gravel` also apply to `road` and `shoulder`; an override for the specific variant takes precedence. Standard scenery materials use IDs formed from their JSON filename and property name, such as `scenery.waterMaterial`, `holmahult-scenery.roof`, `open-world.asphalt` or `sandsjon.bridge.concrete`. For example, entries inside `materials.winter` can be:
+
+```json
+"gravel": { "map": "gravel", "roughness": 1 },
+"shoulder": { "color": "#d9dedb", "map": null },
+"scenery.waterMaterial": { "roughness": 0.2 }
+```
+
+An explicit seasonal `color` overrides palette tinting for that material. `map: null` disables a texture for that season; another texture name selects an entry in `textures.json`. Omitted properties restore the base material on the next season switch. Existing seasonal colors and gravel grain are preserved by default. Seasonal property overrides apply to standard scenery materials; vehicle, traffic, marker and wildlife materials have separate editable JSON definitions.
+
 JSON imports are bundled by Vite and work in the Node test runner through `with { type: 'json' }`. No runtime data fetch is required. Run the checks above after editing data to catch invalid JSON, type errors and road/collision regressions.
 
 The game supports desktop keyboard play and mobile/touchscreen gestures. Multiplayer, AI opponents, online leaderboards, vehicle upgrades and audio are outside this version.
 
 Driving styles are selected from the title screen or route menu. **Cruising** preserves the original handling; **Rally** increases acceleration and top speed and reduces grass drag. Best times are saved separately for each style. Existing saves default to Cruising.
 
-**Sandsjön · Isrally** uses a shoreline hand-traced from the supplied Sandsjön satellite reference, including the eastern peninsulas, bays, and southern outlet. The Road 120 bridge crosses the southern narrows; the marked ice stage runs beneath it. The frozen lake has low grip across its whole surface, snowy shores, and an elevated road bridge with solid piers and open passages underneath. Select **Free drive** to explore without a timer target. This level always uses winter, independently of the season selected for the other routes. Lake/route data lives in `parcours/sandsjon.json`; visual geometry and materials in `assets/sandsjon.json`; handling profiles in `assets/driving.json`.
+**Sandsjön · Isrally** uses a shoreline hand-traced from the supplied Sandsjön satellite reference, including the eastern peninsulas, bays, and southern outlet. The Road 120 bridge crosses the southern narrows; the marked ice stage runs beneath it. The frozen lake has low grip across its whole surface, snowy shores, and an elevated road bridge with solid piers and open passages underneath. Select **Free drive** to explore without a timer target. This level always uses winter, independently of the season selected for the other routes. Lake/route data lives in `parcours/sandsjon.json`; visual geometry in `assets/sandsjon.json` and materials in `assets/materials/sandsjon.json`; handling profiles in `assets/driving.json`.
 
 
 Driving over rocks now uses the same rotated, scaled facets as the visible stone. Four wheel contacts and chassis contacts apply gravity and rotational impulses around the car’s center of mass. Approach speed, the stone’s slope and the side that touches determine whether the car climbs, jumps, balances briefly on two wheels or tumbles. Steering can affect balance while wheels touch; airborne throttle and steering do not create tire forces. Grass drag slows an off-road approach gradually, retaining momentum for a jump. Hard landings and chassis impacts cause damage; an overturned car remains on its side or roof until **R** (or the touch recovery gesture) rights it at its current position. A wreck continues its tumble behind the result panel.
 
-Use **Rally → Free drive** to experiment with the stones on and beside the roads. The minimap’s surface indicator shows airborne, two-wheel and overturned states. Gravity, inertia, contacts, body dimensions, landing damage and friction live in `assets/stunts.json`; rock shapes/materials remain in `assets/scenery.json`, and rock placement in `parcours/scenery.json` and `parcours/road-rocks.json`.
+Use **Rally → Free drive** to experiment with the stones on and beside the roads. The minimap’s surface indicator shows airborne, two-wheel and overturned states. Gravity, inertia, contacts, body dimensions, landing damage and friction live in `assets/stunts.json`; rock shapes remain in `assets/scenery.json` and materials in `assets/materials/scenery.json`, and rock placement in `parcours/scenery.json` and `parcours/road-rocks.json`.
 
 Seven authored stones sit at spaced positions on each route, including very low, flat stones (roughly 7–12 cm high) and a few higher, angled rocks. They use the same rendered geometry and wheel contact physics as roadside stones. Route progress, side offsets, scales and angles live in `parcours/road-rocks.json`. Manual righting keeps the current position and driving heading, clears linear/angular motion and retains damage and checkpoint progress. It does not snap or reorient the camera. Water and map-boundary recovery still return to the last checkpoint.
 
@@ -133,4 +160,4 @@ Select **Holmahult · Dångebo · Bro** (level 8), then **Free drive**. This lev
 
 Road alignments come from [OpenStreetMap](https://www.openstreetmap.org/#map=13/56.53071/15.15186), © OpenStreetMap contributors, [ODbL](https://www.openstreetmap.org/copyright). Geographic roads use 45% scale to keep travel manageable. The original Holmahult village is stylized and connects through authored lanes. Village houses, the Bro bridge/stream and gentle elevation are artistic approximations, not surveyed replicas. The entire bounded world is loaded at once; chunk streaming and traffic routing through junctions are future work. A-traktors currently follow the original village route.
 
-All new level coordinates, connections, buildings, terrain settings and source metadata live in `parcours/holmahult-open-world.json`; rendering dimensions, materials and map styling live in `assets/open-world.json`. `DrivingWorld` in `src/driving-world.ts` is the vehicle/stunt contract; `Course` adapts the existing levels through `heightAt`, `surfaceAt`, `nearestRoad`, `isWater` and `spawn`. Race/checkpoint sampling remains separate from network road detection, so driving onto a side road supplies road grip without changing race progress. `RoadNetwork` preserves shared segment endpoints at intersections. Tests cover standalone-world driving, existing adapters, connectivity, road clearance, gentle grades and the bridge crossing.
+All new level coordinates, connections, buildings, terrain settings and source metadata live in `parcours/holmahult-open-world.json`; rendering dimensions and map styling live in `assets/open-world.json`, with materials in `assets/materials/open-world.json`. `DrivingWorld` in `src/driving-world.ts` is the vehicle/stunt contract; `Course` adapts the existing levels through `heightAt`, `surfaceAt`, `nearestRoad`, `isWater` and `spawn`. Race/checkpoint sampling remains separate from network road detection, so driving onto a side road supplies road grip without changing race progress. `RoadNetwork` preserves shared segment endpoints at intersections. Tests cover standalone-world driving, existing adapters, connectivity, road clearance, gentle grades and the bridge crossing.

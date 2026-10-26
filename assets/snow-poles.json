@@ -1,15 +1,5 @@
 {
   "bandGeometry": [0.058,0.058,0.13,6],
-  "orange": {
-    "color": "#ed6437",
-    "roughness": 0.8
-  },
-  "reflective": {
-    "color": "#fff3dd",
-    "roughness": 0.35,
-    "emissive": "#b7b2a1",
-    "emissiveIntensity": 0.15
-  },
   "bandHeights": [1.72,1.97],
   "height": 2.2,
   "shaftRadiusTop": 0.035,

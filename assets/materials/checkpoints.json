@@ -1,0 +1,21 @@
+{
+  "metal": {
+    "color": "#aebbc0",
+    "metalness": 0.8,
+    "roughness": 0.38
+  },
+  "sign": {
+    "color": "#12549a",
+    "metalness": 0.15,
+    "roughness": 0.6
+  },
+  "lettering": {
+    "color": "#f5f5e8",
+    "roughness": 0.55
+  },
+  "mask": {
+    "transparent": true,
+    "colorWrite": false,
+    "depthWrite": true
+  }
+}

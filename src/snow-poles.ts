@@ -1,3 +1,4 @@
+import materialAsset from '../assets/materials/snow-poles.json' with { type: 'json' };
 import asset from '../assets/snow-poles.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course } from './track.ts';
@@ -21,8 +22,8 @@ export class SnowPoles {
     const height = asset.height;
     const shaftGeometry = new THREE.CylinderGeometry(asset.shaftRadiusTop, asset.shaftRadiusBottom, height, asset.shaftSegments);
     const bandGeometry = new THREE.CylinderGeometry(...asset.bandGeometry as [number, number, number, number]);
-    const orange = new THREE.MeshStandardMaterial(asset.orange);
-    const reflective = new THREE.MeshStandardMaterial(asset.reflective);
+    const orange = new THREE.MeshStandardMaterial(materialAsset.orange);
+    const reflective = new THREE.MeshStandardMaterial(materialAsset.reflective);
     const count = Math.ceil(course.length / asset.spacing);
     for (let i = 0; i < count; i++) {
       const sample = course.sample(i / count);

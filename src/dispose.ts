@@ -1,3 +1,4 @@
+import { materialTextures } from './materials.ts';
 import * as THREE from 'three';
 export function disposeGroup(group:THREE.Group): void {
   const geometries=new Set<THREE.BufferGeometry>();const materials=new Set<THREE.Material>();const textures=new Set<THREE.Texture>();
@@ -7,6 +8,7 @@ export function disposeGroup(group:THREE.Group): void {
       geometries.add(object.geometry);
       for(const material of Array.isArray(object.material)?object.material:[object.material]) {
         materials.add(material);
+        for(const texture of materialTextures(material))textures.add(texture);
         for(const value of Object.values(material)) if(value instanceof THREE.Texture) textures.add(value);
       }
       if(object instanceof THREE.InstancedMesh) object.dispose();

@@ -1,3 +1,5 @@
+import { createSceneryMaterial } from './materials.ts';
+import materialAsset from '../assets/materials/holmahult-home.json' with { type: 'json' };
 import asset from '../assets/holmahult-home.json' with { type: 'json' };
 import * as THREE from 'three';
 
@@ -12,8 +14,8 @@ interface HouseMaterials {white:THREE.Material;roof:THREE.Material;glass:THREE.M
 export function createHolmahultHome(group:THREE.Group,site:HolmahultBuilding,box:Box,materials:HouseMaterials):void {
   const {white,roof,glass,stone,paint}=materials;
   const {width:w,depth:d,height:h,roofHeight:rh}=site;
-  const boards=new THREE.MeshStandardMaterial({color:new THREE.Color(site.color).multiplyScalar(details.boardShade),...asset.boards});
-  const door=new THREE.MeshStandardMaterial(asset.door);
+  const boards=createSceneryMaterial('holmahult-home.boards',{color:new THREE.Color(site.color).multiplyScalar(details.boardShade),...materialAsset.boards});
+  const door=createSceneryMaterial('holmahult-home.door',materialAsset.door);
   const part=(ww:number,hh:number,dd:number,x:number,y:number,z:number,material:THREE.Material)=>box(group,ww,hh,dd,x,y,z,material);
   part(w+details.foundationExtra,details.foundationHeight,d+details.foundationExtra,...asset.foundationPosition as [number, number, number],stone);
   part(w,h,d,0,h/2,0,paint);

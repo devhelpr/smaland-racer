@@ -1,0 +1,26 @@
+{
+  "fur": {
+    "roughness": 1
+  },
+  "mooseColor": "#665440",
+  "deerColor": "#a47b4d",
+  "pale": {
+    "color": "#e4d5ae",
+    "roughness": 1
+  },
+  "dark": {
+    "color": "#242c24"
+  },
+  "signPoleMaterial": {
+    "color": "#9a9e91"
+  },
+  "triangle": {
+    "color": "#c65d41"
+  },
+  "inside": {
+    "color": "#f5d878"
+  },
+  "ink": {
+    "color": "#263c31"
+  }
+}

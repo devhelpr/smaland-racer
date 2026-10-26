@@ -1,0 +1,42 @@
+{
+  "paint": {
+    "roughness": 0.68,
+    "metalness": 0.15
+  },
+  "dark": {
+    "color": "#27312d",
+    "roughness": 0.8
+  },
+  "glass": {
+    "color": "#779b9d",
+    "roughness": 0.28,
+    "metalness": 0.25
+  },
+  "chrome": {
+    "color": "#c0c5b7",
+    "metalness": 0.45,
+    "roughness": 0.45
+  },
+  "rearLight": {
+    "color": "#bc4432",
+    "emissive": "#b33120",
+    "emissiveIntensity": 0.35
+  },
+  "frontLight": {
+    "color": "#f5e4a9",
+    "emissive": "#d1ba7a",
+    "emissiveIntensity": 0.2
+  },
+  "border": {
+    "color": "#b93b2c"
+  },
+  "center": {
+    "color": "#f39242"
+  },
+  "paintColors": [
+    "#4f797a",
+    "#913d39",
+    "#6f784b",
+    "#596d8a"
+  ]
+}

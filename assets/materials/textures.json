@@ -1,0 +1,61 @@
+{
+  "gravel": {
+    "size": 128,
+    "minShade": 160,
+    "shadeRange": 95,
+    "greenRatio": 1,
+    "blueRatio": 1,
+    "opacity": 255,
+    "worldScale": 3,
+    "type": "noise",
+    "anisotropy": 4
+  },
+  "asphaltMain": {
+    "type": "road",
+    "width": 512,
+    "height": 512,
+    "minShade": 67,
+    "shadeRange": 23,
+    "opacity": 255,
+    "anisotropy": 8,
+    "markingColor": "#eeeee6",
+    "worldScale": 6,
+    "roadWidth": 8.2,
+    "markings": [
+      {
+        "position": 0.5,
+        "width": 0.15,
+        "dashLength": 3,
+        "dashOffset": 0
+      }
+    ]
+  },
+  "asphaltEdges": {
+    "type": "road",
+    "width": 512,
+    "height": 512,
+    "minShade": 67,
+    "shadeRange": 23,
+    "opacity": 255,
+    "anisotropy": 8,
+    "markingColor": "#eeeee6",
+    "worldScale": 3,
+    "roadWidth": 6.2,
+    "markings": [
+      {
+        "edgeInset": 0.2,
+        "side": "left",
+        "width": 0.1,
+        "dashLength": 1,
+        "dashOffset": 0
+      },
+      {
+        "edgeInset": 0.2,
+        "side": "right",
+        "width": 0.1,
+        "dashLength": 1,
+        "dashOffset": 0
+      }
+    ]
+  }
+}

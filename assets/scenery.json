@@ -1,68 +1,12 @@
 {
-  "grassColors": ["#798b4d","#829359","#899961","#75884b"],
-  "meadowColors": ["#9ca66b","#8c9f64","#a6ad73"],
-  "terrain": {
-    "vertexColors": true,
-    "roughness": 1,
-    "flatShading": true
-  },
-  "shoulder": {
-    "color": "#979c9f",
-    "vertexColors": true,
-    "roughness": 1
-  },
-  "road": {
-    "color": "#b0b5bb",
-    "vertexColors": true,
-    "roughness": 1
-  },
   "waterGeometry": [1,64],
-  "waterMaterial": {
-    "color": "#6fabb2",
-    "metalness": 0.25,
-    "roughness": 0.3
-  },
-  "glintMaterial": {
-    "color": "#bdd7cf",
-    "transparent": true,
-    "opacity": 0.38
-  },
   "glintGeometry": [1,1],
   "trunkGeometry": [0.22,0.35,5.5,5],
-  "trunkMaterial": {
-    "color": "#695b43"
-  },
-  "foliageMaterial": {
-    "color": "#ffffff",
-    "roughness": 1,
-    "flatShading": true
-  },
   "lowerFoliage": [2.7,5.2,6],
   "middleFoliage": [2.1,4.8,6],
   "upperFoliage": [1.45,3.9,6],
   "foliageHeights": [4.7,6.6,8.3],
   "rockGeometry": [1,0],
-  "rockMaterial": {
-    "color": "#8a8b7e",
-    "roughness": 1,
-    "flatShading": true
-  },
-  "cottagePaint": {
-    "roughness": 1
-  },
-  "cottageColors": ["#9c4036","#b2a065","#a14839","#dbd4b4"],
-  "white": {
-    "color": "#ede8d3"
-  },
-  "roofMaterial": {
-    "color": "#414a43",
-    "roughness": 1
-  },
-  "windowMaterial": {
-    "color": "#95b5b1",
-    "metalness": 0.15,
-    "roughness": 0.4
-  },
   "cottageBody": [8,4.8,6,0,2.4,0],
   "cottageCornerX": [-3.9,3.9],
   "cottageCornerZ": [-2.95,2.95],
@@ -86,14 +30,6 @@
   "shoulderExtraWidth": 1.8,
   "shoulderElevation": 0.075,
   "roadElevation": 0.13,
-  "gravelTexture": {
-    "size": 128,
-    "minShade": 160,
-    "shadeRange": 95,
-    "greenRatio": 1,
-    "blueRatio": 1,
-    "opacity": 255
-  },
   "glintCount": 65,
   "glintRadius": 0.9,
   "glintLimit": 0.88,
@@ -102,14 +38,6 @@
   "glintWidth": 0.15,
   "glintElevation": 0.025,
   "trunkHeight": 2.75,
-  "foliageColor": {
-    "hue": 0.37,
-    "hueRange": 0.035,
-    "saturation": 0.24,
-    "saturationRange": 0.16,
-    "lightness": 0.18,
-    "lightnessRange": 0.13
-  },
   "cornerTrimHeight": 2.45,
   "roofDepth": 7,
   "roofPosition": [0,4.8,-3.5],

@@ -1,0 +1,22 @@
+{
+  "asphalt": {
+    "color": "#ffffff",
+    "roughness": 0.95,
+    "map": "asphaltEdges"
+  },
+  "rail": {
+    "color": "#b4b6ac",
+    "roughness": 0.65,
+    "metalness": 0.3
+  },
+  "water": {
+    "color": "#65989c",
+    "roughness": 0.3,
+    "metalness": 0.25
+  },
+  "asphaltMain": {
+    "color": "#ffffff",
+    "roughness": 0.95,
+    "map": "asphaltMain"
+  }
+}

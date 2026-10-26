@@ -1,22 +1,4 @@
 {
-  "asphalt": {
-    "color": "#555653",
-    "roughness": 0.95
-  },
-  "gravel": {
-    "color": "#b0b5bb",
-    "roughness": 1
-  },
-  "rail": {
-    "color": "#b4b6ac",
-    "roughness": 0.65,
-    "metalness": 0.3
-  },
-  "water": {
-    "color": "#65989c",
-    "roughness": 0.3,
-    "metalness": 0.25
-  },
   "roadElevation": 0.065,
   "railHeight": 0.85,
   "railThickness": 0.18,

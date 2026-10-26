@@ -1,3 +1,4 @@
+import materialAsset from '../assets/materials/vehicle.json' with { type: 'json' };
 import { VehicleLighting } from './lighting.ts';
 import { StuntDynamics } from './stunts.ts';
 import stuntAsset from '../assets/stunts.json' with { type: 'json' };
@@ -33,10 +34,10 @@ export class Vehicle {
     this.profiles=profiles;
     this.drivingStyle=drivingStyle;
     this.course=course;
-    const paint = new THREE.MeshStandardMaterial(asset.paint);
-    const trim = new THREE.MeshStandardMaterial(asset.trim);
-    const glass = new THREE.MeshStandardMaterial(asset.glass);
-    const white = new THREE.MeshStandardMaterial(asset.white);
+    const paint = new THREE.MeshStandardMaterial(materialAsset.paint);
+    const trim = new THREE.MeshStandardMaterial(materialAsset.trim);
+    const glass = new THREE.MeshStandardMaterial(materialAsset.glass);
+    const white = new THREE.MeshStandardMaterial(materialAsset.white);
     const box = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
       mesh.position.set(x, y, z); mesh.castShadow = true; this.mesh.add(mesh); return mesh;
@@ -53,8 +54,8 @@ export class Vehicle {
     box(...asset.frontBumper as [number, number, number, number, number, number], trim);
     box(...asset.rearBumper as [number, number, number, number, number, number], trim);
     box(...asset.licensePlate as [number, number, number, number, number, number], white);
-    const lamp = new THREE.MeshStandardMaterial(asset.lamp);
-    const red = new THREE.MeshStandardMaterial(asset.red);
+    const lamp = new THREE.MeshStandardMaterial(materialAsset.lamp);
+    const red = new THREE.MeshStandardMaterial(materialAsset.red);
     for (const x of asset.lampX) {
       box(...asset.headlampSize as [number, number, number], x, ...asset.headlampYZ as [number, number], lamp);
       box(...asset.tailLampSize as [number, number, number], x, ...asset.tailLampYZ as [number, number], red);
@@ -69,7 +70,7 @@ export class Vehicle {
       hub.rotation.z = Math.PI / 2; pivot.add(hub);
       this.mesh.add(pivot); this.wheels.push(pivot);
     }
-    const smokeMaterial = new THREE.MeshBasicMaterial(asset.smokeMaterial);
+    const smokeMaterial = new THREE.MeshBasicMaterial(materialAsset.smokeMaterial);
     const smokeGeometry = new THREE.IcosahedronGeometry(...asset.smokeGeometry as [number, number]);
     for(let i=0;i<asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
     this.mesh.add(this.smoke);

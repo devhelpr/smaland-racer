@@ -1,0 +1,70 @@
+{
+  "grassColors": [
+    "#798b4d",
+    "#829359",
+    "#899961",
+    "#75884b"
+  ],
+  "meadowColors": [
+    "#9ca66b",
+    "#8c9f64",
+    "#a6ad73"
+  ],
+  "terrain": {
+    "vertexColors": true,
+    "roughness": 1,
+    "flatShading": true
+  },
+  "waterMaterial": {
+    "color": "#6fabb2",
+    "metalness": 0.25,
+    "roughness": 0.3
+  },
+  "glintMaterial": {
+    "color": "#bdd7cf",
+    "transparent": true,
+    "opacity": 0.38
+  },
+  "trunkMaterial": {
+    "color": "#695b43"
+  },
+  "foliageMaterial": {
+    "color": "#ffffff",
+    "roughness": 1,
+    "flatShading": true
+  },
+  "rockMaterial": {
+    "color": "#8a8b7e",
+    "roughness": 1,
+    "flatShading": true
+  },
+  "cottagePaint": {
+    "roughness": 1
+  },
+  "cottageColors": [
+    "#9c4036",
+    "#b2a065",
+    "#a14839",
+    "#dbd4b4"
+  ],
+  "white": {
+    "color": "#ede8d3"
+  },
+  "roofMaterial": {
+    "color": "#414a43",
+    "roughness": 1
+  },
+  "windowMaterial": {
+    "color": "#95b5b1",
+    "metalness": 0.15,
+    "roughness": 0.4
+  },
+  "foliageColor": {
+    "hue": 0.37,
+    "hueRange": 0.035,
+    "saturation": 0.24,
+    "saturationRange": 0.16,
+    "lightness": 0.18,
+    "lightnessRange": 0.13
+  }
+}

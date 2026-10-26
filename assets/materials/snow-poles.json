@@ -1,0 +1,12 @@
+{
+  "orange": {
+    "color": "#ed6437",
+    "roughness": 0.8
+  },
+  "reflective": {
+    "color": "#fff3dd",
+    "roughness": 0.35,
+    "emissive": "#b7b2a1",
+    "emissiveIntensity": 0.15
+  }
+}

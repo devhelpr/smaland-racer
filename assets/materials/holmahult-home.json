@@ -1,0 +1,9 @@
+{
+  "boards": {
+    "roughness": 1
+  },
+  "door": {
+    "color": "#586260",
+    "roughness": 0.8
+  }
+}

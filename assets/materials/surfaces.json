@@ -1,0 +1,18 @@
+{
+  "gravel": {
+    "color": "#b0b5bb",
+    "roughness": 1,
+    "map": "gravel",
+    "side": "double"
+  },
+  "road": {
+    "extends": "gravel",
+    "vertexColors": true
+  },
+  "shoulder": {
+    "extends": "road",
+    "color": "#979c9f",
+    "vertexColors": true,
+    "roughness": 1
+  }
+}

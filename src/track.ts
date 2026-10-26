@@ -1,3 +1,4 @@
+import { textureDefinitions } from './textures.ts';
 import openWorld from '../parcours/holmahult-open-world.json' with { type: 'json' };
 import { RoadNetwork } from './road-network.ts';
 import type { DrivingWorld, SurfaceType, WorldRoadSample } from './driving-world.ts';
@@ -209,7 +210,7 @@ export class Course implements DrivingWorld {
         const x=p.x-tangent.z*width/2*sign; const z=p.z+tangent.x*width/2*sign;
         positions.push(x,this.height(x,z)+elevation,z);
         const shade=roadAsset.baseShade+Math.sin(i*roadAsset.shadeFrequency)*roadAsset.shadeVariation; colors.push(shade,shade,shade);
-        uvs.push(sign<0?0:width/roadAsset.textureScale,i/(this.points.length-1)*this.length/roadAsset.textureScale);
+        uvs.push(sign<0?0:width/textureDefinitions.gravel.worldScale,i/(this.points.length-1)*this.length/textureDefinitions.gravel.worldScale);
       }
       if (i<this.points.length-1) { const n=i*2; indices.push(n,n+2,n+1,n+1,n+2,n+3); }
     }

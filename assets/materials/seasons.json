@@ -48,5 +48,31 @@
     "gravel": "#b0b5bb",
     "water": "#6fabb2",
     "stone": "#8a8b7e"
+  },
+  "materials": {
+    "spring": {
+      "gravel": {
+        "roughness": 1,
+        "map": "gravel"
+      }
+    },
+    "summer": {
+      "gravel": {
+        "roughness": 1,
+        "map": "gravel"
+      }
+    },
+    "autumn": {
+      "gravel": {
+        "roughness": 1,
+        "map": "gravel"
+      }
+    },
+    "winter": {
+      "gravel": {
+        "roughness": 1,
+        "map": "gravel"
+      }
+    }
   }
 }

@@ -1,0 +1,30 @@
+{
+  "ice": {
+    "color": "#8bb5c7",
+    "roughness": 0.24,
+    "metalness": 0.25
+  },
+  "cracks": {
+    "color": "#d9edf4",
+    "transparent": true,
+    "opacity": 0.46
+  },
+  "bridge": {
+    "concrete": {
+      "color": "#919c9f",
+      "roughness": 0.95
+    },
+    "asphalt": {
+      "color": "#424c54",
+      "roughness": 0.9
+    },
+    "rail": {
+      "color": "#c7d4da",
+      "metalness": 0.6,
+      "roughness": 0.35
+    },
+    "marking": {
+      "color": "#f3ead0"
+    }
+  }
+}

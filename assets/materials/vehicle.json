@@ -1,0 +1,33 @@
+{
+  "paint": {
+    "color": "#e9ad48",
+    "roughness": 0.66,
+    "metalness": 0.12
+  },
+  "trim": {
+    "color": "#233632",
+    "roughness": 0.7
+  },
+  "glass": {
+    "color": "#71999e",
+    "roughness": 0.23,
+    "metalness": 0.3
+  },
+  "white": {
+    "color": "#eee8d7"
+  },
+  "lamp": {
+    "color": "#fff0bf",
+    "emissive": "#c4a76c",
+    "emissiveIntensity": 0.35
+  },
+  "red": {
+    "color": "#b64032"
+  },
+  "smokeMaterial": {
+    "color": "#555c56",
+    "transparent": true,
+    "opacity": 0.35,
+    "depthWrite": false
+  }
+}

@@ -1,10 +1,4 @@
 {
-  "gateMaterial": {
-    "color": "#e9ddba"
-  },
-  "accent": {
-    "color": "#bd6c40"
-  },
   "post": [0.25,3.5,0.25],
   "postOffset": 1,
   "postHeight": 1.75,

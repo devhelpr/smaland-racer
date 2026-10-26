@@ -13,7 +13,10 @@
   "terrain": {
     "vertexColors": true,
     "roughness": 1,
-    "flatShading": true
+    "flatShading": true,
+    "map": "grass",
+    "bumpMap": "grass",
+    "bumpScale": 0.035
   },
   "waterMaterial": {
     "color": "#6fabb2",
@@ -26,7 +29,10 @@
     "opacity": 0.38
   },
   "trunkMaterial": {
-    "color": "#695b43"
+    "color": "#695b43",
+    "map": "bark",
+    "bumpMap": "bark",
+    "bumpScale": 0.06
   },
   "foliageMaterial": {
     "color": "#ffffff",
@@ -39,7 +45,10 @@
     "flatShading": true
   },
   "cottagePaint": {
-    "roughness": 1
+    "roughness": 1,
+    "map": "verticalBoards",
+    "bumpMap": "verticalBoards",
+    "bumpScale": 0.025
   },
   "cottageColors": [
     "#9c4036",

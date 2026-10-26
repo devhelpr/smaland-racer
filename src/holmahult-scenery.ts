@@ -1,3 +1,4 @@
+import { applyFacadeUVs } from './textures.ts';
 import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
 import materialAsset from '../assets/materials/holmahult-scenery.json' with { type: 'json' };
 import roadAsset from '../assets/road.json' with { type: 'json' };
@@ -29,6 +30,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   const gable = (group:THREE.Group,w:number,d:number,h:number,y:number,material:THREE.Material) => {
     const shape=new THREE.Shape();shape.moveTo(-w/2,0);shape.lineTo(0,h);shape.lineTo(w/2,0);shape.closePath();
     const mesh=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:false}),material);
+    applyFacadeUVs(mesh.geometry,w,h);
     mesh.position.set(0,y,-d/2);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);
   };
   const window = (group:THREE.Group,x:number,y:number,z:number,angle:number,w=details.windowWidth,h=details.windowHeight) => {

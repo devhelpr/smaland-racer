@@ -1,3 +1,4 @@
+import { applyFacadeUVs } from './textures.ts';
 import { createSceneryMaterial } from './materials.ts';
 import materialAsset from '../assets/materials/holmahult-home.json' with { type: 'json' };
 import asset from '../assets/holmahult-home.json' with { type: 'json' };
@@ -22,14 +23,15 @@ export function createHolmahultHome(group:THREE.Group,site:HolmahultBuilding,box
   // The entrance is on the long eaves facade, not under an attic gable.
   const triangle=new THREE.Shape();triangle.moveTo(-d/2,0);triangle.lineTo(0,rh);triangle.lineTo(d/2,0);triangle.closePath();
   const gables=new THREE.Mesh(new THREE.ExtrudeGeometry(triangle,{depth:w,bevelEnabled:false}),paint);
+  applyFacadeUVs(gables.geometry,d,rh);
   gables.rotation.y=Math.PI/2;gables.position.set(-w/2,h,0);gables.castShadow=true;group.add(gables);
-  for(let y=details.boardStart;y<h;y+=details.boardSpacing) {
-    for(const side of [-1,1]) {
-      part(w,...asset.frontCladdingSizeX as [number, number, number],y,side*(d/2+details.boardOffset),boards);
-      part(...asset.sideCladdingWidthHeight as [number, number],d,side*(w/2+details.boardOffset),y,0,boards);
-    }
+  // Vertical battens continue into the side gables, matching the timber facade texture.
+  for(let x=-w/2+details.boardSpacing;x<w/2;x+=details.boardSpacing)for(const side of [-1,1])
+    part(asset.battenWidth,h-details.boardStart,asset.battenDepth,x,(h+details.boardStart)/2,side*(d/2+details.boardOffset),boards);
+  for(let z=-d/2+details.boardSpacing;z<d/2;z+=details.boardSpacing)for(const side of [-1,1]) {
+    const height=h+rh*(1-Math.abs(z)/(d/2))-details.boardStart;
+    part(asset.battenDepth,height,asset.battenWidth,side*(w/2+details.boardOffset),details.boardStart+height/2,z,boards);
   }
-  for(let y=details.gableBoardStart;y<rh;y+=details.boardSpacing)for(const side of [-1,1])part(...asset.gableCladdingWidthHeight as [number, number],d*(1-y/rh),side*(w/2+details.boardOffset),h+y,0,boards);
   for(const x of [-w/2,w/2])for(const z of [-d/2,d/2])part(details.cornerTrimWidth,h+details.cornerTrimExtraHeight,details.cornerTrimWidth,x,h/2,z,white);
   part(w+details.baseTrimExtra,details.baseTrimHeight,d+details.baseTrimExtra,...asset.baseTrimPosition as [number, number, number],white);
 

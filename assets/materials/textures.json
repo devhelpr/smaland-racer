@@ -57,5 +57,79 @@
         "dashOffset": 0
       }
     ]
+  },
+  "grass": {
+    "type": "pattern",
+    "pattern": "grass",
+    "size": 256,
+    "worldScale": 2,
+    "anisotropy": 8,
+    "repeat": [
+      1,
+      1
+    ],
+    "base": 205,
+    "grain": 22,
+    "patch": 20,
+    "frequency": 5,
+    "blades": 1300,
+    "bladeWidth": 1,
+    "bladeLength": 9,
+    "bladeShade": 25,
+    "patchCells": 8
+  },
+  "bark": {
+    "type": "pattern",
+    "pattern": "grain",
+    "size": 256,
+    "worldScale": 3,
+    "anisotropy": 8,
+    "repeat": [
+      2,
+      2
+    ],
+    "base": 175,
+    "grain": 28,
+    "frequency": 11,
+    "wave": 0.13,
+    "groove": 48,
+    "grainFrequency": 1,
+    "warpFrequency": 2
+  },
+  "logEnd": {
+    "type": "pattern",
+    "pattern": "rings",
+    "size": 256,
+    "worldScale": 3,
+    "anisotropy": 8,
+    "repeat": [
+      1,
+      1
+    ],
+    "base": 226,
+    "grain": 13,
+    "frequency": 15,
+    "wave": 0.4,
+    "groove": 48
+  },
+  "verticalBoards": {
+    "type": "pattern",
+    "pattern": "boards",
+    "size": 256,
+    "worldScale": 3,
+    "anisotropy": 8,
+    "repeat": [
+      32,
+      1
+    ],
+    "base": 235,
+    "grain": 9,
+    "frequency": 1,
+    "wave": 2,
+    "groove": 14,
+    "seamWidth": 0.045,
+    "seamShade": 83,
+    "grainFrequency": 13,
+    "warpFrequency": 1
   }
 }

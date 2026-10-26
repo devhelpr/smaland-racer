@@ -1,0 +1,305 @@
+{
+  "roads": [
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.24,
+      "side": 1,
+      "clearance": 2.3,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.43,
+      "side": -1,
+      "clearance": 2.4,
+      "angle": -0.06,
+      "pile": true
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.6,
+      "side": 1,
+      "clearance": 0.85,
+      "angle": 1.3,
+      "pile": false
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.73,
+      "side": -1,
+      "clearance": 2.3,
+      "angle": 0.12,
+      "pile": true
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.83,
+      "side": -1,
+      "clearance": 0.9,
+      "angle": 1.4,
+      "pile": false
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.12,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.34,
+      "side": 1,
+      "clearance": 0.9,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "osm-82138175-0",
+      "progress": 0.9,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "holmahult-village",
+      "progress": 0.12,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "holmahult-village",
+      "progress": 0.36,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "holmahult-village",
+      "progress": 0.55,
+      "side": 1,
+      "clearance": 1.6,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "holmahult-village",
+      "progress": 0.76,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "holmahult-village",
+      "progress": 0.9,
+      "side": 1,
+      "clearance": 1.6,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "local-6",
+      "progress": 0.18,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "local-6",
+      "progress": 0.43,
+      "side": -1,
+      "clearance": 1.6,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "local-6",
+      "progress": 0.7,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "local-6",
+      "progress": 0.9,
+      "side": -1,
+      "clearance": 1.6,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "osm-120074111-0",
+      "progress": 0.18,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-120074111-0",
+      "progress": 0.4,
+      "side": 1,
+      "clearance": 0.9,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "osm-120074111-0",
+      "progress": 0.68,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-120074113-0",
+      "progress": 0.2,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-120074113-0",
+      "progress": 0.48,
+      "side": -1,
+      "clearance": 0.9,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "osm-120074113-0",
+      "progress": 0.78,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-120074114-0",
+      "progress": 0.2,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-120074114-0",
+      "progress": 0.5,
+      "side": 1,
+      "clearance": 0.9,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "osm-120074114-0",
+      "progress": 0.8,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "holmahult-west-lane",
+      "progress": 0.3,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "holmahult-west-lane",
+      "progress": 0.7,
+      "side": 1,
+      "clearance": 1.6,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "road": "osm-257224154-0",
+      "progress": 0.3,
+      "side": 1,
+      "clearance": 2.5,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "road": "osm-257224154-0",
+      "progress": 0.7,
+      "side": -1,
+      "clearance": 1.6,
+      "angle": 1.35,
+      "pile": false
+    }
+  ],
+  "routes": [
+    {
+      "progress": 0.22,
+      "side": 1,
+      "clearance": 2.3,
+      "angle": 0.08,
+      "pile": true
+    },
+    {
+      "progress": 0.48,
+      "side": -1,
+      "clearance": 2.3,
+      "angle": -0.12,
+      "pile": true
+    },
+    {
+      "progress": 0.74,
+      "side": 1,
+      "clearance": 0.9,
+      "angle": 1.32,
+      "pile": false
+    },
+    {
+      "progress": 0.12,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": 0.04,
+      "pile": true
+    },
+    {
+      "progress": 0.35,
+      "side": 1,
+      "clearance": 0.9,
+      "angle": 1.4,
+      "pile": false
+    },
+    {
+      "progress": 0.58,
+      "side": -1,
+      "clearance": 2.5,
+      "angle": -0.08,
+      "pile": true
+    },
+    {
+      "progress": 0.85,
+      "side": -1,
+      "clearance": 0.9,
+      "angle": 1.35,
+      "pile": false
+    },
+    {
+      "progress": 0.93,
+      "side": 1,
+      "clearance": 2.4,
+      "angle": 0.1,
+      "pile": true
+    }
+  ],
+  "excludedSettings": [
+    "sandsjon"
+  ]
+}

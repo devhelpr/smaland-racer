@@ -1,0 +1,16 @@
+{
+  "bark": {
+    "color": "#78604a",
+    "roughness": 1,
+    "map": "bark",
+    "bumpMap": "bark",
+    "bumpScale": 0.08
+  },
+  "end": {
+    "color": "#d6ae72",
+    "roughness": 1,
+    "map": "logEnd",
+    "bumpMap": "logEnd",
+    "bumpScale": 0.018
+  }
+}

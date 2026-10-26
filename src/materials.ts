@@ -3,7 +3,7 @@ import surfaceData from '../assets/materials/surfaces.json' with { type: 'json' 
 import seasonData from '../assets/materials/seasons.json' with { type: 'json' };
 import { createConfiguredTexture } from './textures.ts';
 
-type Settings=Omit<THREE.MeshStandardMaterialParameters,'map'|'side'> & {map?:string|null;side?:string|THREE.Side;extends?:string};
+type Settings=Omit<THREE.MeshStandardMaterialParameters,'map'|'bumpMap'|'side'> & {map?:string|null;bumpMap?:string|null;side?:string|THREE.Side;extends?:string};
 export type SurfaceMaterial=keyof typeof surfaceData;
 type Season=keyof typeof seasonData.materials;
 const definitions=surfaceData as Record<string,Settings>;
@@ -46,13 +46,17 @@ function configure(material:THREE.MeshStandardMaterial,season?:Season):boolean {
   const {ids,base}=binding;
   const overrides=Object.assign({},...ids.map(id=>season?seasonal[season][id]??{}:{})) as Settings;
   const resets=Object.fromEntries(binding.previousKeys.filter(key=>key in defaults).map(key=>[key,defaults[key]]));
-  const {map,side,extends:_parent,...properties}={...resets,...base,...overrides};
-  binding.previousKeys=Object.keys(overrides).filter(key=>!['map','side','extends'].includes(key));
+  const {map,bumpMap,side,extends:_parent,...properties}={...resets,...base,...overrides};
+  binding.previousKeys=Object.keys(overrides).filter(key=>!['map','bumpMap','side','extends'].includes(key));
   material.setValues(properties);
   if(map) {
     if(!binding.textures.has(map))binding.textures.set(map,createConfiguredTexture(map));
     material.map=binding.textures.get(map)!;
   } else material.map=null;
+  if(bumpMap) {
+    if(!binding.textures.has(bumpMap))binding.textures.set(bumpMap,createConfiguredTexture(bumpMap));
+    material.bumpMap=binding.textures.get(bumpMap)!;
+  } else material.bumpMap=null;
   material.side=side==='double'||side===THREE.DoubleSide?THREE.DoubleSide:side==='back'||side===THREE.BackSide?THREE.BackSide:THREE.FrontSide;
   material.needsUpdate=true;
   return overrides.color!==undefined;

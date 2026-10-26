@@ -1,0 +1,17 @@
+{
+  "radius": 0.28,
+  "length": 4.8,
+  "segments": 12,
+  "roadElevation": 0.09,
+  "pileSpacing": 0.59,
+  "layerHeight": 0.49,
+  "rows": [
+    4,
+    3,
+    2
+  ],
+  "endStagger": 0.18,
+  "lengthVariation": 0.45,
+  "radiusVariation": 0.035,
+  "seedOffset": 926
+}

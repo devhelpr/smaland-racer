@@ -9,6 +9,8 @@ import asset from '../assets/scenery.json' with { type: 'json' };
 import * as THREE from 'three';
 import { Course, lakeContains, shoreDistance, randomGenerator } from './track.ts';
 import { CollisionWorld } from './collision.ts';
+import { textureDefinitions } from './textures.ts';
+import { createLogScenery } from './logs.ts';
 import { SnowPoles } from './snow-poles.ts';
 import { holmahultBuildings, holmahultFieldAt, onHolmahultSideRoad } from './holmahult-data.ts';
 import { createHolmahultScenery } from './holmahult-scenery.ts';
@@ -75,6 +77,10 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     colors.push(color.r, color.g, color.b);
   }
   groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  applyGravelUVs(groundGeometry);
+  // Terrain grain uses its own physical scale, independent of the landscape size.
+  const grassUV=groundGeometry.getAttribute('uv');
+  for(let i=0;i<grassUV.count;i++)grassUV.setXY(i,vertices.getX(i)/textureDefinitions.grass.worldScale,vertices.getZ(i)/textureDefinitions.grass.worldScale);
   groundGeometry.computeVertexNormals();
   const terrain = new THREE.Mesh(groundGeometry, createSceneryMaterial('scenery.terrain',materialAsset.terrain));
   terrain.userData.seasonalSurface='grass';
@@ -112,6 +118,7 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
     scene.add(glints);
   }
 
+  createLogScenery(scene,course,collisions);
   const cottageSites = roadsideCottages(course);
   const clearScenery = (x: number, z: number, clearance: number) => {
     if(course.definition.openWorld&&(course.inWater(x,z)||course.definition.openWorld.yards.some(([cx,cz,w,d])=>Math.abs(x-cx)<w/2+clearance&&Math.abs(z-cz)<d/2+clearance)))return false;

@@ -8,7 +8,7 @@ import { Wildlife } from '../src/wildlife.ts';
 import { disposeGroup } from '../src/dispose.ts';
 import { formatTime } from '../src/i18n.ts';
 
-for(const definition of courses)test(`${definition.id}: driving corridor only contains authored road rocks and assets dispose once`,()=> {
+for(const definition of courses)test(`${definition.id}: driving corridor only contains authored road obstacles and assets dispose once`,()=> {
   const group=new THREE.Group(),course=new Course(definition),world=new CollisionWorld();createScenery(group,course,world);
   for(let i=0;i<course.points.length-1;i++) {
     const a=course.points[i],b=course.points[i+1];
@@ -18,7 +18,7 @@ for(const definition of courses)test(`${definition.id}: driving corridor only co
       const tangent=course.sample(i/(course.points.length-1)).tangent;
       const offset=new THREE.Vector3(-tangent.z,0,tangent.x).multiplyScalar(sign*(definition.width/2-CAR_RADIUS));
       const edgeHit=world.sweep(a.clone().add(offset),b.clone().add(offset));
-      assert.ok(!edgeHit||edgeHit.collider.id.startsWith('road-rock-'),`unexpected road-edge obstacle at ${i}`);
+      assert.ok(!edgeHit||edgeHit.collider.id.startsWith('road-rock-')||edgeHit.collider.id.startsWith('logs-'),`unexpected road-edge obstacle at ${i}`);
     }
   }
   const scene=new THREE.Scene();scene.add(group);

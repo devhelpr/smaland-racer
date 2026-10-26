@@ -14,7 +14,10 @@
   },
   "timber": {
     "color": "#493d32",
-    "roughness": 1
+    "roughness": 1,
+    "map": "verticalBoards",
+    "bumpMap": "verticalBoards",
+    "bumpScale": 0.025
   },
   "stone": {
     "color": "#939187",
@@ -22,7 +25,10 @@
     "flatShading": true
   },
   "paint": {
-    "roughness": 1
+    "roughness": 1,
+    "map": "verticalBoards",
+    "bumpMap": "verticalBoards",
+    "bumpScale": 0.025
   },
   "asphalt": {
     "color": "#777972",

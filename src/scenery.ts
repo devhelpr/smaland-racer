@@ -53,6 +53,7 @@ export function roadRockPlacements(course:Course) {
 }
 
 export function createScenery(scene: THREE.Group, course: Course, collisions: CollisionWorld): SnowPoles {
+  course.drivingSurfaces.clear();
   const random = randomGenerator(course.definition.seed);
   const lakes = course.lakes;
   const ROAD_WIDTH = course.definition.width;
@@ -201,5 +202,8 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
   }
 
   if (course.definition.setting === 'holmahult') createHolmahultScenery(scene, course, collisions,gravelTexture);
+  scene.traverse(object=>{
+    if(object instanceof THREE.Mesh&&(object.userData.drivingSurface||object.userData.seasonalSurface==='gravel'))course.drivingSurfaces.add(object);
+  });
   return new SnowPoles(course, collisions, scene);
 }

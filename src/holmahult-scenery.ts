@@ -156,7 +156,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     };
     const elevation=road.joinsCourseStart?sceneryAsset.roadElevation:details.roadElevation;
     const material=road.joinsCourseStart?createSurfaceMaterial('road',gravel.map!):road.asphalt?asphalt:gravel;
-    const mesh=new THREE.Mesh(ribbon(road.width,elevation),material);mesh.name=`holmahult-side-road-${index}`;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
+    const mesh=new THREE.Mesh(ribbon(road.width,elevation),material);mesh.name=`holmahult-side-road-${index}`;mesh.userData.drivingSurface=true;if(!road.asphalt)mesh.userData.seasonalSurface='gravel';mesh.receiveShadow=true;scene.add(mesh);
     if(road.joinsCourseStart) {
       const shoulder=new THREE.Mesh(ribbon(road.width+sceneryAsset.shoulderExtraWidth,sceneryAsset.shoulderElevation),createSurfaceMaterial('shoulder',gravel.map!));
       shoulder.name='holmahult-start-shoulder';shoulder.userData.seasonalSurface='gravel';shoulder.receiveShadow=true;scene.add(shoulder);

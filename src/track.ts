@@ -1,3 +1,5 @@
+import { DrivingSurfaces } from './driving-surfaces.ts';
+import sceneryAsset from '../assets/scenery.json' with { type: 'json' };
 import { textureDefinitions } from './textures.ts';
 import openWorld from '../parcours/holmahult-open-world.json' with { type: 'json' };
 import { RoadNetwork } from './road-network.ts';
@@ -92,6 +94,7 @@ export function shoreDistance(lake:Lake,x:number,z:number):number {
 export class Course implements DrivingWorld {
   readonly definition: CourseDefinition;
   readonly roadNetwork?: RoadNetwork;
+  readonly drivingSurfaces=new DrivingSurfaces(sceneryAsset.drivingSurfaceCellSize);
   get drivingLength():number {return this.roadNetwork?.roads.reduce((sum,road)=>sum+road.length,0)??this.length;}
   get worldSize():number { return this.definition.openWorld?.size??WORLD_SIZE; }
   readonly points: THREE.Vector3[];
@@ -114,7 +117,7 @@ export class Course implements DrivingWorld {
   }
 
   get spawn() { return this.sample(0); }
-  heightAt(x:number,z:number):number { return this.height(x,z); }
+  heightAt(x:number,z:number):number { return this.drivingSurfaces.heightAt(x,z,this.height(x,z)); }
   nearestRoad(x:number,z:number):WorldRoadSample { return this.roadNetwork?.nearest(x,z)??{...this.nearest(x,z),width:this.definition.width,surface:'gravel'}; }
   surfaceAt(x:number,z:number):SurfaceType {
     if(this.onIce(x,z))return 'ice';

@@ -196,7 +196,7 @@ export class Vehicle {
   }
 
   private syncMesh(): void {
-    this.mesh.position.copy(this.position).y += 0.12+stuntAsset.centerOfMassHeight;
+    this.mesh.position.copy(this.position).y += stuntAsset.centerOfMassHeight;
     if(this.stunts.active) {this.mesh.quaternion.copy(this.stunts.rotation);return;}
     this.mesh.rotation.order='YXZ';
     this.mesh.rotation.set(0, this.heading, 0);

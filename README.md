@@ -92,6 +92,7 @@ npm run preview
 - `assets/`: JSON model dimensions, vector/shape coordinates, lighting and roadside markers.
 - `assets/materials/`: material properties, color palettes, texture definitions and seasonal overrides.
 - `track.ts`: typed course loading, terrain, lake basins, road geometry and projection.
+- `driving-surfaces.ts`: spatial index of the rendered road, shoulder, yard and ice triangles for accurate wheel contact.
 - `holmahult-data.ts`, `holmahult-scenery.ts`, `holmahult-home.ts`: authored real-location route, fields, farmyards, buildings and surrounding lanes.
 - `race.ts`: state machine, directional checkpoints, splits, medals and penalties.
 - `vehicle.ts`: procedural car, fixed-step arcade handling, impact response and visible damage.
@@ -161,3 +162,5 @@ Select **Holmahult · Dångebo · Bro** (level 8), then **Free drive**. This lev
 Road alignments come from [OpenStreetMap](https://www.openstreetmap.org/#map=13/56.53071/15.15186), © OpenStreetMap contributors, [ODbL](https://www.openstreetmap.org/copyright). Geographic roads use 45% scale to keep travel manageable. The original Holmahult village is stylized and connects through authored lanes. Village houses, the Bro bridge/stream and gentle elevation are artistic approximations, not surveyed replicas. The entire bounded world is loaded at once; chunk streaming and traffic routing through junctions are future work. A-traktors currently follow the original village route.
 
 All new level coordinates, connections, buildings, terrain settings and source metadata live in `parcours/holmahult-open-world.json`; rendering dimensions and map styling live in `assets/open-world.json`, with materials in `assets/materials/open-world.json`. `DrivingWorld` in `src/driving-world.ts` is the vehicle/stunt contract; `Course` adapts the existing levels through `heightAt`, `surfaceAt`, `nearestRoad`, `isWater` and `spawn`. Race/checkpoint sampling remains separate from network road detection, so driving onto a side road supplies road grip without changing race progress. `RoadNetwork` preserves shared segment endpoints at intersections. Tests cover standalone-world driving, existing adapters, connectivity, road clearance, gentle grades and the bridge crossing.
+
+Wheel contact uses the height of the rendered driving surface, including road/shoulder elevations and overlapping farmyards. `Course.height()` remains the terrain height used to build scenery; `Course.heightAt()` samples the drivable meshes registered by `createScenery()`, with terrain as fallback. The car model has no additional visual lift, and the wheel-center height and tire radius in `assets/vehicle.json` share the ground contact plane. `assets/scenery.json` controls the driving-surface index cell size.

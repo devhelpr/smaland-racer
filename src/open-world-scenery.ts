@@ -11,7 +11,7 @@ export function createOpenWorldScenery(scene:THREE.Group,course:Course,collision
     // Independent ribbons interpolate the terrain differently; separate their surfaces to prevent junction flicker.
     const elevation=asset.roadElevation+(road.definition.surface==='asphalt'?asset.asphaltElevationOffset:0);
     const mesh=new THREE.Mesh(course.roadNetwork!.ribbon(road,elevation),materials[road.definition.surface==='asphalt'?road.definition.material??'asphalt':'gravel']);
-    mesh.name=road.definition.id;mesh.receiveShadow=true;
+    mesh.name=road.definition.id;mesh.receiveShadow=true;mesh.userData.drivingSurface=true;
     if(road.definition.surface==='gravel')mesh.userData.seasonalSurface='gravel';scene.add(mesh);
   }
   const b=course.definition.openWorld!.bridge,[x,z]=b.position,y=course.height(x,z);

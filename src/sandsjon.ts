@@ -10,7 +10,7 @@ export function createSandsjon(scene:THREE.Group,course:Course,world:CollisionWo
   for(const lake of course.lakes) {
     const shape=lake.outline?new THREE.Shape(lake.outline.map(([x,z])=>new THREE.Vector2(x,-z))):null;
     const ice=new THREE.Mesh(shape?new THREE.ShapeGeometry(shape):new THREE.CircleGeometry(1,asset.lakeSegments),createSceneryMaterial('sandsjon.ice',materialAsset.ice));
-    ice.rotation.x=-Math.PI/2;if(!shape)ice.scale.set(lake.rx,lake.rz,1);ice.position.set(shape?0:lake.x,lake.level+asset.surfaceElevation,shape?0:lake.z);ice.receiveShadow=true;scene.add(ice);
+    ice.rotation.x=-Math.PI/2;if(!shape)ice.scale.set(lake.rx,lake.rz,1);ice.position.set(shape?0:lake.x,lake.level+asset.surfaceElevation,shape?0:lake.z);ice.receiveShadow=true;ice.userData.drivingSurface=true;scene.add(ice);
     const cracks=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,asset.crackWidth),new THREE.MeshBasicMaterial(materialAsset.cracks),asset.crackCount);
     const dummy=new THREE.Object3D();
     for(let i=0;i<asset.crackCount;i++) {

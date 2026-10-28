@@ -273,7 +273,7 @@ function start(): void {
       const controls=input.read();
       while(accumulator>=step&&race.state==='racing') {
         const previous=car.position.clone();
-        wildlife.update(step,car.position,car.forwardSpeed);traffic.update(step,car.position);car.update(step,controls,world);snowPoles.update(step);
+        wildlife.update(step,car.position,car.forwardSpeed);traffic.update(step,car.position,car.velocity);car.update(step,controls,world);snowPoles.update(step);
         const checkpoint=race.nextCheckpoint;
         race.observe(previous,car.position,car.damage);
         if(race.nextCheckpoint!==checkpoint) {

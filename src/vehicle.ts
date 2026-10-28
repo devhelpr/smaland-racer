@@ -6,7 +6,8 @@ import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driv
 import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
 import type { DrivingWorld } from './driving-world.ts';
-import { CollisionWorld, impactDamage } from './collision.ts';
+import { CAR_RADIUS, CollisionWorld, impactDamage } from './collision.ts';
+import trafficPhysics from '../assets/traffic-physics.json' with { type: 'json' };
 import type { DriveInput } from './input.ts';
 
 export class Vehicle {
@@ -146,10 +147,19 @@ export class Vehicle {
     this.velocity.y=verticalSpeed;
     this.stunts.applyTireImpulse(this.velocity.clone().sub(previousVelocity));
     let remaining=dt;
+    const pushed=new Set<string>();
+    const bodyAxis=new THREE.Vector3(Math.sin(this.heading),0,Math.cos(this.heading));
+    const probes=[0,asset.frontBumper[5]+asset.frontBumper[2]/2-CAR_RADIUS,asset.rearBumper[5]-asset.rearBumper[2]/2+CAR_RADIUS];
     for(let iteration=0;iteration<3&&remaining>0;iteration++) {
       const destination=this.position.clone().addScaledVector(this.velocity,remaining);
       destination.y=this.position.y;
-      const hit=collisions?.sweep(this.position,destination,true);
+      let hit:ReturnType<CollisionWorld['sweep']>=null;
+      let contactOffset=0;
+      if(collisions)for(const offset of probes) {
+        const probe=bodyAxis.clone().multiplyScalar(offset);
+        const candidate=collisions.sweep(this.position.clone().add(probe),destination.clone().add(probe),true);
+        if(candidate&&(!hit||candidate.time<hit.time)) {hit=candidate;contactOffset=offset;}
+      }
       if(!hit) {this.position.copy(destination);break;}
       if(hit.collider.kind==='snowPole' && this.velocity.lengthSq()>1e-6) {
         hit.collider.active=false;
@@ -158,19 +168,32 @@ export class Vehicle {
         this.velocity.multiplyScalar(.995);
         continue;
       }
+      const contactPoint=this.position.clone().lerp(destination,hit.time).addScaledVector(bodyAxis,contactOffset).addScaledVector(hit.normal,-CAR_RADIUS);
       const relativeVelocity=this.velocity.clone().sub(hit.collider.velocity??new THREE.Vector3());
+      const spin=hit.collider.angularVelocity??0;
+      relativeVelocity.x-=spin*(contactPoint.z-hit.collider.z);
+      relativeVelocity.z+=spin*(contactPoint.x-hit.collider.x);
       const inward=-relativeVelocity.dot(hit.normal);
       if(inward<=0&&hit.time===0) {this.position.copy(destination);break;}
-      this.position.lerp(destination,Math.max(0,hit.time-.001)).addScaledVector(hit.normal,.035);
+      const softTraffic=hit.collider.kind==='aTractor'&&inward<=trafficPhysics.contact.softSpeed;
+      this.position.lerp(destination,Math.max(0,hit.time-.001)).addScaledVector(hit.normal,softTraffic?trafficPhysics.contact.separation:.035);
       if(inward>0) {
+        let impulseResponse:number|void=undefined;
+        if(!pushed.has(hit.collider.id)) {
+          impulseResponse=hit.collider.onPush?.(relativeVelocity,hit.normal,dt,contactPoint);
+          pushed.add(hit.collider.id);
+        }
         if(this.age-(this.contacts.get(hit.collider.id)??-Infinity)>.65) {
-          const damage=impactDamage(inward,hit.collider.kind);
+          const damage=softTraffic?0:impactDamage(inward,hit.collider.kind);
           this.damage=Math.min(100,this.damage+damage); this.contacts.set(hit.collider.id,this.age);
           hit.collider.onHit?.(this.velocity.clone());
-          this.impact=Math.min(1,inward/15);
-          this.heading+=(hit.normal.x*forward.z-hit.normal.z*forward.x)*Math.min(.3,inward*.012);
+          if(!softTraffic) {
+            this.impact=Math.min(1,inward/15);
+            this.heading+=(hit.normal.x*forward.z-hit.normal.z*forward.x)*Math.min(.3,inward*.012);
+          }
         }
-        this.velocity.addScaledVector(hit.normal,inward*1.12).multiplyScalar(.7);
+        if(typeof impulseResponse==='number')this.velocity.addScaledVector(hit.normal,impulseResponse);
+        else this.velocity.addScaledVector(hit.normal,inward*(softTraffic?1:1.12)).multiplyScalar(softTraffic?1:.7);
       }
       remaining*=1-hit.time;
     }

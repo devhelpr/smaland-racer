@@ -71,16 +71,18 @@ test('traffic loops at the circuit seam, exits stages, and brakes for the player
   disposeGroup(group);
 });
 
-test('rear impacts damage the car using relative traffic speed and make the A-traktor slow down',()=> {
-  function collision(moving:boolean): {damage:number;braking:number} {
+test('rear impacts damage the player using relative speed while traffic keeps driving',()=> {
+  function collision(moving:boolean): {damage:number;speedChange:number} {
     const course=new Course(courses[0]),world=new CollisionWorld(),group=new THREE.Group(),traffic=new Traffic(course,world,group);
     const tractor=traffic.vehicles[0],sample=course.sample(tractor.distance/course.length);
     const car=new Vehicle(course);car.position.copy(tractor.mesh.position).addScaledVector(sample.tangent,-6);
     car.heading=Math.atan2(sample.tangent.x,sample.tangent.z);car.velocity.copy(sample.tangent).multiplyScalar(30);
     if(!moving)tractor.collider.velocity!.set(0,0,0);
+    const speed=tractor.speed;
     car.update(.2,{throttle:0,steer:0,handbrake:false},world);
-    const result={damage:car.damage,braking:tractor.brakeTime};disposeGroup(group);return result;
+    traffic.update(.2,car.position,car.velocity);
+    const result={damage:car.damage,speedChange:tractor.speed-speed};disposeGroup(group);return result;
   }
   const moving=collision(true),stationary=collision(false);
-  assert.ok(moving.damage>0);assert.ok(moving.damage<stationary.damage);assert.ok(moving.braking>0);
+  assert.ok(moving.damage>0);assert.ok(moving.damage<stationary.damage);assert.ok(Math.abs(moving.speedChange)<1e-8);
 });

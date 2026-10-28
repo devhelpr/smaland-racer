@@ -1,0 +1,26 @@
+{
+  "contact": {
+    "softSpeed": 5.5,
+    "separation": 0.004,
+    "mass": 1000,
+    "playerMass": 1200,
+    "restitution": 0.08,
+    "maxImpulse": 6000,
+    "maxAngularSpeed": 1.6,
+    "linearDrag": 1.1,
+    "angularDrag": 2.2,
+    "collisionSpinRetention": 0.5,
+    "returnDelay": 2,
+    "returnStiffness": 0.65,
+    "returnDamping": 1.2,
+    "steeringStiffness": 1.8,
+    "steeringDamping": 1.4
+  },
+  "avoidance": {
+    "lookAhead": 16,
+    "predictionTime": 0.6,
+    "halfWidth": 2.3,
+    "stoppingGap": 5,
+    "speedResponse": 0.8
+  }
+}

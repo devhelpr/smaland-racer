@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Course, courses } from '../src/track.ts';
-import { CollisionWorld } from '../src/collision.ts';
+import { CAR_RADIUS, CollisionWorld } from '../src/collision.ts';
 import { Traffic } from '../src/traffic.ts';
 import { Vehicle } from '../src/vehicle.ts';
 import { roadsideCottages } from '../src/scenery.ts';
@@ -30,7 +30,7 @@ for(const definition of courses)test(`${definition.id}: scenery follows the sett
   }
 });
 
-for(const definition of courses)test(`${definition.id}: slow traffic follows the road facing forward and leaves passing room`,()=> {
+for(const definition of courses)test(`${definition.id}: slow traffic follows the road and blocks passing on narrow roads`,()=> {
   const course=new Course(definition),world=new CollisionWorld(),group=new THREE.Group(),traffic=new Traffic(course,world,group);
   if(definition.setting==='sandsjon')assert.equal(traffic.vehicles.length,0);
   else assert.ok(traffic.vehicles.length>=3&&traffic.vehicles.length<=7);
@@ -40,11 +40,12 @@ for(const definition of courses)test(`${definition.id}: slow traffic follows the
     const offset=vehicle.mesh.position.clone().sub(sample.point).setY(0);
     const right=new THREE.Vector3(-sample.tangent.z,0,sample.tangent.x);
     assert.ok(offset.dot(right)>0);
+    assert.ok(offset.dot(right)+vehicle.collider.halfX<=definition.width/2+1e-6,'traffic stays within the road edge');
     const facing=vehicle.mesh.getWorldDirection(new THREE.Vector3()).setY(0).normalize();
     assert.ok(facing.dot(sample.tangent)>.99);
     assert.ok(!course.inWater(vehicle.mesh.position.x,vehicle.mesh.position.z));
-    const passingCenter=sample.point.clone().addScaledVector(right,-definition.width*.24);
-    assert.equal(world.sweep(passingCenter.clone().addScaledVector(sample.tangent,-8),passingCenter.clone().addScaledVector(sample.tangent,8)),null);
+    const passingCenter=sample.point.clone().addScaledVector(right,-definition.width/2+CAR_RADIUS);
+    assert.ok(world.sweep(passingCenter.clone().addScaledVector(sample.tangent,-8),passingCenter.clone().addScaledVector(sample.tangent,8)),'a second car cannot pass within the gravel road');
   }
   const before=traffic.vehicles.map(vehicle=>vehicle.distance);
   traffic.update(1);

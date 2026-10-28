@@ -87,11 +87,11 @@ for(const definition of courses) test(`controller completes ${definition.id}; me
   let maxDistance=0;
   for(let i=0;i<120*definition.medals.bronze;i++) {
     const road=course.nearest(car.position.x,car.position.z);
-    const target=course.sample(Math.min(1,road.progress+9/course.length));
+    const target=course.sample(Math.min(1,road.progress+(definition.width<4?5:9)/course.length));
     const ahead=course.sample(Math.min(1,road.progress+25/course.length));
     const turn=Math.acos(Math.max(-1,Math.min(1,road.tangent.dot(ahead.tangent))));
     // Ice needs a slower approach to bends because braking and lateral grip are reduced.
-    const targetSpeed=(turn>.5?11:turn>.25?15:22)*(course.onIce(car.position.x,car.position.z)?.5:1);
+    const targetSpeed=(turn>.5?11:turn>.25?15:22)*(course.onIce(car.position.x,car.position.z)?.5:definition.width<4?.75:1);
     const desired=Math.atan2(target.point.x-car.position.x,target.point.z-car.position.z);
     const error=Math.atan2(Math.sin(desired-car.heading),Math.cos(desired-car.heading));
     const previous=car.position.clone();

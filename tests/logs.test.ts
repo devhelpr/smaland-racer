@@ -20,7 +20,8 @@ for(const id of courses.filter(course=>course.setting!=='sandsjon').map(course=>
     const to=from.clone().addScaledVector(road.tangent,3);
     assert.equal(world.sweep(from,to),null,'opposite lane must remain passable');
     const verge=road.point.clone().addScaledVector(across,road.width/2-CAR_RADIUS);
-    if(!site.pile)assert.ok(world.sweep(verge,verge)?.collider.id.startsWith('logs-'),'loose log must actually overlap the driving lane');
+    if(!site.pile&&road.width<4)assert.equal(world.sweep(road.point,road.point),null,'loose logs leave the single lane center clear');
+    else if(!site.pile)assert.ok(world.sweep(verge,verge)?.collider.id.startsWith('logs-'),'loose log must actually overlap the driving lane');
     else assert.ok(world.sweep(new THREE.Vector3(site.x,0,site.z),new THREE.Vector3(site.x,0,site.z)),'piles must have physical collision');
   }
   disposeGroup(root);

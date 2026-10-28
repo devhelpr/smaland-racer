@@ -25,7 +25,7 @@
   "rocks": {
     "count": 450,
     "area": 500,
-    "roadClearance": 2,
+    "roadClearance": 3.5,
     "rotationY": 6,
     "scaleX": 0.6,
     "scaleXRange": 1.7,

@@ -84,7 +84,7 @@
       "road": "holmahult-village",
       "progress": 0.55,
       "side": 1,
-      "clearance": 1.6,
+      "clearance": 2.8,
       "angle": 1.35,
       "pile": false
     },
@@ -100,7 +100,7 @@
       "road": "holmahult-village",
       "progress": 0.9,
       "side": 1,
-      "clearance": 1.6,
+      "clearance": 2.8,
       "angle": 1.35,
       "pile": false
     },
@@ -116,7 +116,7 @@
       "road": "local-6",
       "progress": 0.43,
       "side": -1,
-      "clearance": 1.6,
+      "clearance": 2.8,
       "angle": 1.35,
       "pile": false
     },
@@ -132,7 +132,7 @@
       "road": "local-6",
       "progress": 0.9,
       "side": -1,
-      "clearance": 1.6,
+      "clearance": 2.8,
       "angle": 1.35,
       "pile": false
     },
@@ -220,7 +220,7 @@
       "road": "holmahult-west-lane",
       "progress": 0.7,
       "side": 1,
-      "clearance": 1.6,
+      "clearance": 2.8,
       "angle": 1.35,
       "pile": false
     },
@@ -259,7 +259,7 @@
     {
       "progress": 0.74,
       "side": 1,
-      "clearance": 0.9,
+      "clearance": 2.8,
       "angle": 1.32,
       "pile": false
     },
@@ -273,7 +273,7 @@
     {
       "progress": 0.35,
       "side": 1,
-      "clearance": 0.9,
+      "clearance": 2.8,
       "angle": 1.4,
       "pile": false
     },
@@ -287,7 +287,7 @@
     {
       "progress": 0.85,
       "side": -1,
-      "clearance": 0.9,
+      "clearance": 2.8,
       "angle": 1.35,
       "pile": false
     },

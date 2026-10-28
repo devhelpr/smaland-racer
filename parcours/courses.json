@@ -5,7 +5,7 @@
     "setting": "holmahult",
     "region": "forest",
     "closed": false,
-    "width": 6.2,
+    "width": 2.8,
     "seed": 519,
     "hills": 0.45,
     "treeDensity": 2400,
@@ -47,7 +47,7 @@
     "region": "forest",
     "name": "Tallskogen",
     "closed": true,
-    "width": 11,
+    "width": 2.8,
     "seed": 481,
     "points": [
       [-80,-105],
@@ -83,7 +83,7 @@
     "region": "lakes",
     "name": "Sjövarvet",
     "closed": true,
-    "width": 10,
+    "width": 2.8,
     "seed": 736,
     "points": [
       [-150,-95],
@@ -126,7 +126,7 @@
     "region": "lakes",
     "name": "Strandvägen",
     "closed": false,
-    "width": 9,
+    "width": 2.8,
     "seed": 809,
     "points": [
       [-285,160],
@@ -179,7 +179,7 @@
     "region": "hills",
     "name": "Höjdrundan",
     "closed": true,
-    "width": 9.5,
+    "width": 2.8,
     "seed": 901,
     "points": [
       [-170,-125],
@@ -218,7 +218,7 @@
     "region": "hills",
     "name": "Smålandsprovet",
     "closed": false,
-    "width": 9,
+    "width": 2.8,
     "seed": 1027,
     "points": [
       [-280,235],

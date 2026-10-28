@@ -28,7 +28,7 @@
   "chimney": [0.75,2.3,0.8,2,6.3,-0.8],
   "groundSegments": 200,
   "drivingSurfaceCellSize": 16,
-  "shoulderExtraWidth": 1.8,
+  "shoulderExtraWidth": 0.4,
   "shoulderElevation": 0.075,
   "roadElevation": 0.13,
   "glintCount": 65,

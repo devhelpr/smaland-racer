@@ -4,7 +4,7 @@
   "setting": "holmahult",
   "region": "forest",
   "closed": false,
-  "width": 6.2,
+  "width": 2.8,
   "seed": 519,
   "hills": 1,
   "treeDensity": 6500,
@@ -1649,7 +1649,7 @@
       {
         "id": "holmahult-village",
         "name": "Holmahult",
-        "width": 6.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1769,7 +1769,7 @@
       {
         "id": "local-2",
         "name": "Holmahult",
-        "width": 4.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1789,7 +1789,7 @@
       {
         "id": "local-3",
         "name": "Holmahult",
-        "width": 3.5,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1817,7 +1817,7 @@
       {
         "id": "local-4",
         "name": "Holmahult",
-        "width": 3.8,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1845,7 +1845,7 @@
       {
         "id": "local-5",
         "name": "Holmahult",
-        "width": 3.4,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1869,7 +1869,7 @@
       {
         "id": "local-6",
         "name": "Holmahult",
-        "width": 5.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1937,7 +1937,7 @@
       {
         "id": "local-7",
         "name": "Holmahult",
-        "width": 3,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1953,7 +1953,7 @@
       {
         "id": "local-8",
         "name": "Holmahult",
-        "width": 3.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1973,7 +1973,7 @@
       {
         "id": "local-9",
         "name": "Holmahult",
-        "width": 3.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -1993,7 +1993,7 @@
       {
         "id": "village-connection-0",
         "name": "Holmahult anslutning",
-        "width": 6.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -2029,7 +2029,7 @@
       {
         "id": "village-connection-1",
         "name": "Holmahult anslutning",
-        "width": 6.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [
@@ -2241,7 +2241,7 @@
       {
         "id": "holmahult-west-lane",
         "name": "Holmahult västra gårdsväg",
-        "width": 5.2,
+        "width": 2.8,
         "surface": "gravel",
         "points": [
           [

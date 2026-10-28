@@ -58,7 +58,7 @@ function createATractor(color: string, pickup: boolean): {mesh: THREE.Group; whe
   return {mesh,wheels};
 }
 
-/** Slow same-direction traffic stays in its lane, leaving the other side open for passing. */
+/** Slow same-direction traffic keeps right within the available road width. */
 export class Traffic {
   readonly vehicles: ATractor[] = [];
   readonly course: Course;
@@ -81,7 +81,9 @@ export class Traffic {
   private place(vehicle: ATractor): void {
     const sample=this.course.sample(vehicle.distance/this.course.length);
     const side=new THREE.Vector3(-sample.tangent.z,0,sample.tangent.x);
-    vehicle.mesh.position.copy(sample.point).addScaledVector(side,this.course.definition.width*placement.laneOffset);
+    const width=this.course.definition.width;
+    const offset=Math.min(width*placement.laneOffset,Math.max(0,width/2-asset.collider.halfX));
+    vehicle.mesh.position.copy(sample.point).addScaledVector(side,offset);
     const {x,z}=vehicle.mesh.position;
     vehicle.mesh.position.y=this.course.height(x,z)+placement.groundOffset;
     const heading=Math.atan2(sample.tangent.x,sample.tangent.z);

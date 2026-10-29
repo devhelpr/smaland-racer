@@ -1,3 +1,4 @@
+import { createATractor } from './traffic-model.ts';
 import materialAsset from '../assets/materials/traffic.json' with { type: 'json' };
 import placement from '../parcours/traffic.json' with { type: 'json' };
 import asset from '../assets/traffic.json' with { type: 'json' };
@@ -21,48 +22,6 @@ interface ATractor {
   returnDelay: number;
 }
 
-function createATractor(color: string, pickup: boolean): {mesh: THREE.Group; wheels: THREE.Group[]} {
-  const mesh = new THREE.Group();
-  const variant=pickup?asset.pickup:asset.wagon;
-  const paint = new THREE.MeshStandardMaterial({color, ...materialAsset.paint});
-  const dark = new THREE.MeshStandardMaterial(materialAsset.dark);
-  const glass = new THREE.MeshStandardMaterial(materialAsset.glass);
-  const chrome = new THREE.MeshStandardMaterial(materialAsset.chrome);
-  const rearLight = new THREE.MeshStandardMaterial(materialAsset.rearLight);
-  const frontLight = new THREE.MeshStandardMaterial(materialAsset.frontLight);
-  const part = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
-    const piece = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-    piece.position.set(x, y, z);piece.castShadow = true;mesh.add(piece);return piece;
-  };
-  part(...asset.body as [number, number, number, number, number, number], paint);
-  part(...asset.cabinWidthHeight as [number, number], variant.cabinDepth, ...asset.cabinXY as [number, number], variant.cabinZ, glass);
-  part(...asset.roofWidthHeight as [number, number], variant.roofDepth, ...asset.roofXY as [number, number], variant.cabinZ, paint);
-  for (const x of asset.pillarX) for (const z of pickup ? asset.pickupPillarZ : asset.wagonPillarZ) part(...asset.pillarSize as [number, number, number], x, asset.pillarHeight, z, paint);
-  if (pickup) {
-    part(...asset.pickupBed as [number, number, number, number, number, number], dark);
-    for (const x of asset.bedSideX) part(...asset.bedSideSize as [number, number, number],x,...asset.bedSideYZ as [number, number],paint);
-  }
-  for (const z of asset.bumperZ) part(...asset.bumperSizeXY as [number, number, number, number, number],z,dark);
-  for (const x of asset.lampX) {
-    part(...asset.headlampSize as [number, number, number],x,...asset.headlampYZ as [number, number],frontLight);part(...asset.tailLampSize as [number, number, number],x,...asset.tailLampYZ as [number, number],rearLight);
-  }
-  part(...asset.grille as [number, number, number, number, number, number],dark);
-  const wheels: THREE.Group[] = [];
-  for (const x of asset.wheelX) for (const z of asset.wheelZ) {
-    const wheel = new THREE.Group();wheel.position.set(x,asset.wheelHeight,z);
-    const tire = new THREE.Mesh(new THREE.CylinderGeometry(...asset.tire as [number, number, number, number]),dark);tire.rotation.z=Math.PI/2;tire.castShadow=true;wheel.add(tire);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(...asset.hub as [number, number, number, number]),chrome);hub.rotation.z=Math.PI/2;wheel.add(hub);
-    wheels.push(wheel);mesh.add(wheel);
-  }
-  // Rear-facing slow-vehicle triangle: a wide red border around a bright orange center.
-  const triangle = new THREE.Shape();triangle.moveTo(...asset.triangleTop as [number, number]);triangle.lineTo(...asset.triangleLeft as [number, number]);triangle.lineTo(...asset.triangleRight as [number, number]);triangle.closePath();
-  const border = new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({...materialAsset.border,side:THREE.DoubleSide}));
-  border.position.set(...asset.triangleBorderPosition as [number,number,number]);mesh.add(border);
-  const center = new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({...materialAsset.center,side:THREE.DoubleSide}));
-  center.scale.setScalar(asset.triangleCenterScale);center.position.set(...asset.triangleCenterPosition as [number,number,number]);mesh.add(center);
-  return {mesh,wheels};
-}
-
 /** Slow same-direction traffic keeps right within the available road width. */
 export class Traffic {
   readonly vehicles: ATractor[] = [];
@@ -76,7 +35,7 @@ export class Traffic {
     const random = randomGenerator(course.definition.seed + placement.seedOffset);
     const count = Math.max(placement.minCount, Math.min(placement.maxCount, Math.ceil(course.length / placement.lengthPerVehicle)));
     for (let i=0;i<count;i++) {
-      const {mesh,wheels}=createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i%placement.pickupEvery===placement.pickupOffset);
+      const {mesh,wheels}=createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i);
       const baseSpeed=placement.baseSpeed+random()*placement.speedRange;
       const collider: BoxCollider={id:`a-tractor-${i}`,x:0,z:0,...asset.collider,kind:'aTractor',angle:0,active:true,velocity:new THREE.Vector3()};
       const vehicle: ATractor={mesh,wheels,collider,distance:placement.startDistance+i*(course.length-placement.finishClearance)/count,baseSpeed,speed:baseSpeed,active:true,offset:new THREE.Vector3(),velocity:new THREE.Vector3(),yaw:0,angularVelocity:0,returnDelay:0};
@@ -195,7 +154,7 @@ export class Traffic {
       }
       this.place(vehicle);
       if(displaced)this.collide(vehicle,previousPosition,previousHeading);
-      for(const wheel of vehicle.wheels)for(const child of wheel.children)child.rotation.x+=vehicle.speed*dt/.44;
+      for(const wheel of vehicle.wheels)for(const child of wheel.children)child.rotation.x+=vehicle.speed*dt/asset.wheelRadius;
     }
   }
 

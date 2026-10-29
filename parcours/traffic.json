@@ -3,8 +3,6 @@
   "minCount": 3,
   "maxCount": 7,
   "lengthPerVehicle": 230,
-  "pickupEvery": 3,
-  "pickupOffset": 1,
   "baseSpeed": 6.4,
   "speedRange": 1.4,
   "startDistance": 38,

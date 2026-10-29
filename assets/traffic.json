@@ -1,50 +1,1064 @@
 {
-  "body": [1.96,0.6,4.15,0,0.85,0],
-  "cabinWidthHeight": [1.67,0.7],
-  "cabinXY": [0,1.48],
-  "roofWidthHeight": [1.77,0.13],
-  "roofXY": [0,1.88],
-  "pillarX": [-0.83,0.83],
-  "pickupPillarZ": [-0.35,0.85],
-  "wagonPillarZ": [-1.55,-0.2,0.95],
-  "pillarSize": [0.1,0.74,0.12],
-  "pickupBed": [1.55,0.09,1.35,0,1.17,-1.17],
-  "bedSideX": [-0.9,0.9],
-  "bedSideSize": [0.14,0.3,1.5],
-  "bedSideYZ": [1.23,-1.2],
-  "bumperZ": [-2.12,2.12],
-  "bumperSizeXY": [2.04,0.17,0.17,0,0.62],
-  "lampX": [-0.7,0.7],
-  "headlampSize": [0.35,0.23,0.07],
-  "headlampYZ": [0.98,2.1],
-  "tailLampSize": [0.3,0.25,0.07],
-  "tailLampYZ": [0.98,-2.1],
-  "grille": [0.78,0.23,0.07,0,0.98,2.11],
-  "wheelZ": [-1.35,1.35],
-  "tire": [0.44,0.44,0.26,10],
-  "hub": [0.24,0.24,0.28,8],
   "triangleTop": [0,0.38],
   "triangleLeft": [-0.43,-0.32],
   "triangleRight": [0.43,-0.32],
-  "pickup": {
-    "cabinDepth": 1.2,
-    "roofDepth": 1.35,
-    "cabinZ": 0.25
-  },
-  "wagon": {
-    "cabinDepth": 2.5,
-    "roofDepth": 2.65,
-    "cabinZ": -0.3
-  },
-  "pillarHeight": 1.5,
-  "wheelHeight": 0.47,
-  "wheelX": [-1,1],
-  "triangleBorderPosition": [0,1.3,-2.17],
-  "triangleCenterPosition": [0,1.3,-2.18],
+  "triangleBorderPosition": [0,1.26,-2.05],
+  "triangleCenterPosition": [0,1.26,-2.065],
   "triangleCenterScale": 0.73,
   "collider": {
     "radius": 2.35,
     "halfX": 1.03,
     "halfZ": 2.15
-  }
+  },
+  "wheelRadius": 0.43,
+  "omitParts": [
+    "trunk",
+    "c-pillar",
+    "rear-quarter-divider",
+    "roof-gutter",
+    "rear-window-bottom",
+    "rear-lamp-housing",
+    "rear-lamp-red",
+    "rear-indicator",
+    "rear-reverse",
+    "rear-plate-mount",
+    "wiper",
+    "side-rubbing-strip",
+    "side-strip-inlay",
+    "door-shut-line"
+  ],
+  "extraGlyphs": {
+    "5": [
+      [
+        [1,1],
+        [0,1],
+        [0,0.5],
+        [1,0.5],
+        [1,0],
+        [0,0]
+      ]
+    ],
+    "7": [
+      [
+        [0,1],
+        [1,1],
+        [0.3,0]
+      ]
+    ],
+    "9": [
+      [
+        [1,0.5],
+        [0,0.5],
+        [0,1],
+        [1,1],
+        [1,0],
+        [0,0]
+      ]
+    ]
+  },
+  "commonParts": [
+    {
+      "name": "tailgate-lower-panel",
+      "material": "paint",
+      "box": [1.72,0.39,0.08,0,0.94,-1.965]
+    },
+    {
+      "name": "tailgate-handle",
+      "material": "trim",
+      "box": [0.28,0.055,0.045,0,1.12,-2.022]
+    },
+    {
+      "name": "tailgate-window-seal",
+      "material": "trim",
+      "beam": {
+        "size": [0.04,0.035],
+        "from": [-0.77,1.16,-1.986],
+        "to": [0.77,1.16,-1.986]
+      }
+    },
+    {
+      "name": "tailgate-wiper",
+      "material": "trim",
+      "beam": {
+        "size": [0.018,0.02],
+        "from": [-0.18,1.21,-2.003],
+        "to": [0.28,1.43,-1.989]
+      }
+    },
+    {
+      "name": "rear-plate-mount",
+      "material": "trim",
+      "box": [0.65,0.21,0.035,0,0.79,-2.017]
+    },
+    {
+      "name": "rear-door-edge",
+      "material": "panelGap",
+      "box": [0.012,0.34,0.012,-0.905,0.82,-0.76]
+    },
+    {
+      "name": "front-door-edge",
+      "material": "panelGap",
+      "box": [0.012,0.34,0.012,-0.905,0.82,-0.2]
+    },
+    {
+      "name": "rear-door-edge",
+      "material": "panelGap",
+      "box": [0.012,0.34,0.012,0.905,0.82,-0.76]
+    },
+    {
+      "name": "front-door-edge",
+      "material": "panelGap",
+      "box": [0.012,0.34,0.012,0.905,0.82,-0.2]
+    }
+  ],
+  "variants": [
+    {
+      "id": "volvo-245",
+      "overrides": {
+        "name": "Volvo 245 GL stationwagon",
+        "roof": [1.49,0.085,2.49,0,1.72,-0.745],
+        "cabinMesh": {
+          "vertices": [
+            [-0.78,1.14,0.8],
+            [0.78,1.14,0.8],
+            [0.78,1.14,-1.96],
+            [-0.78,1.14,-1.96],
+            [-0.69,1.69,0.43],
+            [0.69,1.69,0.43],
+            [0.72,1.69,-1.9],
+            [-0.72,1.69,-1.9]
+          ],
+          "indices": [0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7]
+        },
+        "licensePlate": [0.56,0.15,0.025,0,0.79,-2.045]
+      },
+      "omitParts": [],
+      "parts": [
+        {
+          "name": "estate-c-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.07,0.07],
+            "from": [-0.79,1.15,-0.8],
+            "to": [-0.71,1.69,-0.8]
+          }
+        },
+        {
+          "name": "estate-d-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.09,0.08],
+            "from": [-0.79,1.15,-1.97],
+            "to": [-0.72,1.69,-1.9]
+          }
+        },
+        {
+          "name": "estate-window-sill",
+          "material": "chrome",
+          "beam": {
+            "size": [0.028,0.03],
+            "from": [-0.79,1.15,-1.34],
+            "to": [-0.79,1.15,-1.96]
+          }
+        },
+        {
+          "name": "estate-roof-gutter",
+          "material": "chrome",
+          "beam": {
+            "size": [0.025,0.035],
+            "from": [-0.74,1.7249999999999999,0.48],
+            "to": [-0.76,1.7249999999999999,-1.97]
+          }
+        },
+        {
+          "name": "estate-rubbing-strip",
+          "material": "trim",
+          "box": [0.035,0.075,3.65,-0.915,1.04,0]
+        },
+        {
+          "name": "estate-chrome-strip",
+          "material": "chrome",
+          "box": [0.014,0.015,3.65,-0.938,1.06,0]
+        },
+        {
+          "name": "estate-taillamp-surround",
+          "material": "trim",
+          "box": [0.23,0.52,0.045,-0.77,1.02,-2.017]
+        },
+        {
+          "name": "estate-taillamp-red",
+          "material": "red",
+          "box": [0.19,0.23,0.028,-0.77,0.89,-2.045]
+        },
+        {
+          "name": "estate-taillamp-amber",
+          "material": "amber",
+          "box": [0.19,0.1,0.028,-0.77,1.075,-2.045]
+        },
+        {
+          "name": "estate-taillamp-reverse",
+          "material": "white",
+          "box": [0.19,0.1,0.028,-0.77,1.195,-2.045]
+        },
+        {
+          "name": "estate-c-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.07,0.07],
+            "from": [0.79,1.15,-0.8],
+            "to": [0.71,1.69,-0.8]
+          }
+        },
+        {
+          "name": "estate-d-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.09,0.08],
+            "from": [0.79,1.15,-1.97],
+            "to": [0.72,1.69,-1.9]
+          }
+        },
+        {
+          "name": "estate-window-sill",
+          "material": "chrome",
+          "beam": {
+            "size": [0.028,0.03],
+            "from": [0.79,1.15,-1.34],
+            "to": [0.79,1.15,-1.96]
+          }
+        },
+        {
+          "name": "estate-roof-gutter",
+          "material": "chrome",
+          "beam": {
+            "size": [0.025,0.035],
+            "from": [0.74,1.7249999999999999,0.48],
+            "to": [0.76,1.7249999999999999,-1.97]
+          }
+        },
+        {
+          "name": "estate-rubbing-strip",
+          "material": "trim",
+          "box": [0.035,0.075,3.65,0.915,1.04,0]
+        },
+        {
+          "name": "estate-chrome-strip",
+          "material": "chrome",
+          "box": [0.014,0.015,3.65,0.938,1.06,0]
+        },
+        {
+          "name": "estate-taillamp-surround",
+          "material": "trim",
+          "box": [0.23,0.52,0.045,0.77,1.02,-2.017]
+        },
+        {
+          "name": "estate-taillamp-red",
+          "material": "red",
+          "box": [0.19,0.23,0.028,0.77,0.89,-2.045]
+        },
+        {
+          "name": "estate-taillamp-amber",
+          "material": "amber",
+          "box": [0.19,0.1,0.028,0.77,1.075,-2.045]
+        },
+        {
+          "name": "estate-taillamp-reverse",
+          "material": "white",
+          "box": [0.19,0.1,0.028,0.77,1.195,-2.045]
+        }
+      ],
+      "labels": [
+        {
+          "text": "VOLVO",
+          "position": [0,0.955,2.09],
+          "height": 0.034,
+          "width": 0.018,
+          "spacing": 0.005,
+          "stroke": 0.004,
+          "depth": 0.004,
+          "angle": 0,
+          "material": "white"
+        },
+        {
+          "text": "VOLVO",
+          "position": [0.48,0.97,-2.068],
+          "height": 0.045,
+          "width": 0.026,
+          "spacing": 0.012,
+          "stroke": 0.008,
+          "depth": 0.008,
+          "angle": 3.141592653589793,
+          "material": "chrome"
+        },
+        {
+          "text": "245 GL",
+          "position": [-0.48,0.97,-2.068],
+          "height": 0.045,
+          "width": 0.026,
+          "spacing": 0.009,
+          "stroke": 0.007,
+          "depth": 0.008,
+          "angle": 3.141592653589793,
+          "material": "chrome"
+        },
+        {
+          "text": "HLM 245",
+          "position": [0,0.79,-2.068],
+          "height": 0.085,
+          "width": 0.038,
+          "spacing": 0.016,
+          "stroke": 0.009,
+          "depth": 0.006,
+          "angle": 3.141592653589793,
+          "material": "trim"
+        },
+        {
+          "text": "HLM 245",
+          "position": [0,0.63,2.135],
+          "height": 0.085,
+          "width": 0.038,
+          "spacing": 0.016,
+          "stroke": 0.009,
+          "depth": 0.006,
+          "angle": 0,
+          "material": "trim"
+        }
+      ]
+    },
+    {
+      "id": "volvo-745",
+      "overrides": {
+        "name": "Volvo 745 GL stationwagon",
+        "roof": [1.49,0.085,2.49,0,1.7349999999999999,-0.745],
+        "cabinMesh": {
+          "vertices": [
+            [-0.78,1.14,0.8],
+            [0.78,1.14,0.8],
+            [0.78,1.14,-1.96],
+            [-0.78,1.14,-1.96],
+            [-0.69,1.7049999999999998,0.38],
+            [0.69,1.7049999999999998,0.38],
+            [0.72,1.7049999999999998,-1.9],
+            [-0.72,1.7049999999999998,-1.9]
+          ],
+          "indices": [0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7]
+        },
+        "licensePlate": [0.56,0.15,0.025,0,0.79,-2.045],
+        "hood": [1.74,0.07,1.09,0,1.14,1.31]
+      },
+      "omitParts": [
+        "a-pillar",
+        "grille-surround",
+        "grille",
+        "volvo-diagonal",
+        "volvo-badge",
+        "headlamp-surround",
+        "headlamp",
+        "headlamp-fluting",
+        "front-indicator",
+        "grille-slat-0",
+        "grille-slat-1",
+        "grille-slat-2",
+        "grille-slat-3",
+        "grille-slat-4",
+        "grille-slat-5",
+        "grille-slat-6",
+        "grille-slat-7",
+        "grille-slat-8",
+        "grille-slat-9",
+        "grille-slat-10"
+      ],
+      "parts": [
+        {
+          "name": "estate-c-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.07,0.07],
+            "from": [-0.79,1.15,-0.8],
+            "to": [-0.71,1.7049999999999998,-0.8]
+          }
+        },
+        {
+          "name": "estate-d-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.09,0.08],
+            "from": [-0.79,1.15,-1.97],
+            "to": [-0.72,1.7049999999999998,-1.9]
+          }
+        },
+        {
+          "name": "estate-window-sill",
+          "material": "chrome",
+          "beam": {
+            "size": [0.028,0.03],
+            "from": [-0.79,1.15,-1.34],
+            "to": [-0.79,1.15,-1.96]
+          }
+        },
+        {
+          "name": "estate-roof-gutter",
+          "material": "chrome",
+          "beam": {
+            "size": [0.025,0.035],
+            "from": [-0.74,1.7399999999999998,0.43],
+            "to": [-0.76,1.7399999999999998,-1.97]
+          }
+        },
+        {
+          "name": "estate-rubbing-strip",
+          "material": "trim",
+          "box": [0.035,0.075,3.65,-0.915,1.04,0]
+        },
+        {
+          "name": "estate-taillamp-surround",
+          "material": "trim",
+          "box": [0.23,0.52,0.045,-0.77,1.02,-2.017]
+        },
+        {
+          "name": "estate-taillamp-red",
+          "material": "red",
+          "box": [0.19,0.23,0.028,-0.77,0.89,-2.045]
+        },
+        {
+          "name": "estate-taillamp-amber",
+          "material": "amber",
+          "box": [0.19,0.1,0.028,-0.77,1.075,-2.045]
+        },
+        {
+          "name": "estate-taillamp-reverse",
+          "material": "white",
+          "box": [0.19,0.1,0.028,-0.77,1.195,-2.045]
+        },
+        {
+          "name": "estate-c-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.07,0.07],
+            "from": [0.79,1.15,-0.8],
+            "to": [0.71,1.7049999999999998,-0.8]
+          }
+        },
+        {
+          "name": "estate-d-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.09,0.08],
+            "from": [0.79,1.15,-1.97],
+            "to": [0.72,1.7049999999999998,-1.9]
+          }
+        },
+        {
+          "name": "estate-window-sill",
+          "material": "chrome",
+          "beam": {
+            "size": [0.028,0.03],
+            "from": [0.79,1.15,-1.34],
+            "to": [0.79,1.15,-1.96]
+          }
+        },
+        {
+          "name": "estate-roof-gutter",
+          "material": "chrome",
+          "beam": {
+            "size": [0.025,0.035],
+            "from": [0.74,1.7399999999999998,0.43],
+            "to": [0.76,1.7399999999999998,-1.97]
+          }
+        },
+        {
+          "name": "estate-rubbing-strip",
+          "material": "trim",
+          "box": [0.035,0.075,3.65,0.915,1.04,0]
+        },
+        {
+          "name": "estate-taillamp-surround",
+          "material": "trim",
+          "box": [0.23,0.52,0.045,0.77,1.02,-2.017]
+        },
+        {
+          "name": "estate-taillamp-red",
+          "material": "red",
+          "box": [0.19,0.23,0.028,0.77,0.89,-2.045]
+        },
+        {
+          "name": "estate-taillamp-amber",
+          "material": "amber",
+          "box": [0.19,0.1,0.028,0.77,1.075,-2.045]
+        },
+        {
+          "name": "estate-taillamp-reverse",
+          "material": "white",
+          "box": [0.19,0.1,0.028,0.77,1.195,-2.045]
+        },
+        {
+          "name": "angular-a-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.075,0.075],
+            "from": [-0.78,1.15,0.8],
+            "to": [-0.69,1.7049999999999998,0.38]
+          }
+        },
+        {
+          "name": "angular-a-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.075,0.075],
+            "from": [0.78,1.15,0.8],
+            "to": [0.69,1.7049999999999998,0.38]
+          }
+        },
+        {
+          "name": "series-grille-frame",
+          "material": "chrome",
+          "box": [0.82,0.31,0.045,0,0.96,1.986]
+        },
+        {
+          "name": "series-grille",
+          "material": "trim",
+          "box": [0.76,0.255,0.035,0,0.96,2.015]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,-0.32,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,-0.24,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,-0.16,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,-0.08,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,0,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,0.08,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,0.16,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,0.24,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "chrome",
+          "box": [0.016,0.235,0.018,0.32,0.96,2.04]
+        },
+        {
+          "name": "series-volvo-diagonal",
+          "material": "chrome",
+          "beam": {
+            "size": [0.032,0.02],
+            "from": [-0.35,0.85,2.055],
+            "to": [0.35,1.065,2.055]
+          }
+        },
+        {
+          "name": "series-volvo-badge",
+          "material": "badge",
+          "box": [0.16,0.055,0.025,0,0.96,2.075]
+        },
+        {
+          "name": "series-headlamp-frame",
+          "material": "trim",
+          "box": [0.47,0.29,0.045,-0.655,0.96,1.994]
+        },
+        {
+          "name": "twin-headlamp",
+          "material": "lamp",
+          "box": [0.19,0.235,0.025,-0.76,0.96,2.024]
+        },
+        {
+          "name": "twin-headlamp",
+          "material": "lamp",
+          "box": [0.19,0.235,0.025,-0.55,0.96,2.024]
+        },
+        {
+          "name": "series-front-indicator",
+          "material": "amber",
+          "box": [0.1,0.245,0.035,-0.91,0.96,2.011]
+        },
+        {
+          "name": "series-headlamp-frame",
+          "material": "trim",
+          "box": [0.47,0.29,0.045,0.655,0.96,1.994]
+        },
+        {
+          "name": "twin-headlamp",
+          "material": "lamp",
+          "box": [0.19,0.235,0.025,0.55,0.96,2.024]
+        },
+        {
+          "name": "twin-headlamp",
+          "material": "lamp",
+          "box": [0.19,0.235,0.025,0.76,0.96,2.024]
+        },
+        {
+          "name": "series-front-indicator",
+          "material": "amber",
+          "box": [0.1,0.245,0.035,0.91,0.96,2.011]
+        }
+      ],
+      "labels": [
+        {
+          "text": "VOLVO",
+          "position": [0,0.955,2.09],
+          "height": 0.034,
+          "width": 0.018,
+          "spacing": 0.005,
+          "stroke": 0.004,
+          "depth": 0.004,
+          "angle": 0,
+          "material": "white"
+        },
+        {
+          "text": "VOLVO",
+          "position": [0.48,0.97,-2.068],
+          "height": 0.045,
+          "width": 0.026,
+          "spacing": 0.012,
+          "stroke": 0.008,
+          "depth": 0.008,
+          "angle": 3.141592653589793,
+          "material": "chrome"
+        },
+        {
+          "text": "745 GL",
+          "position": [-0.48,0.97,-2.068],
+          "height": 0.045,
+          "width": 0.026,
+          "spacing": 0.009,
+          "stroke": 0.007,
+          "depth": 0.008,
+          "angle": 3.141592653589793,
+          "material": "chrome"
+        },
+        {
+          "text": "HLM 745",
+          "position": [0,0.79,-2.068],
+          "height": 0.085,
+          "width": 0.038,
+          "spacing": 0.016,
+          "stroke": 0.009,
+          "depth": 0.006,
+          "angle": 3.141592653589793,
+          "material": "trim"
+        },
+        {
+          "text": "HLM 745",
+          "position": [0,0.63,2.135],
+          "height": 0.085,
+          "width": 0.038,
+          "spacing": 0.016,
+          "stroke": 0.009,
+          "depth": 0.006,
+          "angle": 0,
+          "material": "trim"
+        }
+      ]
+    },
+    {
+      "id": "volvo-945",
+      "overrides": {
+        "name": "Volvo 945 GL stationwagon",
+        "roof": [1.49,0.085,2.49,0,1.755,-0.745],
+        "cabinMesh": {
+          "vertices": [
+            [-0.78,1.14,0.8],
+            [0.78,1.14,0.8],
+            [0.78,1.14,-1.96],
+            [-0.78,1.14,-1.96],
+            [-0.69,1.7249999999999999,0.38],
+            [0.69,1.7249999999999999,0.38],
+            [0.72,1.7249999999999999,-1.9],
+            [-0.72,1.7249999999999999,-1.9]
+          ],
+          "indices": [0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7]
+        },
+        "licensePlate": [0.56,0.15,0.025,0,0.79,-2.045],
+        "hood": [1.74,0.07,1.09,0,1.14,1.31],
+        "hub": [0.235,0.235,0.3,24]
+      },
+      "omitParts": [
+        "a-pillar",
+        "grille-surround",
+        "grille",
+        "volvo-diagonal",
+        "volvo-badge",
+        "headlamp-surround",
+        "headlamp",
+        "headlamp-fluting",
+        "front-indicator",
+        "grille-slat-0",
+        "grille-slat-1",
+        "grille-slat-2",
+        "grille-slat-3",
+        "grille-slat-4",
+        "grille-slat-5",
+        "grille-slat-6",
+        "grille-slat-7",
+        "grille-slat-8",
+        "grille-slat-9",
+        "grille-slat-10"
+      ],
+      "parts": [
+        {
+          "name": "estate-c-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.07,0.07],
+            "from": [-0.79,1.15,-0.8],
+            "to": [-0.71,1.7249999999999999,-0.8]
+          }
+        },
+        {
+          "name": "estate-d-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.09,0.08],
+            "from": [-0.79,1.15,-1.97],
+            "to": [-0.72,1.7249999999999999,-1.9]
+          }
+        },
+        {
+          "name": "estate-window-sill",
+          "material": "chrome",
+          "beam": {
+            "size": [0.028,0.03],
+            "from": [-0.79,1.15,-1.34],
+            "to": [-0.79,1.15,-1.96]
+          }
+        },
+        {
+          "name": "estate-roof-gutter",
+          "material": "chrome",
+          "beam": {
+            "size": [0.025,0.035],
+            "from": [-0.74,1.7599999999999998,0.43],
+            "to": [-0.76,1.7599999999999998,-1.97]
+          }
+        },
+        {
+          "name": "estate-rubbing-strip",
+          "material": "trim",
+          "box": [0.035,0.075,3.65,-0.915,1.04,0]
+        },
+        {
+          "name": "estate-taillamp-surround",
+          "material": "trim",
+          "box": [0.23,0.52,0.045,-0.77,1.02,-2.017]
+        },
+        {
+          "name": "estate-taillamp-red",
+          "material": "red",
+          "box": [0.19,0.23,0.028,-0.77,0.89,-2.045]
+        },
+        {
+          "name": "estate-taillamp-amber",
+          "material": "amber",
+          "box": [0.19,0.1,0.028,-0.77,1.075,-2.045]
+        },
+        {
+          "name": "estate-taillamp-reverse",
+          "material": "white",
+          "box": [0.19,0.1,0.028,-0.77,1.195,-2.045]
+        },
+        {
+          "name": "estate-c-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.07,0.07],
+            "from": [0.79,1.15,-0.8],
+            "to": [0.71,1.7249999999999999,-0.8]
+          }
+        },
+        {
+          "name": "estate-d-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.09,0.08],
+            "from": [0.79,1.15,-1.97],
+            "to": [0.72,1.7249999999999999,-1.9]
+          }
+        },
+        {
+          "name": "estate-window-sill",
+          "material": "chrome",
+          "beam": {
+            "size": [0.028,0.03],
+            "from": [0.79,1.15,-1.34],
+            "to": [0.79,1.15,-1.96]
+          }
+        },
+        {
+          "name": "estate-roof-gutter",
+          "material": "chrome",
+          "beam": {
+            "size": [0.025,0.035],
+            "from": [0.74,1.7599999999999998,0.43],
+            "to": [0.76,1.7599999999999998,-1.97]
+          }
+        },
+        {
+          "name": "estate-rubbing-strip",
+          "material": "trim",
+          "box": [0.035,0.075,3.65,0.915,1.04,0]
+        },
+        {
+          "name": "estate-taillamp-surround",
+          "material": "trim",
+          "box": [0.23,0.52,0.045,0.77,1.02,-2.017]
+        },
+        {
+          "name": "estate-taillamp-red",
+          "material": "red",
+          "box": [0.19,0.23,0.028,0.77,0.89,-2.045]
+        },
+        {
+          "name": "estate-taillamp-amber",
+          "material": "amber",
+          "box": [0.19,0.1,0.028,0.77,1.075,-2.045]
+        },
+        {
+          "name": "estate-taillamp-reverse",
+          "material": "white",
+          "box": [0.19,0.1,0.028,0.77,1.195,-2.045]
+        },
+        {
+          "name": "angular-a-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.075,0.075],
+            "from": [-0.78,1.15,0.8],
+            "to": [-0.69,1.7249999999999999,0.38]
+          }
+        },
+        {
+          "name": "angular-a-pillar",
+          "material": "paint",
+          "beam": {
+            "size": [0.075,0.075],
+            "from": [0.78,1.15,0.8],
+            "to": [0.69,1.7249999999999999,0.38]
+          }
+        },
+        {
+          "name": "series-grille-frame",
+          "material": "trim",
+          "box": [0.82,0.31,0.045,0,0.96,1.986]
+        },
+        {
+          "name": "series-grille",
+          "material": "trim",
+          "box": [0.76,0.255,0.035,0,0.96,2.015]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,-0.32,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,-0.24,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,-0.16,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,-0.08,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,0,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,0.08,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,0.16,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,0.24,0.96,2.04]
+        },
+        {
+          "name": "series-grille-bar",
+          "material": "grille",
+          "box": [0.016,0.235,0.018,0.32,0.96,2.04]
+        },
+        {
+          "name": "series-volvo-diagonal",
+          "material": "chrome",
+          "beam": {
+            "size": [0.032,0.02],
+            "from": [-0.35,0.85,2.055],
+            "to": [0.35,1.065,2.055]
+          }
+        },
+        {
+          "name": "series-volvo-badge",
+          "material": "badge",
+          "box": [0.16,0.055,0.025,0,0.96,2.075]
+        },
+        {
+          "name": "series-headlamp-frame",
+          "material": "trim",
+          "box": [0.47,0.29,0.045,-0.655,0.96,1.994]
+        },
+        {
+          "name": "wide-headlamp",
+          "material": "lamp",
+          "box": [0.415,0.24,0.025,-0.655,0.96,2.024]
+        },
+        {
+          "name": "lower-foglamp",
+          "material": "lamp",
+          "box": [0.24,0.095,0.028,-0.62,0.605,2.106]
+        },
+        {
+          "name": "series-front-indicator",
+          "material": "amber",
+          "box": [0.1,0.245,0.035,-0.91,0.96,2.011]
+        },
+        {
+          "name": "series-headlamp-frame",
+          "material": "trim",
+          "box": [0.47,0.29,0.045,0.655,0.96,1.994]
+        },
+        {
+          "name": "wide-headlamp",
+          "material": "lamp",
+          "box": [0.415,0.24,0.025,0.655,0.96,2.024]
+        },
+        {
+          "name": "lower-foglamp",
+          "material": "lamp",
+          "box": [0.24,0.095,0.028,0.62,0.605,2.106]
+        },
+        {
+          "name": "series-front-indicator",
+          "material": "amber",
+          "box": [0.1,0.245,0.035,0.91,0.96,2.011]
+        },
+        {
+          "name": "roof-rail",
+          "material": "trim",
+          "box": [0.045,0.05,2.02,-0.56,1.8949999999999998,-0.7]
+        },
+        {
+          "name": "roof-rail-foot",
+          "material": "trim",
+          "box": [0.06,0.12,0.11,-0.56,1.825,0.1]
+        },
+        {
+          "name": "roof-rail-foot",
+          "material": "trim",
+          "box": [0.06,0.12,0.11,-0.56,1.825,-1.45]
+        },
+        {
+          "name": "roof-rail",
+          "material": "trim",
+          "box": [0.045,0.05,2.02,0.56,1.8949999999999998,-0.7]
+        },
+        {
+          "name": "roof-rail-foot",
+          "material": "trim",
+          "box": [0.06,0.12,0.11,0.56,1.825,0.1]
+        },
+        {
+          "name": "roof-rail-foot",
+          "material": "trim",
+          "box": [0.06,0.12,0.11,0.56,1.825,-1.45]
+        }
+      ],
+      "labels": [
+        {
+          "text": "VOLVO",
+          "position": [0,0.955,2.09],
+          "height": 0.034,
+          "width": 0.018,
+          "spacing": 0.005,
+          "stroke": 0.004,
+          "depth": 0.004,
+          "angle": 0,
+          "material": "white"
+        },
+        {
+          "text": "VOLVO",
+          "position": [0.48,0.97,-2.068],
+          "height": 0.045,
+          "width": 0.026,
+          "spacing": 0.012,
+          "stroke": 0.008,
+          "depth": 0.008,
+          "angle": 3.141592653589793,
+          "material": "chrome"
+        },
+        {
+          "text": "945 GL",
+          "position": [-0.48,0.97,-2.068],
+          "height": 0.045,
+          "width": 0.026,
+          "spacing": 0.009,
+          "stroke": 0.007,
+          "depth": 0.008,
+          "angle": 3.141592653589793,
+          "material": "chrome"
+        },
+        {
+          "text": "HLM 945",
+          "position": [0,0.79,-2.068],
+          "height": 0.085,
+          "width": 0.038,
+          "spacing": 0.016,
+          "stroke": 0.009,
+          "depth": 0.006,
+          "angle": 3.141592653589793,
+          "material": "trim"
+        },
+        {
+          "text": "HLM 945",
+          "position": [0,0.63,2.135],
+          "height": 0.085,
+          "width": 0.038,
+          "spacing": 0.016,
+          "stroke": 0.009,
+          "depth": 0.006,
+          "angle": 0,
+          "material": "trim"
+        }
+      ]
+    }
+  ]
 }

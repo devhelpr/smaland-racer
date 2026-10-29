@@ -1,5 +1,6 @@
 import materialAsset from '../assets/materials/vehicle.json' with { type: 'json' };
 import { VehicleLighting } from './lighting.ts';
+import { createVehicleModel } from './vehicle-model.ts';
 import { StuntDynamics } from './stunts.ts';
 import stuntAsset from '../assets/stunts.json' with { type: 'json' };
 import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
@@ -35,42 +36,10 @@ export class Vehicle {
     this.profiles=profiles;
     this.drivingStyle=drivingStyle;
     this.course=course;
-    const paint = new THREE.MeshStandardMaterial(materialAsset.paint);
-    const trim = new THREE.MeshStandardMaterial(materialAsset.trim);
-    const glass = new THREE.MeshStandardMaterial(materialAsset.glass);
-    const white = new THREE.MeshStandardMaterial(materialAsset.white);
-    const box = (w: number, h: number, d: number, x: number, y: number, z: number, material: THREE.Material) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-      mesh.position.set(x, y, z); mesh.castShadow = true; this.mesh.add(mesh); return mesh;
-    };
-    this.panels.push(box(...asset.body as [number, number, number, number, number, number], paint));
-    this.panels.push(box(...asset.hood as [number, number, number, number, number, number], paint));
-    box(...asset.cabin as [number, number, number, number, number, number], glass);
-    box(...asset.roof as [number, number, number, number, number, number], paint);
-    for (const x of asset.pillarX) {
-      box(...asset.frontPillarSize as [number, number, number], x, ...asset.frontPillarYZ as [number, number], paint);
-      box(...asset.rearPillarSize as [number, number, number], x, ...asset.rearPillarYZ as [number, number], paint);
-      box(...asset.middlePillarSize as [number, number, number], x, ...asset.middlePillarYZ as [number, number], paint);
-    }
-    box(...asset.frontBumper as [number, number, number, number, number, number], trim);
-    box(...asset.rearBumper as [number, number, number, number, number, number], trim);
-    box(...asset.licensePlate as [number, number, number, number, number, number], white);
-    const lamp = new THREE.MeshStandardMaterial(materialAsset.lamp);
-    const red = new THREE.MeshStandardMaterial(materialAsset.red);
-    for (const x of asset.lampX) {
-      box(...asset.headlampSize as [number, number, number], x, ...asset.headlampYZ as [number, number], lamp);
-      box(...asset.tailLampSize as [number, number, number], x, ...asset.tailLampYZ as [number, number], red);
-    }
-    this.lighting = new VehicleLighting(lamp, red);
+    const model=createVehicleModel(this.mesh);
+    this.panels=model.panels;this.wheels=model.wheels;
+    this.lighting=new VehicleLighting(model.lamp,model.red);
     this.mesh.add(this.lighting.root);
-    for (const x of asset.wheelX) for (const z of asset.wheelZ) {
-      const pivot = new THREE.Group(); pivot.position.set(x, asset.wheelHeight, z);
-      const tire = new THREE.Mesh(new THREE.CylinderGeometry(...asset.tire as [number, number, number, number]), trim);
-      tire.rotation.z = Math.PI / 2; tire.castShadow = true; pivot.add(tire);
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(...asset.hub as [number, number, number, number]), white);
-      hub.rotation.z = Math.PI / 2; pivot.add(hub);
-      this.mesh.add(pivot); this.wheels.push(pivot);
-    }
     const smokeMaterial = new THREE.MeshBasicMaterial(materialAsset.smokeMaterial);
     const smokeGeometry = new THREE.IcosahedronGeometry(...asset.smokeGeometry as [number, number]);
     for(let i=0;i<asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
@@ -205,11 +174,11 @@ export class Vehicle {
     this.syncMesh();
     for(const wheel of this.wheels) {
       wheel.rotation.y=wheel.position.z>0?this.steering*.35:0;
-      for(const child of wheel.children) child.rotation.x+=this.forwardSpeed*dt/.43;
+      for(const child of wheel.children) child.rotation.x+=this.forwardSpeed*dt/asset.tire[0];
     }
     this.panels[0].scale.x=1-this.damage*.0012;
     this.panels[1].rotation.x=-this.damage*.002;
-    this.panels[1].position.y=1.13+this.damage*.0015;
+    this.panels[1].position.y=asset.hood[4]+this.damage*.0015;
     this.smoke.visible=this.damage>50;
     this.smoke.children.forEach((puff,i)=> {
       const phase=(this.age*.6+i/asset.smokeCount)%1;

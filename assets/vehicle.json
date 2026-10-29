@@ -1,29 +1,707 @@
 {
-  "body": [1.85,0.55,3.9,0,0.83,0],
-  "hood": [1.75,0.1,1.1,0,1.13,1.25],
-  "cabin": [1.57,0.65,1.85,0,1.4,-0.25],
-  "roof": [1.64,0.12,1.92,0,1.77,-0.25],
-  "pillarX": [-0.78,0.78],
-  "frontPillarSize": [0.09,0.72,0.12],
-  "frontPillarYZ": [1.4,0.64],
-  "rearPillarSize": [0.09,0.72,0.12],
-  "rearPillarYZ": [1.4,-1.14],
-  "middlePillarSize": [0.08,0.65,0.1],
-  "middlePillarYZ": [1.4,-0.3],
-  "frontBumper": [1.95,0.16,0.18,0,0.6,1.99],
-  "rearBumper": [1.95,0.16,0.18,0,0.6,-1.99],
-  "licensePlate": [0.65,0.2,0.04,0,0.83,-1.963],
-  "lampX": [-0.65,0.65],
-  "headlampSize": [0.37,0.22,0.06],
-  "headlampYZ": [0.94,1.97],
-  "tailLampSize": [0.28,0.2,0.06],
-  "tailLampYZ": [0.94,-1.97],
+  "hood": [1.72,0.065,1.05,0,1.13,1.33],
+  "roof": [1.45,0.085,1.48,0,1.72,-0.25],
+  "frontBumper": [1.94,0.19,0.2,0,0.64,1.99],
+  "rearBumper": [1.94,0.19,0.2,0,0.64,-1.99],
+  "licensePlate": [0.56,0.15,0.025,0,0.79,-1.975],
   "wheelX": [-0.95,0.95],
   "wheelZ": [-1.22,1.22],
   "tire": [0.43,0.43,0.28,24],
-  "hub": [0.23,0.23,0.29,8],
+  "hub": [0.235,0.235,0.3,32],
   "smokeGeometry": [0.3,0],
   "wheelHeight": 0.43,
   "smokeCount": 7,
-  "colliderRadius": 1.05
+  "colliderRadius": 1.05,
+  "name": "Volvo 240 GL — 1980s sedan",
+  "bodyWidth": 1.8,
+  "bodyProfile": [
+    [1.95,0.57],
+    [1.95,1.04],
+    [1.62,1.13],
+    [0.8,1.15],
+    [-1.2,1.15],
+    [-1.95,1.06],
+    [-1.95,0.57],
+    [-1.72,0.57],
+    [-1.69,0.73],
+    [-1.59,0.87],
+    [-1.42,0.96],
+    [-1.22,0.99],
+    [-1.02,0.96],
+    [-0.85,0.87],
+    [-0.75,0.73],
+    [-0.72,0.57],
+    [0.72,0.57],
+    [0.75,0.73],
+    [0.85,0.87],
+    [1.02,0.96],
+    [1.22,0.99],
+    [1.42,0.96],
+    [1.59,0.87],
+    [1.69,0.73],
+    [1.72,0.57]
+  ],
+  "cabinMesh": {
+    "vertices": [
+      [-0.78,1.14,0.8],
+      [0.78,1.14,0.8],
+      [0.78,1.14,-1.34],
+      [-0.78,1.14,-1.34],
+      [-0.69,1.69,0.43],
+      [0.69,1.69,0.43],
+      [0.69,1.69,-0.94],
+      [-0.69,1.69,-0.94]
+    ],
+    "indices": [0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7]
+  },
+  "hubRing": [0.255,0.014,8,32],
+  "hubCenter": [0.09,0.09,0.32,16],
+  "wheelFaceX": 0.158,
+  "wheelVent": {
+    "count": 12,
+    "radius": 0.182,
+    "size": [0.045,0.068,0.012]
+  },
+  "staticParts": [
+    {
+      "name": "trunk",
+      "material": "paint",
+      "box": [1.74,0.075,0.63,0,1.13,-1.6]
+    },
+    {
+      "name": "grille-surround",
+      "material": "chrome",
+      "box": [0.88,0.32,0.035,0,0.955,1.972]
+    },
+    {
+      "name": "grille",
+      "material": "trim",
+      "box": [0.8,0.255,0.045,0,0.955,1.995]
+    },
+    {
+      "name": "grille-slat-0",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,-0.35,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-1",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,-0.28,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-2",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,-0.21,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-3",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,-0.14,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-4",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,-0.07,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-5",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,0,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-6",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,0.07,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-7",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,0.14,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-8",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,0.21,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-9",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,0.28,0.955,2.022]
+    },
+    {
+      "name": "grille-slat-10",
+      "material": "grille",
+      "box": [0.015,0.235,0.018,0.35,0.955,2.022]
+    },
+    {
+      "name": "volvo-diagonal",
+      "material": "chrome",
+      "beam": {
+        "size": [0.035,0.018],
+        "from": [-0.37,0.84,2.04],
+        "to": [0.37,1.07,2.04]
+      }
+    },
+    {
+      "name": "volvo-badge",
+      "material": "badge",
+      "box": [0.16,0.055,0.025,0,0.96,2.072]
+    },
+    {
+      "name": "front-plate-mount",
+      "material": "trim",
+      "box": [0.63,0.19,0.035,0,0.63,2.102]
+    },
+    {
+      "name": "front-plate",
+      "material": "white",
+      "box": [0.56,0.15,0.012,0,0.63,2.125]
+    },
+    {
+      "name": "rear-plate-mount",
+      "material": "trim",
+      "box": [0.67,0.22,0.04,0,0.79,-1.954]
+    },
+    {
+      "name": "headlamp-surround",
+      "material": "chrome",
+      "box": [0.46,0.32,0.04,-0.66,0.955,1.971]
+    },
+    {
+      "name": "headlamp",
+      "material": "lamp",
+      "box": [0.4,0.26,0.025,-0.66,0.955,2.002]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,-0.79,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,-0.7250000000000001,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,-0.66,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,-0.595,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,-0.53,0.955,2.019]
+    },
+    {
+      "name": "front-indicator",
+      "material": "amber",
+      "box": [0.1,0.27,0.05,-0.91,0.95,1.99]
+    },
+    {
+      "name": "rear-lamp-housing",
+      "material": "trim",
+      "box": [0.49,0.31,0.04,-0.65,0.96,-1.973]
+    },
+    {
+      "name": "rear-lamp-red",
+      "material": "red",
+      "box": [0.45,0.125,0.025,-0.65,0.88,-2.0]
+    },
+    {
+      "name": "rear-indicator",
+      "material": "amber",
+      "box": [0.22,0.125,0.025,-0.765,1.025,-2.0]
+    },
+    {
+      "name": "rear-reverse",
+      "material": "white",
+      "box": [0.21,0.125,0.025,-0.535,1.025,-2.0]
+    },
+    {
+      "name": "a-pillar",
+      "material": "paint",
+      "beam": {
+        "size": [0.07,0.075],
+        "from": [-0.78,1.15,0.8],
+        "to": [-0.69,1.7,0.43]
+      }
+    },
+    {
+      "name": "c-pillar",
+      "material": "paint",
+      "beam": {
+        "size": [0.11,0.08],
+        "from": [-0.78,1.15,-1.34],
+        "to": [-0.69,1.7,-0.94]
+      }
+    },
+    {
+      "name": "b-pillar",
+      "material": "trim",
+      "beam": {
+        "size": [0.075,0.075],
+        "from": [-0.786,1.15,-0.2],
+        "to": [-0.7,1.7,-0.2]
+      }
+    },
+    {
+      "name": "rear-quarter-divider",
+      "material": "chrome",
+      "beam": {
+        "size": [0.023,0.025],
+        "from": [-0.785,1.15,-1.05],
+        "to": [-0.7,1.69,-0.8]
+      }
+    },
+    {
+      "name": "window-sill",
+      "material": "chrome",
+      "beam": {
+        "size": [0.028,0.03],
+        "from": [-0.79,1.15,0.8],
+        "to": [-0.79,1.15,-1.34]
+      }
+    },
+    {
+      "name": "roof-gutter",
+      "material": "chrome",
+      "beam": {
+        "size": [0.024,0.03],
+        "from": [-0.724,1.72,0.48],
+        "to": [-0.724,1.72,-1.0]
+      }
+    },
+    {
+      "name": "side-rubbing-strip",
+      "material": "trim",
+      "box": [0.028,0.065,3.62,-0.91,1.04,0]
+    },
+    {
+      "name": "side-strip-inlay",
+      "material": "chrome",
+      "box": [0.012,0.012,3.6,-0.928,1.06,0]
+    },
+    {
+      "name": "rocker-panel",
+      "material": "trim",
+      "box": [0.035,0.09,1.42,-0.91,0.6,0]
+    },
+    {
+      "name": "door-handle",
+      "material": "chrome",
+      "box": [0.04,0.045,0.17,-0.925,1.1,-0.85]
+    },
+    {
+      "name": "door-handle",
+      "material": "chrome",
+      "box": [0.04,0.045,0.17,-0.925,1.1,0.35]
+    },
+    {
+      "name": "door-shut-line",
+      "material": "panelGap",
+      "box": [0.009,0.36,0.012,-0.904,0.81,-0.2]
+    },
+    {
+      "name": "door-shut-line",
+      "material": "panelGap",
+      "box": [0.009,0.36,0.012,-0.904,0.81,-1.17]
+    },
+    {
+      "name": "mirror-stem",
+      "material": "trim",
+      "box": [0.18,0.045,0.055,-0.86,1.24,0.6]
+    },
+    {
+      "name": "mirror-housing",
+      "material": "trim",
+      "box": [0.16,0.145,0.21,-0.99,1.28,0.6]
+    },
+    {
+      "name": "mirror-glass",
+      "material": "glass",
+      "box": [0.12,0.1,0.012,-0.99,1.28,0.49]
+    },
+    {
+      "name": "bumper-chrome-front",
+      "material": "chrome",
+      "box": [0.025,0.035,0.19,-0.976,0.72,1.99]
+    },
+    {
+      "name": "bumper-chrome-rear",
+      "material": "chrome",
+      "box": [0.025,0.035,0.19,-0.976,0.72,-1.99]
+    },
+    {
+      "name": "headlamp-surround",
+      "material": "chrome",
+      "box": [0.46,0.32,0.04,0.66,0.955,1.971]
+    },
+    {
+      "name": "headlamp",
+      "material": "lamp",
+      "box": [0.4,0.26,0.025,0.66,0.955,2.002]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,0.53,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,0.595,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,0.66,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,0.7250000000000001,0.955,2.019]
+    },
+    {
+      "name": "headlamp-fluting",
+      "material": "lens",
+      "box": [0.006,0.23,0.009,0.79,0.955,2.019]
+    },
+    {
+      "name": "front-indicator",
+      "material": "amber",
+      "box": [0.1,0.27,0.05,0.91,0.95,1.99]
+    },
+    {
+      "name": "rear-lamp-housing",
+      "material": "trim",
+      "box": [0.49,0.31,0.04,0.65,0.96,-1.973]
+    },
+    {
+      "name": "rear-lamp-red",
+      "material": "red",
+      "box": [0.45,0.125,0.025,0.65,0.88,-2.0]
+    },
+    {
+      "name": "rear-indicator",
+      "material": "amber",
+      "box": [0.22,0.125,0.025,0.765,1.025,-2.0]
+    },
+    {
+      "name": "rear-reverse",
+      "material": "white",
+      "box": [0.21,0.125,0.025,0.535,1.025,-2.0]
+    },
+    {
+      "name": "a-pillar",
+      "material": "paint",
+      "beam": {
+        "size": [0.07,0.075],
+        "from": [0.78,1.15,0.8],
+        "to": [0.69,1.7,0.43]
+      }
+    },
+    {
+      "name": "c-pillar",
+      "material": "paint",
+      "beam": {
+        "size": [0.11,0.08],
+        "from": [0.78,1.15,-1.34],
+        "to": [0.69,1.7,-0.94]
+      }
+    },
+    {
+      "name": "b-pillar",
+      "material": "trim",
+      "beam": {
+        "size": [0.075,0.075],
+        "from": [0.786,1.15,-0.2],
+        "to": [0.7,1.7,-0.2]
+      }
+    },
+    {
+      "name": "rear-quarter-divider",
+      "material": "chrome",
+      "beam": {
+        "size": [0.023,0.025],
+        "from": [0.785,1.15,-1.05],
+        "to": [0.7,1.69,-0.8]
+      }
+    },
+    {
+      "name": "window-sill",
+      "material": "chrome",
+      "beam": {
+        "size": [0.028,0.03],
+        "from": [0.79,1.15,0.8],
+        "to": [0.79,1.15,-1.34]
+      }
+    },
+    {
+      "name": "roof-gutter",
+      "material": "chrome",
+      "beam": {
+        "size": [0.024,0.03],
+        "from": [0.724,1.72,0.48],
+        "to": [0.724,1.72,-1.0]
+      }
+    },
+    {
+      "name": "side-rubbing-strip",
+      "material": "trim",
+      "box": [0.028,0.065,3.62,0.91,1.04,0]
+    },
+    {
+      "name": "side-strip-inlay",
+      "material": "chrome",
+      "box": [0.012,0.012,3.6,0.928,1.06,0]
+    },
+    {
+      "name": "rocker-panel",
+      "material": "trim",
+      "box": [0.035,0.09,1.42,0.91,0.6,0]
+    },
+    {
+      "name": "door-handle",
+      "material": "chrome",
+      "box": [0.04,0.045,0.17,0.925,1.1,-0.85]
+    },
+    {
+      "name": "door-handle",
+      "material": "chrome",
+      "box": [0.04,0.045,0.17,0.925,1.1,0.35]
+    },
+    {
+      "name": "door-shut-line",
+      "material": "panelGap",
+      "box": [0.009,0.36,0.012,0.904,0.81,-0.2]
+    },
+    {
+      "name": "door-shut-line",
+      "material": "panelGap",
+      "box": [0.009,0.36,0.012,0.904,0.81,-1.17]
+    },
+    {
+      "name": "mirror-stem",
+      "material": "trim",
+      "box": [0.18,0.045,0.055,0.86,1.24,0.6]
+    },
+    {
+      "name": "mirror-housing",
+      "material": "trim",
+      "box": [0.16,0.145,0.21,0.99,1.28,0.6]
+    },
+    {
+      "name": "mirror-glass",
+      "material": "glass",
+      "box": [0.12,0.1,0.012,0.99,1.28,0.49]
+    },
+    {
+      "name": "bumper-chrome-front",
+      "material": "chrome",
+      "box": [0.025,0.035,0.19,0.976,0.72,1.99]
+    },
+    {
+      "name": "bumper-chrome-rear",
+      "material": "chrome",
+      "box": [0.025,0.035,0.19,0.976,0.72,-1.99]
+    },
+    {
+      "name": "windshield-bottom",
+      "material": "trim",
+      "beam": {
+        "size": [0.035,0.04],
+        "from": [-0.78,1.15,0.81],
+        "to": [0.78,1.15,0.81]
+      }
+    },
+    {
+      "name": "rear-window-bottom",
+      "material": "trim",
+      "beam": {
+        "size": [0.035,0.04],
+        "from": [-0.78,1.15,-1.35],
+        "to": [0.78,1.15,-1.35]
+      }
+    },
+    {
+      "name": "wiper",
+      "material": "trim",
+      "beam": {
+        "size": [0.016,0.015],
+        "from": [-0.54,1.17,0.79],
+        "to": [-0.22999999999999998,1.215,0.76]
+      }
+    },
+    {
+      "name": "wiper",
+      "material": "trim",
+      "beam": {
+        "size": [0.016,0.015],
+        "from": [0.19999999999999998,1.17,0.79],
+        "to": [0.51,1.215,0.76]
+      }
+    },
+    {
+      "name": "bumper-chrome-front",
+      "material": "chrome",
+      "box": [1.91,0.027,0.018,0,0.72,2.101]
+    },
+    {
+      "name": "bumper-chrome-rear",
+      "material": "chrome",
+      "box": [1.91,0.027,0.018,0,0.72,-2.101]
+    }
+  ],
+  "lettering": {
+    "glyphs": {
+      "V": [
+        [
+          [0,1],
+          [0.5,0],
+          [1,1]
+        ]
+      ],
+      "O": [
+        [
+          [0,0],
+          [0,1],
+          [1,1],
+          [1,0],
+          [0,0]
+        ]
+      ],
+      "L": [
+        [
+          [0,1],
+          [0,0],
+          [1,0]
+        ]
+      ],
+      "2": [
+        [
+          [0,1],
+          [1,1],
+          [1,0.5],
+          [0,0.5],
+          [0,0],
+          [1,0]
+        ]
+      ],
+      "4": [
+        [
+          [0,1],
+          [0,0.5],
+          [1,0.5]
+        ],
+        [
+          [0.75,1],
+          [0.75,0]
+        ]
+      ],
+      "0": [
+        [
+          [0,0],
+          [0,1],
+          [1,1],
+          [1,0],
+          [0,0]
+        ]
+      ],
+      "G": [
+        [
+          [1,1],
+          [0,1],
+          [0,0],
+          [1,0],
+          [1,0.5],
+          [0.5,0.5]
+        ]
+      ],
+      "H": [
+        [
+          [0,0],
+          [0,1]
+        ],
+        [
+          [1,0],
+          [1,1]
+        ],
+        [
+          [0,0.5],
+          [1,0.5]
+        ]
+      ],
+      "M": [
+        [
+          [0,0],
+          [0,1],
+          [0.5,0.4],
+          [1,1],
+          [1,0]
+        ]
+      ]
+    },
+    "labels": [
+      {
+        "text": "VOLVO",
+        "position": [0,0.955,2.09],
+        "height": 0.034,
+        "width": 0.018,
+        "spacing": 0.005,
+        "stroke": 0.004,
+        "depth": 0.004,
+        "angle": 0,
+        "material": "white"
+      },
+      {
+        "text": "VOLVO",
+        "position": [0.57,1.1,-1.99],
+        "height": 0.055,
+        "width": 0.036,
+        "spacing": 0.012,
+        "stroke": 0.008,
+        "depth": 0.008,
+        "angle": 3.141592653589793,
+        "material": "chrome"
+      },
+      {
+        "text": "240 GL",
+        "position": [-0.6,1.1,-1.99],
+        "height": 0.055,
+        "width": 0.03,
+        "spacing": 0.009,
+        "stroke": 0.007,
+        "depth": 0.008,
+        "angle": 3.141592653589793,
+        "material": "chrome"
+      },
+      {
+        "text": "HLM 240",
+        "position": [0,0.79,-1.992],
+        "height": 0.085,
+        "width": 0.038,
+        "spacing": 0.016,
+        "stroke": 0.009,
+        "depth": 0.006,
+        "angle": 3.141592653589793,
+        "material": "trim"
+      },
+      {
+        "text": "HLM 240",
+        "position": [0,0.63,2.135],
+        "height": 0.085,
+        "width": 0.038,
+        "spacing": 0.016,
+        "stroke": 0.009,
+        "depth": 0.006,
+        "angle": 0,
+        "material": "trim"
+      }
+    ]
+  }
 }

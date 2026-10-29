@@ -131,5 +131,26 @@
     "seamShade": 83,
     "grainFrequency": 13,
     "warpFrequency": 1
+  },
+  "horizontalBoards": {
+    "type": "pattern",
+    "pattern": "boards",
+    "size": 256,
+    "worldScale": 3,
+    "anisotropy": 8,
+    "repeat": [
+      1,
+      32
+    ],
+    "base": 235,
+    "grain": 9,
+    "frequency": 1,
+    "wave": 0.12,
+    "groove": 9,
+    "seamWidth": 0.055,
+    "seamShade": 48,
+    "grainFrequency": 13,
+    "warpFrequency": 1,
+    "direction": "horizontal"
   }
 }

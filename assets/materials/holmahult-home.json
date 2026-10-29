@@ -1,12 +1,15 @@
 {
   "boards": {
-    "roughness": 1,
-    "map": "bark",
-    "bumpMap": "bark",
-    "bumpScale": 0.015
+    "roughness": 1
   },
   "door": {
     "color": "#586260",
     "roughness": 0.8
+  },
+  "paint": {
+    "roughness": 1,
+    "map": "horizontalBoards",
+    "bumpMap": "horizontalBoards",
+    "bumpScale": 0.018
   }
 }

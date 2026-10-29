@@ -7,6 +7,7 @@ import { createHolmahultScenery } from '../src/holmahult-scenery.ts';
 import { CollisionWorld } from '../src/collision.ts';
 import { disposeGroup } from '../src/dispose.ts';
 import { loadProgress } from '../src/storage.ts';
+import { createConfiguredTexture } from '../src/textures.ts';
 
 test('Holmahult is the first/default open stage with a bend east of number 25 and fixed farmyards',()=>{
   const course=new Course(courses[0]),home=holmahultBuildings.find(b=>b.id==='holmahult-25')!;
@@ -52,7 +53,30 @@ test('the green home and red farm buildings have bounded render geometry and mat
     .applyAxisAngle(new THREE.Vector3(0,1,0),home.angle)
     .add(new THREE.Vector3(home.x,0,home.z));
   assert.equal(world.sweep(rightWindowApproach,rightWindowApproach),null);
+  const rearTerrace=new THREE.Vector3(0,0,-home.depth/2-1.5)
+    .applyAxisAngle(new THREE.Vector3(0,1,0),home.angle)
+    .add(new THREE.Vector3(home.x,0,home.z));
+  assert.equal(world.sweep(rearTerrace,rearTerrace)?.collider.id,'holmahult-25-rear-terrace');
+  const besideRearTerrace=new THREE.Vector3(4,0,-home.depth/2-1.5)
+    .applyAxisAngle(new THREE.Vector3(0,1,0),home.angle)
+    .add(new THREE.Vector3(home.x,0,home.z));
+  assert.equal(world.sweep(besideRearTerrace,besideRearTerrace),null);
   disposeGroup(group);
+});
+
+test('the home cladding has horizontal seams while barn cladding remains vertical',()=>{
+  for(const [name,horizontal] of [['horizontalBoards',true],['verticalBoards',false]] as const) {
+    const texture=createConfiguredTexture(name,()=>.5) as THREE.DataTexture;
+    const {data,width,height}=texture.image;
+    const average=(row:boolean)=>Array.from({length:row?height:width},(_,line)=>{
+      let sum=0;for(let i=0;i<(row?width:height);i++)sum+=data[((row?line:i)*width+(row?i:line))*4];
+      return sum/(row?width:height);
+    });
+    const range=(values:number[])=>Math.max(...values)-Math.min(...values);
+    const rows=range(average(true)),columns=range(average(false));
+    assert.ok(horizontal?rows>columns*2:columns>rows*2,`${name}: seams point in the wrong direction`);
+    texture.dispose();
+  }
 });
 
 test('old forest-stage times do not become Holmahult records',()=>{

@@ -1,6 +1,8 @@
 import { applyFacadeUVs } from './textures.ts';
 import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
 import materialAsset from '../assets/materials/holmahult-scenery.json' with { type: 'json' };
+import homeMaterialAsset from '../assets/materials/holmahult-home.json' with { type: 'json' };
+import homeAsset from '../assets/holmahult-home.json' with { type: 'json' };
 import roadAsset from '../assets/road.json' with { type: 'json' };
 import sceneryAsset from '../assets/scenery.json' with { type: 'json' };
 import { applyGravelUVs, createGravelTexture } from './gravel.ts';
@@ -43,7 +45,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     const group=new THREE.Group();group.name=site.id;
     group.position.set(site.x,course.height(site.x,site.z),site.z);group.rotation.y=site.angle;scene.add(group);
     const {width:w,depth:d,height:h,roofHeight:rh}=site;
-    const paint=createSceneryMaterial('holmahult-scenery.paint',{color:site.color,...materialAsset.paint});
+    const paint=createSceneryMaterial(site.id==='holmahult-25'?'holmahult-home.paint':'holmahult-scenery.paint',{color:site.color,...(site.id==='holmahult-25'?homeMaterialAsset.paint:materialAsset.paint)});
     if(site.id==='holmahult-25') {
       createHolmahultHome(group,site,box,{white,roof,glass,stone,paint});
     } else {
@@ -116,6 +118,11 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     }
     const collider:BoxCollider={id:site.id,x:site.x,z:site.z,kind:'building',halfX:w/2+details.colliderPadding,halfZ:d/2+details.colliderPadding,angle:site.angle,radius:Math.hypot(w/2+details.colliderPadding,d/2+details.colliderPadding)};
     collisions.add(collider);
+    if(site.id==='holmahult-25') {
+      const balcony=homeAsset.rearBalcony,halfX=balcony.width/2,halfZ=balcony.depth/2;
+      const localX=balcony.centerX,localZ=-d/2-halfZ;
+      collisions.add({id:`${site.id}-rear-terrace`,x:site.x+Math.cos(site.angle)*localX+Math.sin(site.angle)*localZ,z:site.z-Math.sin(site.angle)*localX+Math.cos(site.angle)*localZ,kind:'building',halfX,halfZ,angle:site.angle,radius:Math.hypot(halfX,halfZ)} as BoxCollider);
+    }
     if(site.porch) {
       const halfX=(site.porchWidth??details.defaultPorchWidth)/2,halfZ=(site.porchDepth??details.defaultPorchDepth)/2;
       const localX=site.porchOffsetX??0,localZ=d/2+halfZ;

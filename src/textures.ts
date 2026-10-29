@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import textureData from '../assets/materials/textures.json' with { type: 'json' };
 
 type RoadMarking={width:number;dashLength:number;dashOffset:number;position?:number;edgeInset?:number;side?:'left'|'right'};
-type PatternDefinition={type:'pattern';pattern:'grass'|'grain'|'rings'|'boards';size:number;worldScale:number;anisotropy:number;repeat:number[];base:number;grain:number;frequency:number;wave?:number;groove?:number;patch?:number;patchCells?:number;grainFrequency?:number;warpFrequency?:number;blades?:number;bladeWidth?:number;bladeLength?:number;bladeShade?:number;seamWidth?:number;seamShade?:number};
+type PatternDefinition={type:'pattern';pattern:'grass'|'grain'|'rings'|'boards';direction?:'horizontal'|'vertical';size:number;worldScale:number;anisotropy:number;repeat:number[];base:number;grain:number;frequency:number;wave?:number;groove?:number;patch?:number;patchCells?:number;grainFrequency?:number;warpFrequency?:number;blades?:number;bladeWidth?:number;bladeLength?:number;bladeShade?:number;seamWidth?:number;seamShade?:number};
 type TextureDefinition=PatternDefinition | {type:'noise';size:number;minShade:number;shadeRange:number;greenRatio:number;blueRatio:number;opacity:number;worldScale:number;anisotropy:number}
   | {type:'image';url:string;worldScale:number;anisotropy:number}
   | {type:'road';width:number;height:number;minShade:number;shadeRange:number;opacity:number;worldScale:number;anisotropy:number;roadWidth:number;markingColor:string;markings:RoadMarking[]};
@@ -29,9 +29,10 @@ export function createConfiguredTexture(name:string,random:()=>number=Math.rando
         const radius=Math.hypot(u-.5,v-.5);
         shade-=Math.pow((1+Math.sin(radius*Math.PI*2*config.frequency+Math.sin(Math.atan2(v-.5,u-.5)*5)*config.wave!))/2,8)*config.groove!;
       } else {
-        const phase=u*config.frequency+Math.sin(v*Math.PI*2*config.warpFrequency!)*config.wave!;
+        const across=config.direction==='horizontal'?v:u,along=config.direction==='horizontal'?u:v;
+        const phase=across*config.frequency+Math.sin(along*Math.PI*2*config.warpFrequency!)*config.wave!;
         shade-=Math.pow((1+Math.sin(phase*Math.PI*2*config.grainFrequency!))/2,6)*config.groove!;
-        if(config.pattern==='boards'&&u<config.seamWidth!)shade-=config.seamShade!;
+        if(config.pattern==='boards'&&across<config.seamWidth!)shade-=config.seamShade!;
       }
       const value=THREE.MathUtils.clamp(Math.round(shade),0,255);
       pixels.set([value,value,value,255],(y*config.size+x)*4);

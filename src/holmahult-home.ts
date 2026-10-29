@@ -11,7 +11,7 @@ const details=asset.details;
 type Box = (group:THREE.Group,w:number,h:number,d:number,x:number,y:number,z:number,material:THREE.Material)=>THREE.Mesh;
 interface HouseMaterials {white:THREE.Material;roof:THREE.Material;glass:THREE.Material;stone:THREE.Material;paint:THREE.Material}
 
-/** Number 25, modeled from the supplied oblique front photograph. Front is local +Z. */
+/** Number 25, modeled from the front and garden photographs. Front is local +Z. */
 export function createHolmahultHome(group:THREE.Group,site:HolmahultBuilding,box:Box,materials:HouseMaterials):void {
   const {white,roof,glass,stone,paint}=materials;
   const {width:w,depth:d,height:h,roofHeight:rh}=site;
@@ -23,14 +23,13 @@ export function createHolmahultHome(group:THREE.Group,site:HolmahultBuilding,box
   // The entrance is on the long eaves facade, not under an attic gable.
   const triangle=new THREE.Shape();triangle.moveTo(-d/2,0);triangle.lineTo(0,rh);triangle.lineTo(d/2,0);triangle.closePath();
   const gables=new THREE.Mesh(new THREE.ExtrudeGeometry(triangle,{depth:w,bevelEnabled:false}),paint);
-  applyFacadeUVs(gables.geometry,d,rh);
+  applyFacadeUVs(gables.geometry,d,h);
   gables.rotation.y=Math.PI/2;gables.position.set(-w/2,h,0);gables.castShadow=true;group.add(gables);
-  // Vertical battens continue into the side gables, matching the timber facade texture.
-  for(let x=-w/2+details.boardSpacing;x<w/2;x+=details.boardSpacing)for(const side of [-1,1])
-    part(asset.battenWidth,h-details.boardStart,asset.battenDepth,x,(h+details.boardStart)/2,side*(d/2+details.boardOffset),boards);
-  for(let z=-d/2+details.boardSpacing;z<d/2;z+=details.boardSpacing)for(const side of [-1,1]) {
-    const height=h+rh*(1-Math.abs(z)/(d/2))-details.boardStart;
-    part(asset.battenDepth,height,asset.battenWidth,side*(w/2+details.boardOffset),details.boardStart+height/2,z,boards);
+  // Horizontal lap-board edges continue at the same spacing into both gables.
+  for(let y=details.boardStart;y<h+rh;y+=details.boardSpacing)for(const side of [-1,1]) {
+    if(y<h)part(w,asset.boardSeam.height,asset.boardSeam.depth,0,y,side*(d/2+details.boardOffset),boards);
+    const width=d*(1-Math.max(0,y-h)/rh);
+    part(asset.boardSeam.depth,asset.boardSeam.height,width,side*(w/2+details.boardOffset),y,0,boards);
   }
   for(const x of [-w/2,w/2])for(const z of [-d/2,d/2])part(details.cornerTrimWidth,h+details.cornerTrimExtraHeight,details.cornerTrimWidth,x,h/2,z,white);
   part(w+details.baseTrimExtra,details.baseTrimHeight,d+details.baseTrimExtra,...asset.baseTrimPosition as [number, number, number],white);
@@ -67,9 +66,31 @@ export function createHolmahultHome(group:THREE.Group,site:HolmahultBuilding,box
   // Four upstairs windows, including the close central pair above the entrance.
   for(const [x,ww] of asset.upperFrontWindows)window(x,details.upperWindowY,d/2+details.windowOffset,0,ww);
   for(const x of asset.lowerFrontWindowX)window(x,details.lowerWindowY,d/2+details.windowOffset,0,details.lowerWindowWidth,details.lowerWindowHeight);
-  // Hidden elevations are a restrained continuation of the same building style.
-  for(const x of asset.rearWindowX)for(const y of asset.rearWindowY)window(x,y,-d/2-details.windowOffset,Math.PI);
-  for(const y of asset.sideWindowY)window(w/2+details.windowOffset,y,details.sideWindowZ,Math.PI/2);
+  // Garden elevation and the right gable are visible in the rear reference photo.
+  for(const [x,y,ww,hh] of asset.rearWindows)window(x,y,-d/2-details.windowOffset,Math.PI,ww,hh);
+  for(const [z,y,ww,hh] of asset.rightGableWindows)window(w/2+details.windowOffset,y,z,Math.PI/2,ww,hh);
+  for(const door of asset.rearFrenchDoors)window(door.x,door.y,-d/2-details.windowOffset,Math.PI,door.width,door.height);
+
+  const balcony=asset.rearBalcony,back=-d/2,edge=back-balcony.depth;
+  const railY=balcony.floorY+balcony.floorThickness/2+balcony.railHeight;
+  const lowerRailY=balcony.floorY+balcony.floorThickness/2+balcony.lowerRailHeight;
+  const railZ=edge+balcony.inset,centerZ=back-balcony.depth/2;
+  part(balcony.width,balcony.groundThickness,balcony.depth,balcony.centerX,balcony.groundY,centerZ,stone);
+  part(balcony.width,balcony.floorThickness,balcony.depth,balcony.centerX,balcony.floorY,centerZ,white);
+  part(...balcony.stepSize as [number,number,number],balcony.centerX,balcony.stepY,edge-balcony.stepOffset,stone);
+  const postBottom=balcony.groundY+balcony.groundThickness/2,postHeight=railY-postBottom;
+  const balusterHeight=railY-lowerRailY;
+  for(const side of [-1,1]) {
+    const x=balcony.centerX+side*(balcony.width/2-balcony.inset);
+    part(balcony.postWidth,postHeight,balcony.postWidth,x,postBottom+postHeight/2,railZ,white);
+    part(balcony.postWidth,balcony.railHeight,balcony.postWidth,x,railY-balcony.railHeight/2,back,white);
+    for(const y of [railY,lowerRailY])part(balcony.railWidth,balcony.railWidth,balcony.depth,x,y,centerZ,white);
+    for(let z=railZ+balcony.balusterSpacing;z<back;z+=balcony.balusterSpacing)
+      part(balcony.balusterWidth,balusterHeight,balcony.balusterWidth,x,(railY+lowerRailY)/2,z,white);
+  }
+  for(const y of [railY,lowerRailY])part(balcony.width,balcony.railWidth,balcony.railWidth,balcony.centerX,y,railZ,white);
+  for(let x=balcony.centerX-balcony.width/2+balcony.balusterSpacing;x<balcony.centerX+balcony.width/2-balcony.inset;x+=balcony.balusterSpacing)
+    part(balcony.balusterWidth,balusterHeight,balcony.balusterWidth,x,(railY+lowerRailY)/2,railZ,white);
 
   const entrance=(x:number,z:number,angle:number)=>{
     const frame=new THREE.Group();frame.position.set(x,0,z);frame.rotation.y=angle;group.add(frame);

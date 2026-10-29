@@ -1,4 +1,6 @@
 import type { CourseDefinition } from './track.ts';
+import * as THREE from 'three';
+import asset from '../assets/holmahult-scenery.json' with { type: 'json' };
 
 import courseData from '../parcours/courses.json' with { type: 'json' };
 import sceneryData from '../parcours/holmahult.json' with { type: 'json' };
@@ -20,6 +22,12 @@ export const holmahultBuildings: HolmahultBuilding[] = sceneryData.buildings as 
 
 export interface LocalRoad { points: [number, number][]; width: number; asphalt?: boolean; joinsCourseStart?: boolean }
 export const holmahultSideRoads: LocalRoad[] = sceneryData.sideRoads as LocalRoad[];
+// Use the rendered curves for scenery clearance, including their bends between anchors.
+export const holmahultSideRoadCurves = holmahultSideRoads.map(road =>
+  new THREE.CatmullRomCurve3(road.points.map(([x,z])=>new THREE.Vector3(x,0,z)),false,'centripetal'));
+const sideRoadSamples=holmahultSideRoadCurves.map(curve=>
+  curve.getSpacedPoints(Math.ceil(curve.getLength()/asset.details.roadSampleSpacing)));
+const sideRoadBounds=sideRoadSamples.map(points=>new THREE.Box3().setFromPoints(points));
 
 export const holmahultFields: [number, number][][] = sceneryData.fields as [number, number][][];
 
@@ -38,9 +46,14 @@ export const holmahultWalls: [number, number][][] = sceneryData.walls as [number
 
 /** Keep background vegetation off the surrounding lanes as well as the timed route. */
 export function onHolmahultSideRoad(x: number, z: number, clearance: number): boolean {
-  return holmahultSideRoads.some(road => road.points.slice(1).some(([bx,bz],i) => {
-    const [ax,az]=road.points[i],dx=bx-ax,dz=bz-az;
-    const t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
-    return Math.hypot(x-ax-dx*t,z-az-dz*t)<road.width/2+clearance+2;
-  }));
+  return holmahultSideRoads.some((road,index) => {
+    const margin=road.width/2+clearance+2,bounds=sideRoadBounds[index];
+    if(x<bounds.min.x-margin||x>bounds.max.x+margin||z<bounds.min.z-margin||z>bounds.max.z+margin)return false;
+    return sideRoadSamples[index].some((b,i) => {
+      if(i===0)return false;
+      const a=sideRoadSamples[index][i-1],ax=a.x,az=a.z,bx=b.x,bz=b.z,dx=bx-ax,dz=bz-az;
+      const t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz)));
+      return Math.hypot(x-ax-dx*t,z-az-dz*t)<margin;
+    });
+  });
 }

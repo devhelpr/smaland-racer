@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { createHolmahultHome } from './holmahult-home.ts';
 import { Course, randomGenerator } from './track.ts';
 import { CollisionWorld, type BoxCollider } from './collision.ts';
-import { holmahultBuildings, holmahultSideRoads, holmahultWalls, type HolmahultBuilding } from './holmahult-data.ts';
+import { holmahultBuildings, holmahultSideRoads, holmahultSideRoadCurves, onHolmahultSideRoad, holmahultWalls, type HolmahultBuilding } from './holmahult-data.ts';
 
 const details=asset.details;
 
@@ -144,7 +144,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   }
   for(const [index,road] of holmahultSideRoads.entries()) {
     if(course.roadNetwork)continue;
-    const curve=new THREE.CatmullRomCurve3(road.points.map(([x,z])=>new THREE.Vector3(x,0,z)),false,'centripetal');
+    const curve=holmahultSideRoadCurves[index];
     const count=Math.ceil(curve.getLength()/details.roadSampleSpacing);
     const ribbon=(width:number,elevation:number)=>{
       const positions:number[]=[],indices:number[]=[],colors:number[]=[];
@@ -179,7 +179,7 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     for(let d=0;d<length;d+=details.wallSpacing) {
       const x=ax+(bx-ax)*d/length,z=az+(bz-az)*d/length;
       const nearest=course.nearestRoad(x,z);
-      if(nearest.distance<nearest.width/2+2)continue;
+      if(nearest.distance<nearest.width/2+2||(!course.roadNetwork&&onHolmahultSideRoad(x,z,details.wallRadius)))continue;
       wallPositions.push(new THREE.Vector3(x,course.height(x,z)+details.wallElevation,z));
     }
   }

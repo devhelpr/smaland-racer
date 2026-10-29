@@ -113,3 +113,51 @@ test('the ordinary Holmahult start approach joins both road edges and shoulders 
   }
   disposeGroup(group);
 });
+
+test('ordinary Holmahult side roads cover the full width of every authored junction',async()=>{
+  const {default:data}=await import('../parcours/holmahult.json',{with:{type:'json'}});
+  const {holmahultSideRoads,holmahultSideRoadCurves}=await import('../src/holmahult-data.ts');
+  const {createScenery}=await import('../src/scenery.ts');
+  const course=new Course(courses[0]),scene=new THREE.Group();createScenery(scene,course,new CollisionWorld());
+  const mesh=(id:string|number)=>scene.getObjectByName(id==='course'?'course-road':`holmahult-side-road-${id}`)!;
+  for(const join of data.connections) {
+    const isCourse=join.road==='course',index=Number(join.road);
+    const curve=isCourse?course.curve:holmahultSideRoadCurves[index];
+    const width=isCourse?course.definition.width:holmahultSideRoads[index].width;
+    const t=join.end===0?0:1,p=curve.getPointAt(t);
+    const parentCurve=join.target==='course'?course.curve:holmahultSideRoadCurves[Number(join.target)];
+    assert.ok(parentCurve.getSpacedPoints(10000).some(q=>q.distanceTo(p)<.1),`${join.road}: endpoint misses parent road`);
+    // Walk across the mouth and along the first ten metres of the branch.
+    for(let along=0;along<=10;along+=.25) {
+      const fraction=Math.max(0,along)/curve.getLength(),sampleT=join.end===0?fraction:1-fraction;
+      const center=curve.getPointAt(sampleT),tangent=curve.getTangentAt(sampleT).multiplyScalar(join.end===0?1:-1);
+      const normal=new THREE.Vector3(-tangent.z,0,tangent.x);
+      for(let across=-width/2+.15;across<=width/2-.15;across+=.25) {
+        const point=center.clone().addScaledVector(normal,across);point.y=course.height(point.x,point.z)+10;
+        assert.ok(new THREE.Raycaster(point,new THREE.Vector3(0,-1,0)).intersectObjects([mesh(join.road),mesh(join.target)]).length,
+          `${join.road} / ${join.target}: visible gap at ${along}, ${across}`);
+      }
+    }
+  }
+  disposeGroup(scene);
+});
+
+test('Holmahult stone walls stay clear of side-road surfaces and leave a row beside the eastern drive',async()=>{
+  const {holmahultSideRoadCurves,holmahultSideRoads}=await import('../src/holmahult-data.ts');
+  const samples=holmahultSideRoadCurves.map(curve=>curve.getSpacedPoints(Math.ceil(curve.getLength()/.25)));
+  for(const definition of courses.filter(c=>c.setting==='holmahult')) {
+    const course=new Course(definition),scene=new THREE.Group();createHolmahultScenery(scene,course,new CollisionWorld());
+    const walls=scene.getObjectByName('holmahult-stone-walls') as THREE.InstancedMesh;
+    const matrix=new THREE.Matrix4(),position=new THREE.Vector3();let besideEasternDrive=0;
+    for(let i=0;i<walls.count;i++) {
+      walls.getMatrixAt(i,matrix);position.setFromMatrixPosition(matrix);
+      if(!course.roadNetwork)for(const [index,points] of samples.entries()) {
+        const distance=Math.min(...points.map(p=>Math.hypot(position.x-p.x,position.z-p.z)));
+        assert.ok(distance>holmahultSideRoads[index].width/2+.7,`wall ${i} blocks side road ${index}`);
+      }
+      if(position.x>-90&&position.x<80&&position.z<-95&&position.z>-125)besideEasternDrive++;
+    }
+    assert.ok(besideEasternDrive>50,'the eastern wall should run beside the lane');
+    disposeGroup(scene);
+  }
+});

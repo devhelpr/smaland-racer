@@ -76,8 +76,7 @@ function start(): void {
     wildlife=new Wildlife(course,world,group,seed[0]);
     traffic=new Traffic(course,world,group);
     race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
-    checkpointGates=new CheckpointGates(course);group.add(checkpointGates.root);
-    checkpointGates.root.visible=!course.definition.openWorld;
+    checkpointGates=new CheckpointGates(course,world);group.add(checkpointGates.root);
     updateMap();follow(car,0,true);
     applySeason(group,course.definition.setting==='sandsjon'?'winter':progress.season);setSeason(course.definition.setting==='sandsjon'?'winter':progress.season);
   }

@@ -2,12 +2,14 @@ import materialAsset from '../assets/materials/checkpoints.json' with { type: 'j
 import * as THREE from 'three';
 import asset from '../assets/checkpoints.json' with { type: 'json' };
 import type { Course } from './track.ts';
+import type { BoxCollider, CollisionWorld } from './collision.ts';
 
 interface Gate {
   mesh: THREE.Group;
   materials: THREE.MeshStandardMaterial[];
   depthMask: THREE.Group;
   age: number | null;
+  colliders: BoxCollider[];
 }
 
 /** Numbered gantries fade as a single surface, preserving sign/metal occlusion. */
@@ -16,10 +18,15 @@ export class CheckpointGates {
   private gates: Gate[] = [];
   private readonly closed: boolean;
 
-  constructor(course: Course) {
+  constructor(course: Course, world?: CollisionWorld) {
     this.closed = course.definition.closed;
+    this.root.visible = !course.definition.openWorld;
     for (const [index, sample] of course.checkpoints.slice(1).entries()) {
       const mesh = new THREE.Group();
+      // The circuit finish shares the start line; reveal it only on the final leg.
+      mesh.visible = !this.closed || index < course.checkpoints.length - 2;
+      const colliders: BoxCollider[] = [];
+      const heading = Math.atan2(sample.tangent.x, sample.tangent.z);
       const metal = new THREE.MeshStandardMaterial(materialAsset.metal);
       const sign = new THREE.MeshStandardMaterial(materialAsset.sign);
       const lettering = new THREE.MeshStandardMaterial(materialAsset.lettering);
@@ -38,11 +45,23 @@ export class CheckpointGates {
       for (const side of [-1, 1]) {
         const x = side * halfWidth;
         // Seat both supports on the local terrain, including banked shoulders.
-        const offset = new THREE.Vector3(x, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.atan2(sample.tangent.x, sample.tangent.z));
+        const offset = new THREE.Vector3(x, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
         const ground = course.height(sample.point.x + offset.x, sample.point.z + offset.z) - sample.point.y;
         bar(new THREE.Vector3(x, ground, 0), new THREE.Vector3(x, asset.height, 0), asset.postRadius, metal);
         const foot = new THREE.Mesh(new THREE.BoxGeometry(...asset.footSize as [number,number,number]), metal);
         foot.position.set(x, ground + asset.footSize[1]/2, 0); mesh.add(foot);
+        if (world && this.root.visible) {
+          // Support footprints are solid; the overhead truss leaves the driving opening clear.
+          const halfX = Math.max(asset.postRadius, asset.footSize[0]/2);
+          const halfZ = Math.max(asset.postRadius, asset.footSize[2]/2);
+          const collider: BoxCollider = {
+            id: `checkpoint-${index+1}-post-${side<0?'left':'right'}`,
+            x: sample.point.x + offset.x, z: sample.point.z + offset.z,
+            halfX, halfZ, angle: heading, radius: Math.hypot(halfX,halfZ),
+            kind: 'building', active: mesh.visible
+          };
+          colliders.push(collider); world.add(collider);
+        }
       }
       for (const y of [asset.height, asset.height - asset.trussHeight]) {
         bar(new THREE.Vector3(-halfWidth, y, 0), new THREE.Vector3(halfWidth, y, 0), asset.postRadius, metal);
@@ -64,7 +83,7 @@ export class CheckpointGates {
         for (const stroke of asset.numberPaths[index]) path(stroke.map(([px,py])=>[face*(px+nx),py+ny,face*nz]), asset.strokeRadius, lettering);
         for (const stroke of asset.arrowPaths) path(stroke.map(([px,py,pz])=>[face*px,py,face*pz]), asset.strokeRadius, lettering);
       }
-      mesh.position.copy(sample.point); mesh.rotation.y = Math.atan2(sample.tangent.x, sample.tangent.z);
+      mesh.position.copy(sample.point); mesh.rotation.y = heading;
       // Fill depth after the scenery, before blending the gantry. This prevents
       // hidden bars and the back of the sign showing through during the fade.
       const depthMask = new THREE.Group(); depthMask.visible = false;
@@ -77,15 +96,14 @@ export class CheckpointGates {
         depthMask.add(mask);
       }
       mesh.add(depthMask);
-      // The circuit finish shares the start line; reveal it only on the final leg.
-      mesh.visible = !this.closed || index < course.checkpoints.length - 2;
-      this.root.add(mesh); this.gates.push({mesh, materials, depthMask, age:null});
+      this.root.add(mesh); this.gates.push({mesh, materials, depthMask, age:null, colliders});
     }
   }
 
   restore(number: number): void {
     const gate = this.gates[number-1];
     gate.age = null; gate.mesh.visible = true; gate.depthMask.visible = false;
+    for (const collider of gate.colliders) collider.active = this.root.visible;
     for (const material of gate.materials) {
       material.opacity = 1; material.transparent = false; material.depthWrite = true;
     }
@@ -104,11 +122,15 @@ export class CheckpointGates {
 
   update(dt: number): void {
     for (const gate of this.gates) {
+      for (const collider of gate.colliders) collider.active = this.root.visible && gate.mesh.visible;
       if (gate.age === null || !gate.mesh.visible) continue;
       gate.age += dt;
       const progress = Math.min(1, gate.age / asset.effect.duration);
       for (const material of gate.materials) material.opacity = 1-progress;
-      if (progress === 1) {gate.mesh.visible = false; gate.depthMask.visible = false;}
+      if (progress === 1) {
+        gate.mesh.visible = false; gate.depthMask.visible = false;
+        for (const collider of gate.colliders) collider.active = false;
+      }
     }
   }
 }

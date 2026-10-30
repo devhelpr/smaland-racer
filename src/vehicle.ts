@@ -11,6 +11,8 @@ import type { DrivingWorld } from './driving-world.ts';
 import { CAR_RADIUS, CollisionWorld, impactDamage } from './collision.ts';
 import trafficPhysics from '../assets/traffic-physics.json' with { type: 'json' };
 import type { DriveInput } from './input.ts';
+import { EngineSmoke } from './engine-smoke.ts';
+import smokeSettings from '../assets/engine-smoke.json' with { type: 'json' };
 
 export class Vehicle {
   readonly mesh = new THREE.Group();
@@ -26,7 +28,7 @@ export class Vehicle {
   private age = 0;
   private contacts = new Map<string, number>();
   private panels: THREE.Mesh[] = [];
-  private smoke = new THREE.Group();
+  private smoke = new EngineSmoke();
   private steering = 0;
   private wheels: THREE.Group[] = [];
 
@@ -47,13 +49,10 @@ export class Vehicle {
     this.panels=model.panels;this.wheels=model.wheels;
     this.lighting=new VehicleLighting(model.lamp,model.red,this.asset.lighting);
     this.mesh.add(this.lighting.root);
-    const smokeMaterial = new THREE.MeshBasicMaterial(definition.materials.smokeMaterial);
-    const smokeGeometry = new THREE.IcosahedronGeometry(...this.asset.smokeGeometry as [number, number]);
-    for(let i=0;i<this.asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
-    this.mesh.add(this.smoke);
     // Rotate the model around its center of mass, including during a full rollover.
     const body=new THREE.Group();body.add(...this.mesh.children);
     body.position.y=-stuntAsset.centerOfMassHeight;this.mesh.add(body);
+    this.mesh.add(this.smoke.root);
     this.restart();
   }
 
@@ -66,6 +65,7 @@ export class Vehicle {
     this.position.copy(point).addScaledVector(tangent,advance?1.8:0);
     this.position.y=this.course.heightAt(this.position.x,this.position.z);
     this.heading=Math.atan2(tangent.x,tangent.z);
+    this.smoke.reset();
     this.stunts.reset();
     this.velocity.set(0,0,0); this.forwardSpeed=0; this.steering=0; this.onRoad=true; this.contacts.clear(); this.syncMesh();
   }
@@ -185,13 +185,8 @@ export class Vehicle {
     }
     this.panels[0].scale.x=1-this.damage*.0012;
     this.panels[1].rotation.x=-this.damage*.002;
-    this.panels[1].position.y=this.asset.hood[4]+this.damage*.0015;
-    this.smoke.visible=this.damage>50;
-    this.smoke.children.forEach((puff,i)=> {
-      const phase=(this.age*.6+i/this.asset.smokeCount)%1;
-      puff.position.set(Math.sin(i*2+this.age)*phase*.5,1.2+phase*3,1.2+phase*.5);
-      puff.scale.setScalar(.4+phase*1.9);
-    });
+    this.panels[1].position.y=this.asset.hood[4]+this.damage*smokeSettings.hoodLift;
+    this.smoke.update(dt,this.damage,this.panels[1],this.velocity);
   }
 
   private syncMesh(): void {

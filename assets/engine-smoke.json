@@ -1,0 +1,23 @@
+{
+  "capacity": 96,
+  "damageThreshold": 50,
+  "emissionRate": [8, 27],
+  "lifetime": [2.2, 3.6],
+  "initialSize": [0.22, 0.4],
+  "growth": [0.65, 1.05],
+  "opacity": [0.18, 0.36],
+  "lightColor": "#adb0aa",
+  "darkColor": "#555953",
+  "wind": [0.18, 0, 0.08],
+  "riseSpeed": [0.7, 1.2],
+  "buoyancy": 0.35,
+  "drag": 1.8,
+  "velocityInheritance": 0.22,
+  "turbulence": 0.23,
+  "sourceWidth": 0.42,
+  "sourceDepth": 0.24,
+  "hoodLift": 0.0015,
+  "sourceHeight": 0.06,
+  "noiseScale": 4.2,
+  "noiseSpeed": 0.22
+}

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import asset from '../assets/traffic.json' with { type: 'json' };
 import vehicleAsset from '../assets/vehicle.json' with { type: 'json' };
 import materialAsset from '../assets/materials/traffic.json' with { type: 'json' };
+import { VehicleLighting } from './lighting.ts';
 import { createVehicleModel } from './vehicle-model.ts';
 
 /** Shared Volvo detailing, with authored estate bodies and distinct series-specific parts. */
@@ -32,5 +33,9 @@ export function createATractor(color:string,variantIndex:number) {
   border.name='slow-vehicle-triangle';border.position.fromArray(asset.triangleBorderPosition);mesh.add(border);
   const center=new THREE.Mesh(new THREE.ShapeGeometry(triangle),new THREE.MeshBasicMaterial({...materialAsset.center,side:THREE.DoubleSide}));
   center.name='slow-vehicle-triangle-center';center.scale.setScalar(asset.triangleCenterScale);center.position.fromArray(asset.triangleCenterPosition);mesh.add(center);
-  return {mesh,wheels:model.wheels};
+  const lighting=new VehicleLighting(model.lamp,model.red);
+  // Traffic illuminates the road without rendering a forest shadow map for every vehicle.
+  lighting.beam.castShadow=false;
+  lighting.setMode('off');mesh.add(lighting.root);
+  return {mesh,wheels:model.wheels,lighting};
 }

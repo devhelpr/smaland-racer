@@ -14,6 +14,8 @@ export const nextHeadlightMode = (mode: HeadlightMode): HeadlightMode => headlig
 export class VehicleLighting {
   readonly root = new THREE.Group();
   readonly beam = new THREE.SpotLight();
+  private currentMode: HeadlightMode = 'dipped';
+  get mode(): HeadlightMode { return this.currentMode; }
   private lens: THREE.MeshStandardMaterial;
   private headlights: THREE.MeshStandardMaterial;
   private tailLights: THREE.MeshStandardMaterial;
@@ -30,14 +32,17 @@ export class VehicleLighting {
     this.root.add(this.beam, this.beam.target);
     const housing = asset.ledHousing, lens = asset.ledLens;
     const body = new THREE.Mesh(new THREE.BoxGeometry(...housing.size as [number, number, number]), new THREE.MeshStandardMaterial(materialAsset.ledHousing));
+    body.name = 'led-bar-housing';
     body.position.fromArray(mounts?.ledHousingPosition??housing.position);
     this.lens = new THREE.MeshStandardMaterial(materialAsset.ledLens);
     const glass = new THREE.Mesh(new THREE.BoxGeometry(...lens.size as [number, number, number]), this.lens);
+    glass.name = 'led-bar-lens';
     glass.position.fromArray(mounts?.ledLensPosition??lens.position);
     this.root.add(body, glass);
     this.setMode('dipped');
   }
   setMode(mode: HeadlightMode): void {
+    this.currentMode = mode;
     const profile = asset.modes[mode];
     this.beam.visible = mode !== 'off';
     this.beam.color.set(profile.color);

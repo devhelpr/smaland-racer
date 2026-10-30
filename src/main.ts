@@ -75,6 +75,7 @@ function start(): void {
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
     traffic=new Traffic(course,world,group);
+    traffic.setTimeOfDay(progress.timeOfDay??'day',car.position,car.heading);
     race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
     checkpointGates=new CheckpointGates(course,world);group.add(checkpointGates.root);
     updateMap();follow(car,0,true);
@@ -222,7 +223,7 @@ function start(): void {
     target.blur();
   });
   function changeTime(value: TimeOfDay): void {
-    progress.timeOfDay=value;setTimeOfDay(value);persist();
+    progress.timeOfDay=value;setTimeOfDay(value);traffic.setTimeOfDay(value,car.position,car.heading);persist();
     menus.querySelectorAll<HTMLButtonElement>('[data-time]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.time===value)));
     updateLabels();
   }
@@ -279,7 +280,7 @@ function start(): void {
       const controls=input.read();
       while(accumulator>=step&&race.state==='racing') {
         const previous=car.position.clone();
-        wildlife.update(step,car.position,car.forwardSpeed);traffic.update(step,car.position,car.velocity);car.update(step,controls,world);snowPoles.update(step);
+        wildlife.update(step,car.position,car.forwardSpeed);traffic.update(step,car.position,car.velocity,car.heading);car.update(step,controls,world);snowPoles.update(step);
         const checkpoint=race.nextCheckpoint;
         race.observe(previous,car.position,car.damage);
         if(race.nextCheckpoint!==checkpoint) {

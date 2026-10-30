@@ -1,3 +1,4 @@
+import { type VehicleLighting, type TimeOfDay } from './lighting.ts';
 import snowPoleAsset from '../assets/snow-poles.json' with { type: 'json' };
 import { trafficRoutes, type TrafficRoute } from './traffic-routes.ts';
 import { steerTrafficWheels } from './traffic-wheels.ts';
@@ -13,6 +14,8 @@ import { CAR_RADIUS, type BoxCollider, type CollisionWorld } from './collision.t
 
 interface ATractor {
   mesh: THREE.Group;
+  lighting: VehicleLighting;
+  dippedTime: number;
   wheels: THREE.Group[];
   wheelMounts: THREE.Vector3[];
   collider: BoxCollider;
@@ -56,6 +59,7 @@ export class Traffic {
   readonly vehicles: ATractor[] = [];
   readonly course: Course;
   private readonly world: CollisionWorld;
+  private timeOfDay: TimeOfDay = 'day';
   private readonly meetingRetries: MeetingRetry[] = [];
 
   constructor(course: Course, world: CollisionWorld, group: THREE.Group) {
@@ -66,11 +70,11 @@ export class Traffic {
     for(const route of trafficRoutes(course)) {
       const count = Math.max(placement.minCount, Math.min(placement.maxCount, Math.ceil(route.length / placement.lengthPerVehicle)));
       for (let i=0;i<count;i++) {
-        const {mesh,wheels}=createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i);
+        const {mesh,wheels,lighting}=createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i);
         const baseSpeed=placement.baseSpeed+random()*placement.speedRange;
         const collider: BoxCollider={id:`a-tractor-${route.id}-${i}`,x:0,z:0,...asset.collider,kind:'aTractor',angle:0,active:true,velocity:new THREE.Vector3()};
         const vehicle: ATractor={
-          mesh,wheels,wheelMounts:wheels.map(wheel=>wheel.position.clone()),collider,route,direction:placement.directions[i%placement.directions.length],
+          mesh,wheels,lighting,dippedTime:0,wheelMounts:wheels.map(wheel=>wheel.position.clone()),collider,route,direction:placement.directions[i%placement.directions.length],
           distance:placement.startDistance+i*(route.length-placement.finishClearance)/count,
           laneOffset:this.normalLaneOffset(route),laneVelocity:0,
           drive:{position:new THREE.Vector3(),heading:0,steering:0},driveDistance:NaN,
@@ -401,11 +405,41 @@ export class Traffic {
     return controls;
   }
 
-  update(dt: number, playerPosition?: THREE.Vector3, playerVelocity?:THREE.Vector3): void {
-    if (dt<=0) return;
+  setTimeOfDay(time:TimeOfDay,playerPosition?:THREE.Vector3,playerHeading?:number):void {
+    this.timeOfDay=time;
+    this.updateLighting(0,playerPosition,undefined,playerHeading);
+  }
+
+  private updateLighting(dt:number,playerPosition?:THREE.Vector3,playerVelocity?:THREE.Vector3,playerHeading?:number):void {
+    const config=physics.lighting;
+    const forwards=this.vehicles.map(vehicle=>new THREE.Vector3(Math.sin(vehicle.drive.heading),0,Math.cos(vehicle.drive.heading)));
+    const playerForward=playerHeading!==undefined
+      ?new THREE.Vector3(Math.sin(playerHeading),0,Math.cos(playerHeading))
+      :playerVelocity&&playerVelocity.lengthSq()>.01?playerVelocity.clone().setY(0).normalize():undefined;
+    for(const [index,vehicle] of this.vehicles.entries()) {
+      const forward=forwards[index];
+      const oncoming=(position:THREE.Vector3,otherForward?:THREE.Vector3)=> {
+        const relative=position.clone().sub(vehicle.drive.position).setY(0),distance=relative.length();
+        if(distance===0||distance>config.dimDistance)return false;
+        relative.multiplyScalar(1/distance);
+        return forward.dot(relative)>config.forwardCosine&&(!otherForward||forward.dot(otherForward)<config.oncomingCosine);
+      };
+      const night=this.timeOfDay==='night'&&vehicle.active;
+      const approaching=night&&((playerPosition&&oncoming(playerPosition,playerForward))||this.vehicles.some((other,otherIndex)=>other!==vehicle&&other.active&&oncoming(other.drive.position,forwards[otherIndex])));
+      // Keep dipped beams briefly after a meeting to avoid flashing on bends or at the detection boundary.
+      vehicle.dippedTime=approaching?config.releaseDelay:Math.max(0,vehicle.dippedTime-dt);
+      if(!night)vehicle.dippedTime=0;
+      const mode=night?(vehicle.dippedTime>0?'dipped':'led'):'off';
+      if(vehicle.lighting.mode!==mode)vehicle.lighting.setMode(mode);
+    }
+  }
+
+  update(dt: number, playerPosition?: THREE.Vector3, playerVelocity?:THREE.Vector3,playerHeading?:number): void {
+    if (dt<=0) {this.updateLighting(0,playerPosition,playerVelocity,playerHeading);return;}
     // Bound integration steps so steering behaves consistently during a slow frame.
     const steps=Math.ceil(dt/physics.driving.maxStep),step=dt/steps;
     for(let i=0;i<steps;i++)this.step(step,playerPosition,playerVelocity);
+    this.updateLighting(dt,playerPosition,playerVelocity,playerHeading);
   }
 
   private step(dt:number,playerPosition?:THREE.Vector3,playerVelocity?:THREE.Vector3):void {

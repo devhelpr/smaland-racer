@@ -90,5 +90,11 @@
     "obstacleClearance": 3.5,
     "avoidanceHoldTime": 2,
     "blockedDecay": 0.25
+  },
+  "lighting": {
+    "dimDistance": 210,
+    "forwardCosine": 0.5,
+    "oncomingCosine": -0.3,
+    "releaseDelay": 1.5
   }
 }

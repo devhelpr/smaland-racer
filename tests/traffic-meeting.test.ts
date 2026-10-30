@@ -10,12 +10,12 @@ import physics from '../assets/traffic-physics.json' with {type:'json'};
 
 function setup(width:number,closed=false) {
   const course=new Course({...courses[0],closed,setting:'holmahult',width,points:fixture.points as [number,number][],hills:0,lakes:[]});
-  const root=new THREE.Group(),traffic=new Traffic(course,new CollisionWorld(),root);
+  const root=new THREE.Group(),world=new CollisionWorld(),traffic=new Traffic(course,world,root);
   for(const other of traffic.vehicles.slice(2)){other.active=false;other.collider.active=false;}
   const [outbound,inbound]=traffic.vehicles;
   outbound.distance=fixture.meetingDistances[0];inbound.distance=fixture.meetingDistances[1];
   traffic.update(1/120);
-  return {course,root,traffic,outbound,inbound};
+  return {course,root,world,traffic,outbound,inbound};
 }
 
 for(const width of fixture.widths)for(const rate of [30,120])test(`oncoming traffic passes on the right on a ${width}m road at ${rate}Hz`,()=>{
@@ -88,10 +88,14 @@ for(const rate of [30,120])test(`blocked oncoming drivers reverse, steer aside a
   }
   traffic.update(1/rate);
   const start=outbound.distance;
+  let previousPosition=outbound.drive.position.clone(),previousVelocity=outbound.velocity.clone(),previousSteering=outbound.drive.steering;
   let reversed=false,passed=false,previousGear=outbound.gear;
   for(let i=0;i<rate*45;i++) {
     traffic.update(1/rate);
     if(outbound.speed<-.3)reversed=true;
+    assert.ok(Math.abs(outbound.drive.steering-previousSteering)<=physics.driving.maxSteeringRate/rate+1e-6,'steering stays smooth through the retry');
+    assert.ok(outbound.drive.position.distanceTo(previousPosition)<=(previousVelocity.length()+outbound.velocity.length())/(2*rate)+.01,'recovery moves through tire velocity without snapping');
+    previousPosition.copy(outbound.drive.position);previousVelocity.copy(outbound.velocity);previousSteering=outbound.drive.steering;
     if(outbound.gear!==previousGear)assert.ok(Math.abs(outbound.speed)<physics.recovery.shiftSpeed+.1,'driver stops before shifting');
     previousGear=outbound.gear;
     if(outbound.distance>inbound.distance+physics.meeting.rearClearance)passed=true;
@@ -100,5 +104,24 @@ for(const rate of [30,120])test(`blocked oncoming drivers reverse, steer aside a
   assert.ok(reversed,'a stopped encounter triggers a reverse maneuver');
   assert.ok(passed,'drivers retry and get past each other');
   assert.ok(outbound.distance>start&&outbound.speed>0&&inbound.speed>0,'both resume forward travel');
+  disposeGroup(root);
+});
+
+for(const obstacle of ['wall','player'])test(`blocked encounter checks for a ${obstacle} behind before reversing`,()=>{
+  const {root,world,traffic,outbound,inbound}=setup(2.8);
+  for(const [index,vehicle] of [outbound,inbound].entries()) {
+    vehicle.distance=fixture.blockedMeetingDistances[index];vehicle.speed=0;
+  }
+  traffic.update(1/120);
+  const origin=outbound.drive.position.clone(),forward=outbound.route.sample(outbound.distance).tangent;
+  const behind=origin.clone().addScaledVector(forward,-7);
+  if(obstacle==='wall')world.add({id:'rear-wall',x:behind.x,z:behind.z,radius:21,halfX:20,halfZ:.4,angle:Math.atan2(forward.x,forward.z),kind:'building'});
+  let backed=0;
+  for(let i=0;i<120*12;i++) {
+    traffic.update(1/120,obstacle==='player'?behind:undefined);
+    backed=Math.max(backed,origin.clone().sub(outbound.drive.position).dot(forward));
+  }
+  assert.ok(backed>.2,'driver tries backing up into the available space');
+  assert.ok(backed<(obstacle==='wall'?4.5:2.1),'driver stops before reaching the rear obstacle');
   disposeGroup(root);
 });

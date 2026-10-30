@@ -152,5 +152,25 @@
     "grainFrequency": 13,
     "warpFrequency": 1,
     "direction": "horizontal"
+  },
+  "needles": {
+    "type": "pattern",
+    "pattern": "grass",
+    "size": 256,
+    "worldScale": 1,
+    "anisotropy": 8,
+    "repeat": [
+      3,
+      2
+    ],
+    "base": 225,
+    "grain": 42,
+    "frequency": 1,
+    "patch": 34,
+    "patchCells": 16,
+    "blades": 6500,
+    "bladeWidth": 1,
+    "bladeLength": 9,
+    "bladeShade": 65
   }
 }

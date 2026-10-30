@@ -1,3 +1,5 @@
+import { createDeciduousGeometry } from './trees.ts';
+import treeAsset from '../assets/trees.json' with { type: 'json' };
 import { applyFacadeUVs } from './textures.ts';
 import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
 import materialAsset from '../assets/materials/holmahult-scenery.json' with { type: 'json' };
@@ -199,14 +201,16 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
     for(let t=details.boundaryTreeStart;t<1;t+=details.boundaryTreeSpacing)sites.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+details.boundaryTreeOffset]);
   }
   const clear=sites.filter(([x,z])=>course.nearestRoad(x,z).distance>course.nearestRoad(x,z).width/2+4&&!holmahultBuildings.some(b=>Math.hypot(x-b.x,z-b.z)<Math.hypot(b.width,b.depth)/2+2));
-  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(...asset.trunkGeometry as [number, number, number, number]),white,clear.length);
-  const crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(...asset.crownGeometry as [number, number]),createSceneryMaterial('holmahult-scenery.crownMaterial',materialAsset.crownMaterial),clear.length);
+  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(...treeAsset.deciduous.trunk as [number, number, number, number]),createSceneryMaterial('holmahult-scenery.bark',materialAsset.bark),clear.length);
+  const treeGeometry=createDeciduousGeometry();
+  const branches=new THREE.InstancedMesh(treeGeometry.branches,trunks.material,clear.length);
+  const crowns=new THREE.InstancedMesh(treeGeometry.crown,createSceneryMaterial('holmahult-scenery.crownMaterial',materialAsset.crownMaterial),clear.length);
   crowns.userData.seasonalSurface='deciduous';
   clear.forEach(([x,z],i)=>{
     const base=course.height(x,z),s=details.treeScale+random()*details.treeScaleRange;dummy.rotation.set(0,random()*details.treeRotation,0);
-    dummy.position.set(x,base+details.trunkY*s,z);dummy.scale.set(s,s,s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);
-    dummy.position.y=base+details.crownY*s;dummy.scale.set(details.crownScale[0]*s,details.crownScale[1]*s,details.crownScale[2]*s);dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix);
+    dummy.position.set(x,base+treeAsset.deciduous.trunkY*s,z);dummy.scale.set(s,s,s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);
+    dummy.position.y=base;dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix);branches.setMatrixAt(i,dummy.matrix);
     collisions.add({id:`holmahult-birch-${i}`,x,z,radius:details.trunkRadius*s,kind:'tree'});
   });
-  for(const mesh of [trunks,crowns]){mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);}
+  for(const mesh of [trunks,branches,crowns]){mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);}
 }

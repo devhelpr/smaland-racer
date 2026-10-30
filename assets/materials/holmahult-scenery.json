@@ -37,6 +37,17 @@
   "crownMaterial": {
     "color": "#79945b",
     "roughness": 1,
-    "flatShading": true
+    "flatShading": false,
+    "vertexColors": true,
+    "map": "needles",
+    "bumpMap": "needles",
+    "bumpScale": 0.045
+  },
+  "bark": {
+    "color": "#d7d3c4",
+    "roughness": 1,
+    "map": "bark",
+    "bumpMap": "bark",
+    "bumpScale": 0.07
   }
 }

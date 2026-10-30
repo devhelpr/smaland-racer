@@ -37,7 +37,11 @@
   "foliageMaterial": {
     "color": "#ffffff",
     "roughness": 1,
-    "flatShading": true
+    "flatShading": false,
+    "vertexColors": true,
+    "map": "needles",
+    "bumpMap": "needles",
+    "bumpScale": 0.045
   },
   "rockMaterial": {
     "color": "#8a8b7e",

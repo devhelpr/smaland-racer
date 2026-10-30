@@ -3,7 +3,7 @@ import textureData from '../assets/materials/textures.json' with { type: 'json' 
 
 type RoadMarking={width:number;dashLength:number;dashOffset:number;position?:number;edgeInset?:number;side?:'left'|'right'};
 type PatternDefinition={type:'pattern';pattern:'grass'|'grain'|'rings'|'boards'|'birch';direction?:'horizontal'|'vertical';size:number;worldScale:number;anisotropy:number;repeat:number[];base:number;grain:number;frequency:number;wave?:number;groove?:number;patch?:number;patchCells?:number;grainFrequency?:number;warpFrequency?:number;blades?:number;bladeWidth?:number;bladeLength?:number;bladeShade?:number;seamWidth?:number;seamShade?:number};
-type FoliageDefinition={type:'foliage';species:'spruce'|'birch';size:number;worldScale:number;anisotropy:number;seed:number;shade:number;shadeRange:number;stemWidth:number;stem:number[];twigStart?:number;twigSpan?:number;twigRise?:number;spreadPower?:number;lengthVariation?:number;needleLengthVariation?:number;needleBackRatio?:number;leafCenter?:number[];leafSpread?:number[];leafStemRatio?:number;leafSizeVariation?:number;twigs?:number;needlesPerTwig?:number;spread?:number;needleLength?:number;needleWidth?:number;leafVeinShade?:number;leafVeinWidth?:number;leafTip?:number;leafBase?:number;twigCount?:number;leafCount?:number;leafRadius?:number[]};
+type FoliageDefinition={type:'foliage';species:'spruce'|'birch';size:number;worldScale:number;anisotropy:number;seed:number;shade:number;shadeRange:number;stemWidth:number;stem:number[];twigJitter?:number;needleJitter?:number;twigStart?:number;twigSpan?:number;twigRise?:number;spreadPower?:number;lengthVariation?:number;needleLengthVariation?:number;needleBackRatio?:number;leafCenter?:number[];leafSpread?:number[];leafStemRatio?:number;leafSizeVariation?:number;twigs?:number;needlesPerTwig?:number;spread?:number;needleLength?:number;needleWidth?:number;leafVeinShade?:number;leafVeinWidth?:number;leafTip?:number;leafBase?:number;twigCount?:number;leafCount?:number;leafRadius?:number[]};
 type TextureDefinition=PatternDefinition | FoliageDefinition | {type:'noise';size:number;minShade:number;shadeRange:number;greenRatio:number;blueRatio:number;opacity:number;worldScale:number;anisotropy:number}
   | {type:'image';url:string;worldScale:number;anisotropy:number}
   | {type:'road';width:number;height:number;minShade:number;shadeRange:number;opacity:number;worldScale:number;anisotropy:number;roadWidth:number;markingColor:string;markings:RoadMarking[]};
@@ -107,16 +107,17 @@ function createFoliageTexture(config:FoliageDefinition):THREE.CanvasTexture {
   line(config.stem[0],config.stem[1],config.stem[2],config.stem[3],config.stemWidth);
   if(config.species==='spruce') {
     for(let twig=0;twig<config.twigs!;twig++) {
-      const t=config.twigStart!+twig/config.twigs!*config.twigSpan!,side=twig%2?1:-1;
+      const t=config.twigStart!+twig/config.twigs!*config.twigSpan!+(random()-.5)*config.twigJitter!,side=twig%2?1:-1;
       const length=config.spread!*Math.pow(Math.sin(Math.PI*t),config.spreadPower!)*(1-config.lengthVariation!+random()*config.lengthVariation!);
       const ax=config.stem[0],ay=t,bx=ax+side*length,by=t+config.twigRise!;
       context.strokeStyle=ink();line(ax,ay,bx,by,config.stemWidth/2);
       for(let needle=0;needle<config.needlesPerTwig!;needle++) {
-        const f=needle/config.needlesPerTwig!,x=ax+(bx-ax)*f,y=ay+(by-ay)*f;
+        const f=(needle+random())/config.needlesPerTwig!,x=ax+(bx-ax)*f,y=ay+(by-ay)*f;
         const reach=config.needleLength!*(1-config.needleLengthVariation!+random()*config.needleLengthVariation!);
         context.strokeStyle=ink();
-        line(x,y,x+side*reach,y+reach,config.needleWidth!);
-        line(x,y,x+side*reach*config.needleBackRatio!,y-reach,config.needleWidth!);
+        const jitter=(random()-.5)*config.needleJitter!;
+        line(x,y,x+side*reach,y+reach+jitter,config.needleWidth!);
+        line(x,y,x+side*reach*config.needleBackRatio!,y-reach+jitter,config.needleWidth!);
       }
     }
   } else {

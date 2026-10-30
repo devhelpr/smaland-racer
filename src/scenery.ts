@@ -1,3 +1,4 @@
+import treeAsset from '../assets/trees.json' with { type: 'json' };
 import { createEvergreenGeometry, createEvergreenTrunkGeometry } from './trees.ts';
 import { createSurfaceMaterial, createSceneryMaterial } from './materials.ts';
 import materialAsset from '../assets/materials/scenery.json' with { type: 'json' };
@@ -148,20 +149,25 @@ export function createScenery(scene: THREE.Group, course: Course, collisions: Co
       }
     }
   }
-  const trunk = new THREE.InstancedMesh(createEvergreenTrunkGeometry(), createSceneryMaterial('scenery.trunkMaterial',materialAsset.trunkMaterial), treePositions.length);
-  const foliage = new THREE.InstancedMesh(createEvergreenGeometry(), createSceneryMaterial('scenery.foliageMaterial',materialAsset.foliageMaterial), treePositions.length);
-  trunk.name='forest-trunks';foliage.name='forest-boughs';
+  const trunkMaterial=createSceneryMaterial('scenery.trunkMaterial',materialAsset.trunkMaterial);
+  const foliageMaterial=createSceneryMaterial('scenery.foliageMaterial',materialAsset.foliageMaterial);
+  const forestVariants=treeAsset.evergreen.variants.map((_,variant)=>{
+    const count=Math.max(0,Math.ceil((treePositions.length-variant)/treeAsset.evergreen.variants.length));
+    const trunk=new THREE.InstancedMesh(createEvergreenTrunkGeometry(variant),trunkMaterial,count);
+    const foliage=new THREE.InstancedMesh(createEvergreenGeometry(variant),foliageMaterial,count);
+    trunk.name=`forest-trunks-${variant}`;foliage.name=`forest-boughs-${variant}`;
+    foliage.userData.seasonalSurface='evergreen';return {trunk,foliage};
+  });
   const dummy = new THREE.Object3D();
   treePositions.forEach((tree, i) => {
-    const base = terrainHeight(tree.x, tree.z);
+    const base = terrainHeight(tree.x, tree.z),variant=forestVariants[i%forestVariants.length],index=Math.floor(i/forestVariants.length);
     collisions.add({id:`tree-${i}`,x:tree.x,z:tree.z,radius:placement.trees.colliderRadius*tree.scale,kind:'tree'});
     dummy.rotation.set(0, tree.rotation, 0); dummy.scale.setScalar(tree.scale);
-    dummy.position.set(tree.x, base, tree.z); dummy.updateMatrix(); trunk.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(tree.x, base, tree.z); dummy.updateMatrix();variant.trunk.setMatrixAt(index,dummy.matrix);variant.foliage.setMatrixAt(index,dummy.matrix);
     const color = new THREE.Color().setHSL(materialAsset.foliageColor.hue + random() * materialAsset.foliageColor.hueRange, materialAsset.foliageColor.saturation + random() * materialAsset.foliageColor.saturationRange, materialAsset.foliageColor.lightness + random() * materialAsset.foliageColor.lightnessRange);
-    dummy.position.y=base;dummy.updateMatrix();foliage.setMatrixAt(i,dummy.matrix);foliage.setColorAt(i,color);
+    variant.foliage.setColorAt(index,color);
   });
-  foliage.userData.seasonalSurface='evergreen';
-  for (const mesh of [trunk, foliage]) { mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); }
+  for(const {trunk,foliage} of forestVariants)for(const mesh of [trunk,foliage]){mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);}
 
   const rockPositions: THREE.Vector3[] = [];
   for (let i = 0; i < placement.rocks.count; i++) {

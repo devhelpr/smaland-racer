@@ -15,33 +15,58 @@ function merge(parts:THREE.BufferGeometry[]):THREE.BufferGeometry {
   const result=mergeGeometries(parts)!;parts.forEach(part=>part.dispose());return result;
 }
 
-function boughs() {
-  const config=data.evergreen,random=generator(data.seed);
+function evergreenShape(point:THREE.Vector3,variant:number):THREE.Vector3 {
+  const config=data.evergreen,form=config.variants[variant];
+  const bend=Math.sin(point.y*config.trunkBendFrequency)*config.trunkBend;
+  return point.set(point.x*form.width+point.y*form.lean+bend,point.y*form.height,point.z*form.width);
+}
+
+function boughs(variant:number) {
+  const config=data.evergreen,form=config.variants[variant],random=generator(data.seed+variant);
   return config.layers.flatMap(([height,radius],layer)=>{
     const count=config.branchCount-layer%config.branchCountVariation;
-    return Array.from({length:count},(_,branch)=>({
-      angle:branch/count*Math.PI*2+layer*config.phase+(random()-.5)*config.angleJitter,
-      length:radius*(1+(random()-.5)*config.lengthVariation),
-      height:height+(random()-.5)*config.heightJitter,
-      shade:config.shade+random()*config.shadeRange
-    }));
+    return Array.from({length:count},(_,branch)=>{
+      const angle=branch/count*Math.PI*2+layer*config.phase+form.phase+(random()-.5)*config.angleJitter;
+      const length=radius*(1+(random()-.5)*config.lengthVariation),y=height+(random()-.5)*config.heightJitter;
+      const start=new THREE.Vector3(0,y,0);
+      const middle=new THREE.Vector3(Math.cos(angle)*length/2,y-config.droop*length,Math.sin(angle)*length/2);
+      const end=new THREE.Vector3(Math.cos(angle)*length,y-(config.droop-config.tipLift)*length,Math.sin(angle)*length);
+      return {curve:new THREE.QuadraticBezierCurve3(start,middle,end),angle,length,shade:config.shade+random()*config.shadeRange,present:random()>form.sparse};
+    }).filter(branch=>branch.present);
   });
 }
 
-/** Crossed, curved needle sprays have actual gaps and fine silhouettes at every viewing angle. */
-export function createEvergreenGeometry():THREE.BufferGeometry {
-  const config=data.evergreen,parts:THREE.BufferGeometry[]=[];
-  for(const bough of boughs())for(let plane=0;plane<config.cardPlanes;plane++) {
-    const geometry=new THREE.PlaneGeometry(bough.length*config.widthRatio*2,bough.length,1,config.cardSegments);
-    const positions=geometry.getAttribute('position'),uv=geometry.getAttribute('uv');
-    const roll=plane/config.cardPlanes*Math.PI;
+/** Small sprays grow from curved boughs instead of forming large intersecting fern planes. */
+export function createEvergreenGeometry(variant=0):THREE.BufferGeometry {
+  const config=data.evergreen,random=generator(data.seed+variant),parts:THREE.BufferGeometry[]=[];
+  const spray=(origin:THREE.Vector3,direction:THREE.Vector3,length:number,width:number,roll:number,value:number)=>{
+    const forward=direction.clone().normalize();
+    const across=new THREE.Vector3().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize().applyAxisAngle(forward,roll);
+    const geometry=new THREE.PlaneGeometry(width,length,1,2),positions=geometry.getAttribute('position'),uv=geometry.getAttribute('uv'),normals=geometry.getAttribute('normal');
     for(let i=0;i<positions.count;i++) {
-      const t=uv.getY(i),across=positions.getX(i),outward=t*bough.length;
-      const side=across*Math.cos(roll);
-      const y=bough.height-config.droop*bough.length*Math.sin(t*Math.PI/2)+config.tipLift*bough.length*t*t+across*Math.sin(roll);
-      positions.setXYZ(i,Math.cos(bough.angle)*outward-Math.sin(bough.angle)*side,y,Math.sin(bough.angle)*outward+Math.cos(bough.angle)*side);
+      const t=uv.getY(i),point=origin.clone().addScaledVector(forward,t*length).addScaledVector(across,positions.getX(i));
+      point.y-=Math.sin(t*Math.PI)*length*config.sprayDroop;
+      evergreenShape(point,variant);positions.setXYZ(i,point.x,point.y,point.z);
+      const normal=new THREE.Vector3(point.x,config.normalUp,point.z).normalize();normals.setXYZ(i,normal.x,normal.y,normal.z);
     }
-    geometry.computeVertexNormals();shade(geometry,bough.shade);parts.push(geometry);
+    shade(geometry,value);parts.push(geometry);
+  };
+  for(const bough of boughs(variant)) {
+    for(let twig=0;twig<config.twigCount;twig++)for(const side of [-1,1]) {
+      const t=config.twigStart+(1-config.twigStart)*twig/config.twigCount;
+      const origin=bough.curve.getPoint(t),tangent=bough.curve.getTangent(t).multiplyScalar(config.sprayForward);
+      const lateral=new THREE.Vector3(-Math.sin(bough.angle),0,Math.cos(bough.angle)).multiplyScalar(side*config.twigReach);
+      const direction=tangent.add(lateral);direction.y-=config.sprayDroop;
+      const length=Math.min(bough.length*(1-t)*config.twigReach+config.sprayMinLength,config.sprayLength)*(1+(random()-.5)*config.lengthVariation);
+      spray(origin,direction,length,length*config.sprayWidth,(random()-.5)*config.sprayRoll,bough.shade+(random()-.5)*config.needleShadeVariation);
+    }
+    const endpoint=bough.curve.getPoint(1),tangent=bough.curve.getTangent(1);
+    spray(endpoint,tangent,config.sprayMinLength,config.sprayMinLength*config.sprayWidth,random()*Math.PI,bough.shade);
+  }
+  // Young upright shoots conceal the otherwise bare pole at the very top.
+  for(let shoot=0;shoot<config.leaderSprays;shoot++) {
+    const t=shoot/config.leaderSprays,height=config.leaderStart+(config.trunk[2]-config.leaderStart)*t,angle=shoot*config.phase;
+    spray(new THREE.Vector3(0,height,0),new THREE.Vector3(Math.cos(angle)*(1-t),1,Math.sin(angle)*(1-t)),config.leaderLength*(1-t/2),config.leaderWidth*(1-t/2),angle,config.shade+random()*config.shadeRange);
   }
   return merge(parts);
 }
@@ -53,13 +78,18 @@ function branchBetween(start:THREE.Vector3,end:THREE.Vector3,radius:number,segme
   branch.translate(...start.clone().add(end).multiplyScalar(.5).toArray());return branch;
 }
 
-export function createEvergreenTrunkGeometry():THREE.BufferGeometry {
+export function createEvergreenTrunkGeometry(variant=0):THREE.BufferGeometry {
   const config=data.evergreen;
-  const trunk=new THREE.CylinderGeometry(...config.trunk as [number,number,number,number]);trunk.translate(0,config.trunkY,0);
+  const trunk=new THREE.CylinderGeometry(...config.trunk as [number,number,number,number],config.woodSegments);trunk.translate(0,config.trunkY,0);
+  const positions=trunk.getAttribute('position');
+  for(let i=0;i<positions.count;i++) {
+    const point=evergreenShape(new THREE.Vector3().fromBufferAttribute(positions,i),variant);positions.setXYZ(i,point.x,point.y,point.z);
+  }
+  trunk.computeVertexNormals();
   const parts:THREE.BufferGeometry[]=[trunk];
-  for(const bough of boughs()) {
-    const end=new THREE.Vector3(Math.cos(bough.angle)*bough.length,bough.height-(config.droop-config.tipLift)*bough.length,Math.sin(bough.angle)*bough.length);
-    parts.push(branchBetween(new THREE.Vector3(0,bough.height,0),end,config.branchRadius,config.branchSegments));
+  for(const bough of boughs(variant))for(let segment=0;segment<config.woodSegments;segment++) {
+    const t=segment/config.woodSegments,next=(segment+1)/config.woodSegments;
+    parts.push(branchBetween(evergreenShape(bough.curve.getPoint(t),variant),evergreenShape(bough.curve.getPoint(next),variant),config.branchRadius*(1-t),config.branchSegments,config.branchRadius*(1-next)));
   }
   return merge(parts);
 }

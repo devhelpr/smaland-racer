@@ -8,14 +8,13 @@
       12
     ],
     "trunkY": 4.9,
-    "branchCount": 9,
+    "branchCount": 8,
     "branchCountVariation": 3,
     "phase": 2.399963,
-    "angleJitter": 0.4,
-    "lengthVariation": 0.38,
-    "widthRatio": 0.52,
-    "droop": 0.24,
-    "tipLift": 0.08,
+    "angleJitter": 0.65,
+    "lengthVariation": 0.5,
+    "droop": 0.22,
+    "tipLift": 0.14,
     "shade": 0.85,
     "shadeRange": 0.2,
     "layers": [
@@ -68,11 +67,50 @@
         0.28
       ]
     ],
-    "cardPlanes": 3,
-    "cardSegments": 5,
-    "heightJitter": 0.32,
-    "branchRadius": 0.032,
-    "branchSegments": 5
+    "heightJitter": 0.45,
+    "branchRadius": 0.05,
+    "branchSegments": 3,
+    "woodSegments": 3,
+    "twigCount": 7,
+    "twigStart": 0.22,
+    "twigReach": 0.9,
+    "sprayLength": 0.8,
+    "sprayMinLength": 0.28,
+    "sprayWidth": 0.72,
+    "sprayDroop": 0.24,
+    "sprayRoll": 1.6,
+    "normalUp": 0.7,
+    "needleShadeVariation": 0.13,
+    "trunkBend": 0.09,
+    "trunkBendFrequency": 0.36,
+    "leaderStart": 8.5,
+    "leaderSprays": 11,
+    "leaderWidth": 0.24,
+    "leaderLength": 0.55,
+    "variants": [
+      {
+        "width": 1,
+        "height": 1,
+        "lean": 0.025,
+        "phase": 0,
+        "sparse": 0.04
+      },
+      {
+        "width": 0.8,
+        "height": 1.12,
+        "lean": -0.035,
+        "phase": 0.8,
+        "sparse": 0.12
+      },
+      {
+        "width": 1.1,
+        "height": 0.94,
+        "lean": 0.045,
+        "phase": 1.7,
+        "sparse": 0.08
+      }
+    ],
+    "sprayForward": 0.5
   },
   "deciduous": {
     "trunk": [

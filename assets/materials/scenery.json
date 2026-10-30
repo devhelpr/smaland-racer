@@ -40,7 +40,7 @@
     "flatShading": false,
     "vertexColors": true,
     "map": "spruceSpray",
-    "alphaTest": 0.4,
+    "alphaTest": 0.3,
     "side": "double"
   },
   "rockMaterial": {

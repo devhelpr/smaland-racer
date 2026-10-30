@@ -22,5 +22,17 @@
     "halfWidth": 2.3,
     "stoppingGap": 5,
     "speedResponse": 0.8
+  },
+  "meeting": {
+    "lookAhead": 45,
+    "rearClearance": 9,
+    "clearance": 0.4,
+    "shoulderAllowance": 1,
+    "steeringResponse": 3,
+    "maxSteeringAngle": 0.22,
+    "narrowSpeed": 3,
+    "followingDistance": 20,
+    "followingGap": 7,
+    "followingResponse": 0.65
   }
 }

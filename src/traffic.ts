@@ -1,3 +1,4 @@
+import { trafficRoutes, type TrafficRoute } from './traffic-routes.ts';
 import { createATractor } from './traffic-model.ts';
 import materialAsset from '../assets/materials/traffic.json' with { type: 'json' };
 import placement from '../parcours/traffic.json' with { type: 'json' };
@@ -12,6 +13,10 @@ interface ATractor {
   wheels: THREE.Group[];
   collider: BoxCollider;
   distance: number;
+  route: TrafficRoute;
+  direction: number;
+  laneOffset: number;
+  laneVelocity: number;
   baseSpeed: number;
   speed: number;
   active: boolean;
@@ -22,7 +27,7 @@ interface ATractor {
   returnDelay: number;
 }
 
-/** Slow same-direction traffic keeps right within the available road width. */
+/** Two-way slow traffic keeps right and makes room for oncoming vehicles. */
 export class Traffic {
   readonly vehicles: ATractor[] = [];
   readonly course: Course;
@@ -33,32 +38,42 @@ export class Traffic {
     this.world = world;
     if(course.definition.setting==='sandsjon')return;
     const random = randomGenerator(course.definition.seed + placement.seedOffset);
-    const count = Math.max(placement.minCount, Math.min(placement.maxCount, Math.ceil(course.length / placement.lengthPerVehicle)));
-    for (let i=0;i<count;i++) {
-      const {mesh,wheels}=createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i);
-      const baseSpeed=placement.baseSpeed+random()*placement.speedRange;
-      const collider: BoxCollider={id:`a-tractor-${i}`,x:0,z:0,...asset.collider,kind:'aTractor',angle:0,active:true,velocity:new THREE.Vector3()};
-      const vehicle: ATractor={mesh,wheels,collider,distance:placement.startDistance+i*(course.length-placement.finishClearance)/count,baseSpeed,speed:baseSpeed,active:true,offset:new THREE.Vector3(),velocity:new THREE.Vector3(),yaw:0,angularVelocity:0,returnDelay:0};
-      collider.onPush=(relative,normal,dt,position)=>this.push(vehicle,relative,normal,dt,position);
-      this.vehicles.push(vehicle);world.dynamic.push(collider);group.add(mesh);this.place(vehicle);
+    for(const route of trafficRoutes(course)) {
+      const count = Math.max(placement.minCount, Math.min(placement.maxCount, Math.ceil(route.length / placement.lengthPerVehicle)));
+      for (let i=0;i<count;i++) {
+        const {mesh,wheels}=createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i);
+        const baseSpeed=placement.baseSpeed+random()*placement.speedRange;
+        const collider: BoxCollider={id:`a-tractor-${route.id}-${i}`,x:0,z:0,...asset.collider,kind:'aTractor',angle:0,active:true,velocity:new THREE.Vector3()};
+        const vehicle: ATractor={mesh,wheels,collider,distance:placement.startDistance+i*(route.length-placement.finishClearance)/count,route,direction:placement.directions[i%placement.directions.length],laneOffset:this.normalLaneOffset(route),laneVelocity:0,baseSpeed,speed:baseSpeed,active:true,offset:new THREE.Vector3(),velocity:new THREE.Vector3(),yaw:0,angularVelocity:0,returnDelay:0};
+        collider.onPush=(relative,normal,dt,position)=>this.push(vehicle,relative,normal,dt,position);
+        this.vehicles.push(vehicle);world.dynamic.push(collider);group.add(mesh);this.place(vehicle);
+      }
     }
   }
 
+  private normalLaneOffset(route:TrafficRoute):number {
+    return Math.min(route.width*placement.laneOffset,Math.max(0,route.width/2-asset.collider.halfX));
+  }
+
+  private sample(vehicle:ATractor) {
+    const sample=vehicle.route.sample(vehicle.distance);
+    return {point:sample.point,tangent:sample.tangent.clone().multiplyScalar(vehicle.direction)};
+  }
+
   private place(vehicle: ATractor): void {
-    const sample=this.course.sample(vehicle.distance/this.course.length);
-    const side=new THREE.Vector3(-sample.tangent.z,0,sample.tangent.x);
-    const width=this.course.definition.width;
-    const offset=Math.min(width*placement.laneOffset,Math.max(0,width/2-asset.collider.halfX));
+    const sample=this.sample(vehicle);
+    const side=new THREE.Vector3(sample.tangent.z,0,-sample.tangent.x);
+    const offset=vehicle.laneOffset;
     vehicle.mesh.position.copy(sample.point).addScaledVector(side,offset).add(vehicle.offset);
     const {x,z}=vehicle.mesh.position;
     vehicle.mesh.position.y=this.course.height(x,z)+placement.groundOffset;
-    const heading=Math.atan2(sample.tangent.x,sample.tangent.z)+vehicle.yaw;
+    const heading=Math.atan2(sample.tangent.x,sample.tangent.z)+vehicle.yaw+THREE.MathUtils.clamp(Math.atan2(vehicle.laneVelocity,Math.max(vehicle.speed,1)),-physics.meeting.maxSteeringAngle,physics.meeting.maxSteeringAngle);
     const front=this.course.height(x+sample.tangent.x,z+sample.tangent.z);
     const back=this.course.height(x-sample.tangent.x,z-sample.tangent.z);
     const across=this.course.height(x+side.x,z+side.z)-this.course.height(x-side.x,z-side.z);
     vehicle.mesh.rotation.set(-Math.atan((front-back)/2),heading,-Math.atan(across/2));
     vehicle.collider.x=x;vehicle.collider.z=z;vehicle.collider.angle=heading;
-    vehicle.collider.velocity!.copy(sample.tangent).multiplyScalar(vehicle.speed).add(vehicle.velocity);
+    vehicle.collider.velocity!.copy(sample.tangent).multiplyScalar(vehicle.speed).addScaledVector(side,vehicle.laneVelocity).add(vehicle.velocity);
     vehicle.collider.angularVelocity=vehicle.angularVelocity;
   }
 
@@ -124,20 +139,38 @@ export class Traffic {
 
   update(dt: number, playerPosition?: THREE.Vector3, playerVelocity?:THREE.Vector3): void {
     if (dt<=0) return;
-    for (const vehicle of this.vehicles) {
-      if (!vehicle.active) continue;
-      let targetSpeed=vehicle.baseSpeed;
-      for(const other of this.vehicles) {
+    // Plan from one shared snapshot so neither driver reacts to a partially updated frame.
+    const samples=this.vehicles.map(vehicle=>this.sample(vehicle));
+    const plans=this.vehicles.map((vehicle,index)=> {
+      let targetSpeed=vehicle.baseSpeed,targetLane=this.normalLaneOffset(vehicle.route);
+      if(!vehicle.active)return {targetSpeed,targetLane};
+      const {tangent}=samples[index],right=new THREE.Vector3(tangent.z,0,-tangent.x);
+      for(const [otherIndex,other] of this.vehicles.entries()) {
         if(other===vehicle||!other.active)continue;
-        let gap=other.distance-vehicle.distance;
-        if(this.course.definition.closed&&gap<0)gap+=this.course.length;
-        if(gap>0&&gap<20)targetSpeed=Math.min(targetSpeed,Math.max(0,(gap-7)*.65));
+        const relative=other.mesh.position.clone().sub(vehicle.mesh.position).setY(0);
+        const forward=relative.dot(tangent),lateral=relative.dot(right);
+        const alignment=samples[otherIndex].tangent.dot(tangent);
+        if(alignment<-.5&&forward>-physics.meeting.rearClearance&&forward<physics.meeting.lookAhead&&Math.abs(lateral)<vehicle.route.width+physics.meeting.clearance) {
+          const passingOffset=Math.min(vehicle.collider.halfX+physics.meeting.clearance/2,vehicle.route.width/2-vehicle.collider.halfX+physics.meeting.shoulderAllowance);
+          targetLane=Math.max(targetLane,passingOffset);
+          if(vehicle.route.width<4*vehicle.collider.halfX+physics.meeting.clearance)targetSpeed=Math.min(targetSpeed,physics.meeting.narrowSpeed);
+        } else if(alignment>.5&&Math.abs(lateral)<vehicle.collider.halfX+other.collider.halfX+physics.meeting.clearance) {
+          let gap=(other.distance-vehicle.distance)*vehicle.direction;
+          if(other.route!==vehicle.route)gap=forward;
+          else if(vehicle.route.closed&&gap<0)gap+=vehicle.route.length;
+          if(gap>0&&gap<physics.meeting.followingDistance)targetSpeed=Math.min(targetSpeed,Math.max(0,(gap-physics.meeting.followingGap)*physics.meeting.followingResponse));
+        }
       }
+      return {targetSpeed,targetLane};
+    });
+    for (const [index,vehicle] of this.vehicles.entries()) {
+      if (!vehicle.active) continue;
+      let {targetSpeed}=plans[index];
       if(playerPosition&&vehicle.returnDelay===0) {
-        const sample=this.course.sample(vehicle.distance/this.course.length);
+        const sample=this.sample(vehicle);
         const relative=playerPosition.clone().sub(vehicle.mesh.position).setY(0);
         const forward=relative.dot(sample.tangent);
-        const side=new THREE.Vector3(-sample.tangent.z,0,sample.tangent.x);
+        const side=new THREE.Vector3(sample.tangent.z,0,-sample.tangent.x);
         const lateral=relative.dot(side);
         const predicted=lateral+(playerVelocity?.dot(side)??0)*physics.avoidance.predictionTime;
         const crossing=Math.min(lateral,predicted)<physics.avoidance.halfWidth&&Math.max(lateral,predicted)>-physics.avoidance.halfWidth;
@@ -147,9 +180,12 @@ export class Traffic {
       const displaced=vehicle.offset.lengthSq()>1e-10||vehicle.velocity.lengthSq()>1e-10||Math.abs(vehicle.yaw)>1e-6||Math.abs(vehicle.angularVelocity)>1e-6;
       this.integrate(vehicle,dt);
       vehicle.speed=THREE.MathUtils.damp(vehicle.speed,targetSpeed,targetSpeed<vehicle.speed?6:2,dt);
-      vehicle.distance+=vehicle.speed*dt;
-      if(vehicle.distance>=this.course.length) {
-        if(this.course.definition.closed)vehicle.distance%=this.course.length;
+      const oldLane=vehicle.laneOffset;
+      vehicle.laneOffset=THREE.MathUtils.damp(oldLane,plans[index].targetLane,physics.meeting.steeringResponse,dt);
+      vehicle.laneVelocity=(vehicle.laneOffset-oldLane)/dt;
+      vehicle.distance+=vehicle.speed*vehicle.direction*dt;
+      if(vehicle.distance>=vehicle.route.length||vehicle.distance<0) {
+        if(vehicle.route.closed)vehicle.distance=THREE.MathUtils.euclideanModulo(vehicle.distance,vehicle.route.length);
         else {vehicle.active=false;vehicle.collider.active=false;vehicle.mesh.visible=false;continue;}
       }
       this.place(vehicle);

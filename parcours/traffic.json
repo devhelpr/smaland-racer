@@ -8,5 +8,17 @@
   "startDistance": 38,
   "finishClearance": 90,
   "laneOffset": 0.22,
-  "groundOffset": 0.13
+  "groundOffset": 0.13,
+  "directions": [
+    1,
+    -1
+  ],
+  "network": {
+    "preferredRoadNames": [
+      "V\u00e4g 120"
+    ],
+    "minLength": 150,
+    "maxRoutes": 4,
+    "joinTolerance": 0.2
+  }
 }

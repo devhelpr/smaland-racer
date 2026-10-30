@@ -1,3 +1,4 @@
+import snowPoleAsset from '../assets/snow-poles.json' with { type: 'json' };
 import { vehicleDefinition, type VehicleId } from './vehicles.ts';
 import type { VehicleAsset } from './vehicle-model.ts';
 import { VehicleLighting } from './lighting.ts';
@@ -140,7 +141,7 @@ export class Vehicle {
         hit.collider.active=false;
         hit.collider.onHit?.(this.velocity.clone());
         // Flexible markers yield to the car, without the bounce or damage of solid scenery.
-        this.velocity.multiplyScalar(.995);
+        this.velocity.multiplyScalar(snowPoleAsset.speedRetention);
         continue;
       }
       const contactPoint=this.position.clone().lerp(destination,hit.time).addScaledVector(bodyAxis,contactOffset).addScaledVector(hit.normal,-CAR_RADIUS);

@@ -7,5 +7,6 @@
   "shaftSegments": 6,
   "spacing": 28,
   "roadOffset": 0.9,
+  "speedRetention": 0.995,
   "colliderRadius": 0.055
 }

@@ -1,3 +1,4 @@
+import snowPoleAsset from '../assets/snow-poles.json' with { type: 'json' };
 import { trafficRoutes, type TrafficRoute } from './traffic-routes.ts';
 import { steerTrafficWheels } from './traffic-wheels.ts';
 import { steerTraffic, moveTraffic, type TrafficDriveState } from './traffic-steering.ts';
@@ -152,7 +153,7 @@ export class Traffic {
     // Hold an avoidance choice until the rear has cleared it, rather than switching sides each frame.
     const sight=this.routeSample(vehicle,vehicle.distance+vehicle.direction*Math.max(preview,config.obstacleLookAhead));
     sight.point.addScaledVector(new THREE.Vector3(sight.tangent.z,0,-sight.tangent.x),vehicle.direction*targetLane);
-    const hit=this.world.sweep(vehicle.drive.position,sight.point,true,vehicle.collider);
+    const hit=this.world.sweep(vehicle.drive.position,sight.point,true,vehicle.collider,['snowPole']);
     vehicle.obstacleTime=Math.max(0,vehicle.obstacleTime-dt);
     if(vehicle.obstacleTime===0)vehicle.obstacleLane=null;
     if(hit&&hit.collider.kind!=='aTractor'&&(hit.time>0||aim.point.clone().sub(vehicle.drive.position).dot(hit.normal)<0)) {
@@ -160,7 +161,7 @@ export class Traffic {
       for(const side of [1,-1]) {
         const lane=THREE.MathUtils.clamp(targetLane+side*config.obstacleOffset,-vehicle.route.width/2+vehicle.collider.halfX,vehicle.route.width/2+physics.meeting.shoulderAllowance-vehicle.collider.halfX);
         const candidate=sight.point.clone().addScaledVector(right,lane-targetLane);
-        const obstruction=this.world.sweep(vehicle.drive.position,candidate,true,vehicle.collider);
+        const obstruction=this.world.sweep(vehicle.drive.position,candidate,true,vehicle.collider,['snowPole']);
         if(!obstruction) {
           vehicle.obstacleLane=lane;vehicle.obstacleTime=config.avoidanceHoldTime;clear=true;break;
         }
@@ -280,7 +281,16 @@ export class Traffic {
       const reach=end*Math.max(0,vehicle.collider.halfZ-CAR_RADIUS);
       const from=previous.clone().add(new THREE.Vector3(Math.sin(heading)*reach,0,Math.cos(heading)*reach));
       const to=destination.clone().add(new THREE.Vector3(Math.sin(vehicle.collider.angle)*reach,0,Math.cos(vehicle.collider.angle)*reach));
-      const hit=this.world.sweep(from,to,true,vehicle.collider);
+      let hit=this.world.sweep(from,to,true,vehicle.collider);
+      // Flexible markers yield at actual body contact; they must not hide a solid obstacle behind them.
+      while(hit?.collider.kind==='snowPole'&&vehicle.velocity.lengthSq()>1e-6) {
+        hit.collider.active=false;
+        hit.collider.onHit?.(vehicle.velocity.clone());
+        vehicle.velocity.multiplyScalar(snowPoleAsset.speedRetention);
+        vehicle.speed=vehicle.velocity.dot(new THREE.Vector3(Math.sin(vehicle.drive.heading),0,Math.cos(vehicle.drive.heading)));
+        this.place(vehicle);
+        hit=this.world.sweep(from,to,true,vehicle.collider);
+      }
       if(hit&&(hit.time>0||to.clone().sub(from).dot(hit.normal)<0)&&(!nearest||hit.time<nearest.time)) {nearest=hit;contactReach=reach;}
     }
     if(!nearest) {vehicle.blockedTime=Math.max(0,vehicle.blockedTime-dt*physics.recovery.blockedDecay);return;}

@@ -94,14 +94,14 @@ export class CollisionWorld {
         const key=`${x}:${z}`; const cell=this.cells.get(key)??[]; cell.push(collider); this.cells.set(key,cell);
       }
   }
-  sweep(from: THREE.Vector3,to: THREE.Vector3,driveOverRocks=false,ignore?:Collider): Hit|null {
+  sweep(from: THREE.Vector3,to: THREE.Vector3,driveOverRocks=false,ignore?:Collider,ignoreKinds:readonly ObstacleKind[]=[]): Hit|null {
     const candidates=new Set(this.dynamic.filter(c=>c.active!==false));
     for(let x=Math.floor((Math.min(from.x,to.x)-CAR_RADIUS)/this.cellSize);x<=Math.floor((Math.max(from.x,to.x)+CAR_RADIUS)/this.cellSize);x++)
       for(let z=Math.floor((Math.min(from.z,to.z)-CAR_RADIUS)/this.cellSize);z<=Math.floor((Math.max(from.z,to.z)+CAR_RADIUS)/this.cellSize);z++)
         for(const c of this.cells.get(`${x}:${z}`)??[]) candidates.add(c);
     let best: Hit|null=null;
     for(const c of candidates) {
-      if(c===ignore||c.active===false||(driveOverRocks&&this.rockSurfaces.has(c.id))) continue;
+      if(c===ignore||c.active===false||ignoreKinds.includes(c.kind)||(driveOverRocks&&this.rockSurfaces.has(c.id))) continue;
       const hit='halfX' in c?sweepBox(from,to,c as BoxCollider):sweepCircle(from,to,c);
       if(hit&&(!best||hit.time<best.time)) best=hit;
     }

@@ -6,8 +6,9 @@ import materialAsset from '../assets/materials/vehicle.json' with { type: 'json'
 
 type Box = [number,number,number,number,number,number];
 type Point = [number,number,number];
+interface MeshData {vertices:number[][];indices:number[]}
 interface ModelPart {
-  name:string; material:string; box?:number[];
+  name:string; material:string; box?:number[]; mesh?:MeshData;
   beam?:{size:number[];from:number[];to:number[]};
   torus?:number[]; position?:number[]; rotation?:number[];
 }
@@ -15,6 +16,7 @@ export type VehicleAsset = Omit<typeof defaultAsset,'staticParts'|'bodyBevel'|'r
   staticParts:ModelPart[];
   roundedBoxes?:{segments:number;radius:number};
   bodyBevel?:THREE.ExtrudeGeometryOptions;
+  upperBodyMesh?:MeshData;
   wheelParts?:ModelPart[];
   bodyContactBounds?:{min:number[];max:number[];samplesX:number;samplesZ:number};
   lighting?:{beamPosition:number[];ledHousingPosition:number[];ledLensPosition:number[]};
@@ -67,13 +69,23 @@ export function createVehicleModel(root:THREE.Group,variant:Partial<VehicleAsset
   geometry.translate(0,0,-asset.bodyWidth/2);geometry.rotateY(Math.PI/2);
   const body=mesh(root,'vehicle-body',geometry,materials.paint);
   const hood=box(root,'vehicle-hood',asset.hood,materials.paint);
-  box(decoration,'roof',asset.roof,materials.paint);
-  const cabin=new THREE.BufferGeometry();cabin.setAttribute('position',new THREE.Float32BufferAttribute(asset.cabinMesh.vertices.flat(),3));cabin.setIndex(asset.cabinMesh.indices);
-  const glass=cabin.toNonIndexed();cabin.dispose();glass.computeVertexNormals();mesh(decoration,'sloped-glazing',glass,materials.glass);
+  const authoredMesh=(group:THREE.Group,name:string,data:MeshData,material:THREE.Material)=>{
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(data.vertices.flat(),3));
+    geometry.setIndex(data.indices);geometry.computeVertexNormals();
+    return mesh(group,name,geometry,material);
+  };
+  if(asset.upperBodyMesh)authoredMesh(decoration,'upper-body',asset.upperBodyMesh,materials.paint);
+  else {
+    box(decoration,'roof',asset.roof,materials.paint);
+    const cabin=new THREE.BufferGeometry();cabin.setAttribute('position',new THREE.Float32BufferAttribute(asset.cabinMesh.vertices.flat(),3));cabin.setIndex(asset.cabinMesh.indices);
+    const glass=cabin.toNonIndexed();cabin.dispose();glass.computeVertexNormals();mesh(decoration,'sloped-glazing',glass,materials.glass);
+  }
   box(decoration,'front-bumper',asset.frontBumper,materials.trim);box(decoration,'rear-bumper',asset.rearBumper,materials.trim);
   box(decoration,'rear-license-plate',asset.licensePlate,materials.white);
   const addPart=(group:THREE.Group,part:ModelPart)=>{
-    if(part.box)box(group,part.name,part.box,materials[part.material]);
+    if(part.mesh)authoredMesh(group,part.name,part.mesh,materials[part.material]);
+    else if(part.box)box(group,part.name,part.box,materials[part.material]);
     else if(part.beam)beam(group,part.name,part.beam.size,part.beam.from,part.beam.to,materials[part.material]);
     else if(part.torus) {
       const ring=mesh(group,part.name,new THREE.TorusGeometry(...part.torus as [number,number,number,number]),materials[part.material]);

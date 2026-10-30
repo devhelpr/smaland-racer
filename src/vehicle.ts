@@ -8,7 +8,7 @@ import stuntAsset from '../assets/stunts.json' with { type: 'json' };
 import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
 import * as THREE from 'three';
 import type { DrivingWorld } from './driving-world.ts';
-import { CAR_RADIUS, CollisionWorld, impactDamage } from './collision.ts';
+import { CAR_RADIUS, CollisionWorld, impactDamage, boxContactPoint, type BoxCollider } from './collision.ts';
 import trafficPhysics from '../assets/traffic-physics.json' with { type: 'json' };
 import type { DriveInput } from './input.ts';
 import { EngineSmoke } from './engine-smoke.ts';
@@ -26,6 +26,7 @@ export class Vehicle {
   damage = 0;
   impact = 0;
   private age = 0;
+  private impactGripTime=0;
   private contacts = new Map<string, number>();
   private panels: THREE.Mesh[] = [];
   private smoke = new EngineSmoke();
@@ -65,6 +66,7 @@ export class Vehicle {
     this.position.copy(point).addScaledVector(tangent,advance?1.8:0);
     this.position.y=this.course.heightAt(this.position.x,this.position.z);
     this.heading=Math.atan2(tangent.x,tangent.z);
+    this.impactGripTime=0;
     this.smoke.reset();
     this.stunts.reset();
     this.velocity.set(0,0,0); this.forwardSpeed=0; this.steering=0; this.onRoad=true; this.contacts.clear(); this.syncMesh();
@@ -84,11 +86,18 @@ export class Vehicle {
     this.position.y=Math.max(this.position.y,support);
     this.velocity.set(0,0,0);this.forwardSpeed=0;this.steering=0;this.impact=0;this.contacts.clear();
     this.onRoad=['gravel','asphalt','ice'].includes(this.course.surfaceAt(this.position.x,this.position.z));
+    this.impactGripTime=0;
     this.stunts.placeUpright(this.heading);this.syncMesh();
   }
 
   update(dt: number, input: DriveInput, collisions?: CollisionWorld): void {
     this.age+=dt; this.impact=Math.max(0,this.impact-dt*2.5);
+    this.impactGripTime=Math.max(0,this.impactGripTime-dt);
+    if(!this.stunts.active) {
+      const yaw=this.stunts.angularVelocity.y;
+      this.stunts.angularVelocity.y*=Math.exp(-trafficPhysics.contact.playerImpact.yawDamping*dt);
+      this.heading+=(yaw+this.stunts.angularVelocity.y)*dt/2;
+    }
     this.onRoad=['gravel','asphalt','ice'].includes(this.course.surfaceAt(this.position.x,this.position.z));
     const forward=new THREE.Vector3(Math.sin(this.heading),0,Math.cos(this.heading));
     const right=new THREE.Vector3(Math.cos(this.heading),0,-Math.sin(this.heading));
@@ -117,7 +126,12 @@ export class Vehicle {
     const normalGrip=surface.grip/handling.drift;
     const slideGrip=Math.min(handling.handbrakeGrip,normalGrip);
     const lateralDrag=(input.handbrake?Math.min(handling.handbrakeGrip,surface.grip):THREE.MathUtils.lerp(normalGrip,slideGrip,autoDrift))*traction+stuntAsset.airDrag*(1-traction);
-    lateral*=Math.exp(-lateralDrag*dt);
+    if(this.impactGripTime>0&&Math.abs(lateral)>trafficPhysics.contact.playerImpact.gripRecoverySlip)this.impactGripTime=Math.max(this.impactGripTime,dt*2);
+    const gripped=lateral*Math.exp(-lateralDrag*dt);
+    // Impact momentum is arrested by finite tire force, rather than disappearing in one grip response.
+    lateral=this.impactGripTime>0
+      ?lateral+THREE.MathUtils.clamp(gripped-lateral,-trafficPhysics.contact.playerImpact.maxLateralAcceleration*dt,trafficPhysics.contact.playerImpact.maxLateralAcceleration*dt)
+      :gripped;
     this.heading+=this.steering*longitudinal*traction*(handling.steeringStrength/(1+Math.abs(longitudinal)*handling.speedSensitivity))*dt*(input.handbrake?handling.handbrakeTurn:THREE.MathUtils.lerp(1,handling.handbrakeTurn,autoDrift));
     this.velocity.copy(forward).multiplyScalar(longitudinal).addScaledVector(right,lateral);
     this.velocity.y=verticalSpeed;
@@ -144,8 +158,19 @@ export class Vehicle {
         this.velocity.multiplyScalar(snowPoleAsset.speedRetention);
         continue;
       }
-      const contactPoint=this.position.clone().lerp(destination,hit.time).addScaledVector(bodyAxis,contactOffset).addScaledVector(hit.normal,-CAR_RADIUS);
+      let contactPoint=this.position.clone().lerp(destination,hit.time).addScaledVector(bodyAxis,contactOffset).addScaledVector(hit.normal,-CAR_RADIUS);
+      const playerLength=this.asset.frontBumper[5]+this.asset.frontBumper[2]/2-this.asset.rearBumper[5]+this.asset.rearBumper[2]/2;
+      if(hit.collider.onPush&&'halfX' in hit.collider) {
+        const center=this.position.clone().lerp(destination,hit.time);
+        contactPoint=boxContactPoint(contactPoint,hit.normal,{x:center.x,z:center.z,halfX:this.asset.bodyWidth/2,halfZ:playerLength/2,angle:this.heading},hit.collider as BoxCollider);
+      }
+      const playerMass=trafficPhysics.contact.playerMass;
+      const playerInertia=playerMass*(this.asset.bodyWidth**2+playerLength**2)/12;
+      const rx=contactPoint.x-this.position.x,rz=contactPoint.z-this.position.z;
+      const playerLever=rz*hit.normal.x-rx*hit.normal.z;
       const relativeVelocity=this.velocity.clone().sub(hit.collider.velocity??new THREE.Vector3());
+      relativeVelocity.x+=this.stunts.angularVelocity.y*rz;
+      relativeVelocity.z-=this.stunts.angularVelocity.y*rx;
       const spin=hit.collider.angularVelocity??0;
       relativeVelocity.x-=spin*(contactPoint.z-hit.collider.z);
       relativeVelocity.z+=spin*(contactPoint.x-hit.collider.x);
@@ -156,19 +181,23 @@ export class Vehicle {
       if(inward>0) {
         let impulseResponse:number|void=undefined;
         if(!pushed.has(hit.collider.id)) {
-          impulseResponse=hit.collider.onPush?.(relativeVelocity,hit.normal,dt,contactPoint);
+          impulseResponse=hit.collider.onPush?.(relativeVelocity,hit.normal,dt,contactPoint,{mass:playerMass,inertia:playerInertia,lever:playerLever});
           pushed.add(hit.collider.id);
-        }
+        } else if(hit.collider.onPush)impulseResponse=0;
         if(this.age-(this.contacts.get(hit.collider.id)??-Infinity)>.65) {
           const damage=softTraffic?0:impactDamage(inward,hit.collider.kind);
           this.damage=Math.min(100,this.damage+damage); this.contacts.set(hit.collider.id,this.age);
           hit.collider.onHit?.(this.velocity.clone());
           if(!softTraffic) {
             this.impact=Math.min(1,inward/15);
-            this.heading+=(hit.normal.x*forward.z-hit.normal.z*forward.x)*Math.min(.3,inward*.012);
+            if(typeof impulseResponse!=='number')this.heading+=(hit.normal.x*forward.z-hit.normal.z*forward.x)*Math.min(.3,inward*.012);
           }
         }
-        if(typeof impulseResponse==='number')this.velocity.addScaledVector(hit.normal,impulseResponse);
+        if(typeof impulseResponse==='number') {
+          this.velocity.addScaledVector(hit.normal,impulseResponse);
+          this.stunts.angularVelocity.y=THREE.MathUtils.clamp(this.stunts.angularVelocity.y+impulseResponse*playerMass*playerLever/playerInertia,-trafficPhysics.contact.playerImpact.maxAngularSpeed,trafficPhysics.contact.playerImpact.maxAngularSpeed);
+          if(inward>trafficPhysics.contact.playerImpact.minimumSpeed)this.impactGripTime=trafficPhysics.contact.playerImpact.gripRecoveryTime;
+        }
         else this.velocity.addScaledVector(hit.normal,inward*(softTraffic?1:1.12)).multiplyScalar(softTraffic?1:.7);
       }
       remaining*=1-hit.time;

@@ -74,7 +74,7 @@ function start(): void {
     setTimeOfDay(progress.timeOfDay??'day');
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
     wildlife=new Wildlife(course,world,group,seed[0]);
-    traffic=new Traffic(course,world,group);
+    traffic=new Traffic(course,world,group,car);
     traffic.setTimeOfDay(progress.timeOfDay??'day',car.position,car.heading);
     race=new Race(course);lastImpact=0;personalBest=false;previousBest=null;
     checkpointGates=new CheckpointGates(course,world);group.add(checkpointGates.root);

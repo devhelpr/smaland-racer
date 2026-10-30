@@ -24,11 +24,11 @@ export function createRendering(container: HTMLElement) {
   window.addEventListener('resize', resize); resize();
   function follow(vehicle: Vehicle, dt: number, snap = false) {
     const forward = new THREE.Vector3(Math.sin(vehicle.heading), 0, Math.cos(vehicle.heading));
-    desired.copy(vehicle.position).addScaledVector(forward, -10.5 - Math.abs(vehicle.forwardSpeed) * 0.065); desired.y += 6.8;
-    desired.y = Math.max(desired.y, vehicle.course.heightAt(desired.x, desired.z) + 2.5);
-    target.copy(vehicle.position).addScaledVector(forward, 7); target.y += 1.1;
-    camera.position.lerp(desired, snap ? 1 : 1 - Math.exp(-5 * dt));
-    lookAt.lerp(target, snap ? 1 : 1 - Math.exp(-7 * dt)); camera.lookAt(lookAt);
+    desired.copy(vehicle.position).addScaledVector(forward, -asset.follow.distance - Math.abs(vehicle.forwardSpeed) * asset.follow.speedDistance); desired.y += asset.follow.height;
+    desired.y = Math.max(desired.y, vehicle.course.heightAt(desired.x, desired.z) + asset.follow.minGroundClearance);
+    target.copy(vehicle.position).addScaledVector(forward, asset.follow.lookAhead); target.y += asset.follow.lookHeight;
+    camera.position.lerp(desired, snap ? 1 : 1 - Math.exp(-asset.follow.positionResponse * dt));
+    lookAt.lerp(target, snap ? 1 : 1 - Math.exp(-asset.follow.lookResponse * dt)); camera.lookAt(lookAt);
     if(vehicle.impact>0) {camera.position.x+=Math.sin(performance.now()*.08)*vehicle.impact*.08; camera.position.y+=Math.cos(performance.now()*.065)*vehicle.impact*.06;}
     sun.position.copy(vehicle.position).add(sunlightOffset); sun.target.position.copy(vehicle.position); sun.target.updateMatrixWorld();
   }

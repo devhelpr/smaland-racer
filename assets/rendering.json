@@ -23,5 +23,15 @@
     "fov": 55,
     "near": 0.1,
     "far": 650
+  },
+  "follow": {
+    "distance": 10.5,
+    "speedDistance": 0.065,
+    "height": 6.8,
+    "lookAhead": 7,
+    "lookHeight": 1.1,
+    "minGroundClearance": 2.5,
+    "positionResponse": 5,
+    "lookResponse": 7
   }
 }

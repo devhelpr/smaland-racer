@@ -8,7 +8,20 @@
     "maxImpulse": 6000,
     "maxAngularSpeed": 1.6,
     "reactionTime": 0.4,
-    "reactionSpeed": 2
+    "reactionSpeed": 2,
+    "farmer": {
+      "mass": 1650,
+      "maxImpulse": 18000,
+      "restitution": 0.12
+    },
+    "playerImpact": {
+      "minimumSpeed": 3,
+      "gripRecoveryTime": 1.4,
+      "maxLateralAcceleration": 5.5,
+      "yawDamping": 1.3,
+      "maxAngularSpeed": 2.4,
+      "gripRecoverySlip": 1
+    }
   },
   "avoidance": {
     "lookAhead": 16,

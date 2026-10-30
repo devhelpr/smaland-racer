@@ -1,8 +1,25 @@
 import vehicleAsset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
 export type ObstacleKind = 'tree' | 'rock' | 'building' | 'moose' | 'deer' | 'snowPole' | 'aTractor';
-export interface Collider { id: string; x: number; z: number; radius: number; kind: ObstacleKind; active?: boolean; velocity?: THREE.Vector3; angularVelocity?: number; onHit?: (velocity: THREE.Vector3) => void; onPush?: (relativeVelocity: THREE.Vector3, normal: THREE.Vector3, dt: number, position?: THREE.Vector3) => number | void }
+export interface ContactBody {mass:number;inertia:number;lever:number}
+export interface Collider { id: string; x: number; z: number; radius: number; kind: ObstacleKind; active?: boolean; velocity?: THREE.Vector3; angularVelocity?: number; onHit?: (velocity: THREE.Vector3) => void; onPush?: (relativeVelocity: THREE.Vector3, normal: THREE.Vector3, dt: number, position?: THREE.Vector3, body?:ContactBody) => number | void }
 export interface BoxCollider extends Collider { halfX: number; halfZ: number; angle: number }
+type PlanarBox=Pick<BoxCollider,'x'|'z'|'halfX'|'halfZ'|'angle'>;
+
+/** Center of the overlapping body faces, rather than the center of a spherical sweep probe. */
+export function boxContactPoint(point:THREE.Vector3,normal:THREE.Vector3,a:PlanarBox,b:PlanarBox):THREE.Vector3 {
+  const tangent=new THREE.Vector3(normal.z,0,-normal.x);
+  const interval=(body:PlanarBox)=>{
+    const center=body.x*tangent.x+body.z*tangent.z;
+    const extent=Math.abs(tangent.x*Math.cos(body.angle)-tangent.z*Math.sin(body.angle))*body.halfX
+      +Math.abs(tangent.x*Math.sin(body.angle)+tangent.z*Math.cos(body.angle))*body.halfZ;
+    return {min:center-extent,max:center+extent};
+  };
+  const first=interval(a),second=interval(b);
+  const low=Math.max(first.min,second.min),high=Math.min(first.max,second.max);
+  return low<=high?point.clone().addScaledVector(tangent,(low+high)/2-point.dot(tangent)):point;
+}
+
 export interface SurfaceContact { height: number; normal: THREE.Vector3; rock: boolean }
 interface RockSurface { mesh: THREE.Mesh; top: number; normalMatrix: THREE.Matrix3 }
 export interface Hit { collider: Collider; time: number; normal: THREE.Vector3 }

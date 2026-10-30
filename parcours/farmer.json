@@ -1,0 +1,17 @@
+{
+  "engageDistance": 180,
+  "predictionTime": 0.4,
+  "maxLead": 24,
+  "ramOffset": 0.95,
+  "reverseAngle": 2,
+  "turnSpeed": 4.5,
+  "minimumSpeed": 8,
+  "closingSpeed": 7,
+  "maxLateralAcceleration": 6,
+  "spawnSpeed": 10,
+  "speedAdvantage": 1.08,
+  "accelerationAdvantage": 1.15,
+  "brakingAdvantage": 1.1,
+  "gearHoldTime": 3.5,
+  "spawnBehindDistance": 45
+}

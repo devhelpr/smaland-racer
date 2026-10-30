@@ -19,6 +19,7 @@ export function steerTraffic(state:TrafficDriveState,target:THREE.Vector3,wheelb
 }
 
 export interface TrafficMotion {
+  powertrain?:{acceleration:number;braking:number};
   drive: TrafficDriveState;
   velocity: THREE.Vector3;
   angularVelocity: number;
@@ -36,7 +37,7 @@ export function moveTraffic(car:TrafficMotion,targetSpeed:number,roadFraction:nu
   const right=new THREE.Vector3(forward.z,0,-forward.x);
   let longitudinal=car.velocity.dot(forward),lateral=car.velocity.dot(right);
   const braking=longitudinal*targetSpeed<0||Math.abs(targetSpeed)<Math.abs(longitudinal);
-  const limit=braking?driving.braking:driving.acceleration;
+  const limit=braking?(car.powertrain?.braking??driving.braking):(car.powertrain?.acceleration??driving.acceleration);
   const desired=THREE.MathUtils.clamp((targetSpeed-longitudinal)*config.speedResponse,-limit,limit);
   car.acceleration=THREE.MathUtils.damp(car.acceleration,desired,config.accelerationResponse,dt);
   // Engine and brakes act along the body; an impact never becomes a route offset.

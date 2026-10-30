@@ -1,0 +1,16 @@
+{
+  "paint": {
+    "color": "#f4f3ed",
+    "roughness": 0.32,
+    "metalness": 0.15
+  },
+  "panelGap": {
+    "color": "#505353",
+    "roughness": 0.8
+  },
+  "lamp": {
+    "color": "#e8eef1",
+    "emissive": "#a6bcc9",
+    "emissiveIntensity": 0.15
+  }
+}

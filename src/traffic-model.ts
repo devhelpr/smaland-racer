@@ -1,3 +1,6 @@
+import farmerMaterials from '../assets/materials/farmer.json' with { type: 'json' };
+import vehicleMaterials from '../assets/materials/vehicle.json' with { type: 'json' };
+import farmerAsset from '../assets/farmer.json' with { type: 'json' };
 import * as THREE from 'three';
 import asset from '../assets/traffic.json' with { type: 'json' };
 import vehicleAsset from '../assets/vehicle.json' with { type: 'json' };
@@ -37,5 +40,26 @@ export function createATractor(color:string,variantIndex:number) {
   // Traffic illuminates the road without rendering a forest shadow map for every vehicle.
   lighting.beam.castShadow=false;
   lighting.setMode('off');mesh.add(lighting.root);
-  return {mesh,wheels:model.wheels,lighting};
+  return {mesh,wheels:model.wheels,lighting,beacons:[] as THREE.Mesh<THREE.CylinderGeometry,THREE.MeshStandardMaterial>[]};
+}
+
+/** Compact panel van with two independent amber beacons and no auxiliary beam. */
+export function createFarmer() {
+  const mesh=new THREE.Group();
+  const model=createVehicleModel(mesh,{...farmerAsset.model,lettering:{glyphs:vehicleAsset.lettering.glyphs,labels:[]}},farmerAsset.paint,{...vehicleMaterials,...farmerMaterials});
+  mesh.name=farmerAsset.name;
+  mesh.userData.modelId=farmerAsset.modelId;
+  mesh.userData.driver='local-farmer';
+  mesh.userData.paintColor=farmerAsset.paint;
+  const beacons=farmerAsset.beacons.positions.map(position=>{
+    const settings=farmerAsset.beacons;
+    const beacon=new THREE.Mesh(new THREE.CylinderGeometry(...settings.geometry as [number,number,number,number]),new THREE.MeshStandardMaterial(settings.material));
+    beacon.name='orange-roof-beacon';beacon.position.fromArray(position);mesh.add(beacon);
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(...settings.baseGeometry as [number,number,number,number]),new THREE.MeshStandardMaterial(settings.baseMaterial));
+    base.position.copy(beacon.position);base.position.y+=settings.baseOffset;mesh.add(base);
+    return beacon;
+  });
+  const lighting=new VehicleLighting(model.lamp,model.red,undefined,{ledBar:false,projectedBeam:false});
+  lighting.setMode('off');mesh.add(lighting.root);
+  return {mesh,wheels:model.wheels,lighting,beacons};
 }

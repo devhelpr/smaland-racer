@@ -32,16 +32,18 @@ for(const definition of courses)test(`${definition.id}: scenery follows the sett
 
 for(const definition of courses)test(`${definition.id}: slow traffic follows the road and blocks passing on narrow roads`,()=> {
   const course=new Course(definition),world=new CollisionWorld(),group=new THREE.Group(),traffic=new Traffic(course,world,group);
-  if(definition.setting==='sandsjon')assert.equal(traffic.vehicles.length,0);
+  const normalTraffic=traffic.vehicles.filter(vehicle=>!vehicle.aggressive);
+  assert.equal(traffic.vehicles.filter(vehicle=>vehicle.aggressive).length,1);
+  if(definition.setting==='sandsjon')assert.equal(normalTraffic.length,0);
   else {
-    const routes=new Set(traffic.vehicles.map(vehicle=>vehicle.route));
+    const routes=new Set(normalTraffic.map(vehicle=>vehicle.route));
     for(const route of routes) {
-      const count=traffic.vehicles.filter(vehicle=>vehicle.route===route).length;
+      const count=normalTraffic.filter(vehicle=>vehicle.route===route).length;
       assert.ok(count>=3&&count<=7,'traffic counts remain bounded per route');
     }
     assert.ok(routes.size>0);
   }
-  for(const vehicle of traffic.vehicles) {
+  for(const vehicle of normalTraffic) {
     assert.ok(vehicle.baseSpeed>=6.4&&vehicle.baseSpeed<=7.8);
     assert.ok(vehicle.speed>0&&vehicle.speed<=vehicle.baseSpeed,'traffic starts at a safe speed for the bend');
     const sample=vehicle.route.sample(vehicle.distance);
@@ -73,6 +75,7 @@ test('traffic loops at the circuit seam, exits stages, and brakes for the player
     disposeGroup(group);
   }
   const course=new Course(courses[0]),group=new THREE.Group(),traffic=new Traffic(course,new CollisionWorld(),group);
+  for(const farmer of traffic.vehicles.filter(vehicle=>vehicle.aggressive)){farmer.active=false;farmer.collider.active=false;}
   const vehicle=traffic.vehicles[0],forward=course.sample(vehicle.distance/course.length).tangent;
   const player=vehicle.mesh.position.clone().addScaledVector(forward,10);
   for(let i=0;i<240;i++)traffic.update(1/120,player);

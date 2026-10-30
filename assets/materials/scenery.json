@@ -39,9 +39,9 @@
     "roughness": 1,
     "flatShading": false,
     "vertexColors": true,
-    "map": "needles",
-    "bumpMap": "needles",
-    "bumpScale": 0.045
+    "map": "spruceSpray",
+    "alphaTest": 0.4,
+    "side": "double"
   },
   "rockMaterial": {
     "color": "#8a8b7e",

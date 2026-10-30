@@ -8,84 +8,82 @@
       12
     ],
     "trunkY": 4.9,
-    "radialSegments": 9,
-    "heightSegments": 6,
-    "branchCount": 6,
-    "branchCountVariation": 2,
+    "branchCount": 9,
+    "branchCountVariation": 3,
     "phase": 2.399963,
-    "angleJitter": 0.19,
-    "lengthVariation": 0.22,
-    "widthRatio": 0.37,
-    "depthRatio": 0.32,
-    "droop": 0.13,
-    "tipLift": 0.045,
-    "surfaceNoise": 0.12,
-    "shade": 0.72,
-    "shadeRange": 0.32,
+    "angleJitter": 0.4,
+    "lengthVariation": 0.38,
+    "widthRatio": 0.52,
+    "droop": 0.24,
+    "tipLift": 0.08,
+    "shade": 0.85,
+    "shadeRange": 0.2,
     "layers": [
       [
-        2.9,
+        2.5,
+        2.3
+      ],
+      [
+        3.15,
+        2.8
+      ],
+      [
+        3.85,
+        2.65
+      ],
+      [
+        4.55,
         2.5
       ],
       [
-        3.8,
-        2.7
+        5.25,
+        2.3
       ],
       [
-        4.7,
-        2.5
+        5.95,
+        2.05
       ],
       [
-        5.6,
-        2.25
+        6.65,
+        1.8
       ],
       [
-        6.5,
-        1.9
-      ],
-      [
-        7.4,
+        7.35,
         1.5
       ],
       [
-        8.25,
-        1.1
+        8,
+        1.15
       ],
       [
-        9,
-        0.72
+        8.65,
+        0.83
       ],
       [
-        9.65,
-        0.35
+        9.2,
+        0.55
+      ],
+      [
+        9.75,
+        0.28
       ]
     ],
-    "leader": [
-      0.26,
-      1.4,
-      10,
-      4,
-      0,
-      9.7,
-      0
-    ],
-    "rippleFrequency": 31
+    "cardPlanes": 3,
+    "cardSegments": 5,
+    "heightJitter": 0.32,
+    "branchRadius": 0.032,
+    "branchSegments": 5
   },
   "deciduous": {
     "trunk": [
-      0.08,
+      0.17,
       0.3,
-      7.4,
-      12
+      3.6,
+      14
     ],
-    "trunkY": 3.7,
-    "segments": [
-      10,
-      7
-    ],
-    "surfaceNoise": 0.14,
-    "shade": 0.8,
-    "shadeRange": 0.25,
+    "trunkY": 1.8,
+    "shade": 0.76,
+    "shadeRange": 0.38,
     "clusters": [
       [
         0,
@@ -152,14 +150,113 @@
         1.2
       ]
     ],
-    "branchRadius": 0.075,
-    "branchStart": 3.2,
+    "branchRadius": 0.095,
+    "branchStart": 2.9,
     "branchSegments": 7,
-    "rippleFrequency": [
-      11,
-      7,
-      9,
-      5
-    ]
+    "cardSize": [
+      1.15,
+      1.4
+    ],
+    "cardSizeRange": 0.45,
+    "twigCount": 12,
+    "cardsPerTwig": 7,
+    "leafSpread": 0.5,
+    "leafBend": 0.14,
+    "normalUp": 0.4,
+    "normalOut": 0.8,
+    "curveSegments": 5,
+    "branchBend": 0.18,
+    "twigRadius": 0.024,
+    "twigJoin": 0.6,
+    "variants": 3,
+    "variantSpread": 0.13,
+    "variantLean": 0.2,
+    "leaders": [
+      [
+        [
+          0,
+          2.9,
+          0
+        ],
+        [
+          -0.25,
+          4.2,
+          0.12
+        ],
+        [
+          -0.5,
+          5.8,
+          0.2
+        ],
+        [
+          -0.85,
+          7.7,
+          0.3
+        ]
+      ],
+      [
+        [
+          0,
+          3.1,
+          0
+        ],
+        [
+          0.35,
+          4.5,
+          0.1
+        ],
+        [
+          0.7,
+          6.2,
+          0.25
+        ],
+        [
+          0.5,
+          8.7,
+          0.2
+        ]
+      ],
+      [
+        [
+          0,
+          3.3,
+          0
+        ],
+        [
+          0.05,
+          4.8,
+          -0.4
+        ],
+        [
+          0.15,
+          6.2,
+          -0.65
+        ],
+        [
+          0.3,
+          8,
+          -0.55
+        ]
+      ]
+    ],
+    "leaderRadii": [
+      0.14,
+      0.15,
+      0.12
+    ],
+    "clusterLeaders": [
+      1,
+      0,
+      1,
+      2,
+      0,
+      2,
+      0,
+      1
+    ],
+    "branchTaper": 0.8,
+    "minimumRadius": 0.003,
+    "twigCurveSegments": 2,
+    "twigRadialSegments": 3
   }
 }

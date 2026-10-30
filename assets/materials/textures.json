@@ -153,24 +153,90 @@
     "warpFrequency": 1,
     "direction": "horizontal"
   },
-  "needles": {
-    "type": "pattern",
-    "pattern": "grass",
-    "size": 256,
+  "spruceSpray": {
+    "type": "foliage",
+    "size": 512,
     "worldScale": 1,
     "anisotropy": 8,
+    "seed": 6283,
+    "shade": 180,
+    "shadeRange": 75,
+    "species": "spruce",
+    "twigs": 34,
+    "needlesPerTwig": 24,
+    "spread": 0.43,
+    "needleLength": 0.035,
+    "needleWidth": 1.3,
+    "stemWidth": 2.5,
+    "stem": [
+      0.5,
+      0.025,
+      0.5,
+      0.975
+    ],
+    "twigStart": 0.06,
+    "twigSpan": 0.86,
+    "twigRise": 0.1,
+    "spreadPower": 0.7,
+    "lengthVariation": 0.2,
+    "needleLengthVariation": 0.4,
+    "needleBackRatio": 0.4
+  },
+  "birchLeaves": {
+    "type": "foliage",
+    "size": 512,
+    "worldScale": 1,
+    "anisotropy": 8,
+    "seed": 6283,
+    "shade": 180,
+    "shadeRange": 75,
+    "species": "birch",
+    "leafCount": 95,
+    "leafRadius": [
+      0.036,
+      0.052
+    ],
+    "stemWidth": 0.8,
+    "stem": [
+      0.5,
+      0.025,
+      0.5,
+      0.975
+    ],
+    "leafCenter": [
+      0.5,
+      0.5
+    ],
+    "leafSpread": [
+      0.44,
+      0.44
+    ],
+    "leafStemRatio": 0.9,
+    "leafSizeVariation": 0.6,
+    "leafVeinShade": 135,
+    "leafVeinWidth": 0.7,
+    "leafTip": 1.3,
+    "leafBase": 0.72,
+    "twigCount": 7,
+    "twigRise": 0.11
+  },
+  "birchBark": {
+    "type": "pattern",
+    "pattern": "birch",
+    "size": 256,
+    "worldScale": 3,
+    "anisotropy": 8,
     "repeat": [
-      3,
+      1,
       2
     ],
-    "base": 225,
-    "grain": 42,
-    "frequency": 1,
-    "patch": 34,
-    "patchCells": 16,
-    "blades": 6500,
-    "bladeWidth": 1,
-    "bladeLength": 9,
-    "bladeShade": 65
+    "base": 232,
+    "grain": 18,
+    "frequency": 19,
+    "patchCells": 8,
+    "seamWidth": 0.09,
+    "seamShade": 145,
+    "groove": 0.62,
+    "wave": 0.35
   }
 }

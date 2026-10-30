@@ -202,15 +202,22 @@ export function createHolmahultScenery(scene: THREE.Group, course: Course, colli
   }
   const clear=sites.filter(([x,z])=>course.nearestRoad(x,z).distance>course.nearestRoad(x,z).width/2+4&&!holmahultBuildings.some(b=>Math.hypot(x-b.x,z-b.z)<Math.hypot(b.width,b.depth)/2+2));
   const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(...treeAsset.deciduous.trunk as [number, number, number, number]),createSceneryMaterial('holmahult-scenery.bark',materialAsset.bark),clear.length);
-  const treeGeometry=createDeciduousGeometry();
-  const branches=new THREE.InstancedMesh(treeGeometry.branches,trunks.material,clear.length);
-  const crowns=new THREE.InstancedMesh(treeGeometry.crown,createSceneryMaterial('holmahult-scenery.crownMaterial',materialAsset.crownMaterial),clear.length);
-  crowns.userData.seasonalSurface='deciduous';
+  const crownMaterial=createSceneryMaterial('holmahult-scenery.crownMaterial',materialAsset.crownMaterial);
+  const branchMaterial=createSceneryMaterial('holmahult-scenery.branches',materialAsset.branches);
+  const variants=Array.from({length:treeAsset.deciduous.variants},(_,variant)=>{
+    const geometry=createDeciduousGeometry(variant),count=Math.max(0,Math.ceil((clear.length-variant)/treeAsset.deciduous.variants));
+    const crown=new THREE.InstancedMesh(geometry.crown,crownMaterial,count);
+    const branches=new THREE.InstancedMesh(geometry.branches,branchMaterial,count);
+    crown.name=`broadleaf-crown-${variant}`;branches.name=`broadleaf-branches-${variant}`;
+    crown.userData.seasonalSurface='deciduous';return {crown,branches};
+  });
   clear.forEach(([x,z],i)=>{
     const base=course.height(x,z),s=details.treeScale+random()*details.treeScaleRange;dummy.rotation.set(0,random()*details.treeRotation,0);
     dummy.position.set(x,base+treeAsset.deciduous.trunkY*s,z);dummy.scale.set(s,s,s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);
-    dummy.position.y=base;dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix);branches.setMatrixAt(i,dummy.matrix);
+    const variant=variants[i%variants.length],index=Math.floor(i/variants.length);
+    dummy.position.y=base;dummy.updateMatrix();variant.crown.setMatrixAt(index,dummy.matrix);variant.branches.setMatrixAt(index,dummy.matrix);
     collisions.add({id:`holmahult-birch-${i}`,x,z,radius:details.trunkRadius*s,kind:'tree'});
   });
-  for(const mesh of [trunks,branches,crowns]){mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);}
+  for(const mesh of [trunks,...variants.flatMap(variant=>[variant.branches,variant.crown])]){mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);}
+
 }

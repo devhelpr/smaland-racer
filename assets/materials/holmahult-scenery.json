@@ -35,19 +35,26 @@
     "roughness": 1
   },
   "crownMaterial": {
-    "color": "#79945b",
+    "color": "#668348",
     "roughness": 1,
     "flatShading": false,
     "vertexColors": true,
-    "map": "needles",
-    "bumpMap": "needles",
-    "bumpScale": 0.045
+    "map": "birchLeaves",
+    "alphaTest": 0.27,
+    "side": "double"
   },
   "bark": {
-    "color": "#d7d3c4",
+    "color": "#f0ede4",
+    "roughness": 1,
+    "map": "birchBark",
+    "bumpMap": "birchBark",
+    "bumpScale": 0.022
+  },
+  "branches": {
+    "color": "#8a8170",
     "roughness": 1,
     "map": "bark",
     "bumpMap": "bark",
-    "bumpScale": 0.07
+    "bumpScale": 0.03
   }
 }

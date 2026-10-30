@@ -42,7 +42,8 @@ for(const definition of courses)test(`${definition.id}: slow traffic follows the
     assert.ok(routes.size>0);
   }
   for(const vehicle of traffic.vehicles) {
-    assert.ok(vehicle.speed>=6.4&&vehicle.speed<=7.8);
+    assert.ok(vehicle.baseSpeed>=6.4&&vehicle.baseSpeed<=7.8);
+    assert.ok(vehicle.speed>0&&vehicle.speed<=vehicle.baseSpeed,'traffic starts at a safe speed for the bend');
     const sample=vehicle.route.sample(vehicle.distance);
     sample.tangent.multiplyScalar(vehicle.direction);
     const offset=vehicle.mesh.position.clone().sub(sample.point).setY(0);
@@ -92,5 +93,5 @@ test('rear impacts damage the player using relative speed while traffic keeps dr
     const result={damage:car.damage,speedChange:tractor.speed-speed};disposeGroup(group);return result;
   }
   const moving=collision(true),stationary=collision(false);
-  assert.ok(moving.damage>0);assert.ok(moving.damage<stationary.damage);assert.ok(Math.abs(moving.speedChange)<1e-8);
+  assert.ok(moving.damage>0);assert.ok(moving.damage<stationary.damage);assert.ok(moving.speedChange>0,'a rear impact transfers forward momentum into the traffic body');
 });

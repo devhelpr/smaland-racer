@@ -109,6 +109,9 @@ export function createVehicleModel(root:THREE.Group,variant:Partial<VehicleAsset
       }
     }
     batch(detail);
+    // Keep rolling around the axle independent from the steering pivot and mesh orientation.
+    const spin=new THREE.Group();spin.name='wheel-spin';
+    spin.add(...[...pivot.children]);pivot.add(spin);
   }
   // Some estate variants omit lens ribs or chrome strips from the shared palette.
   const used=new Set<THREE.Material>([materials.lamp,materials.red]);

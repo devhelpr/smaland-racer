@@ -1,1 +1,4 @@
 - assets (vector paths/coordinates/data/color information) and parcours/tracks/scenery/levels info should be in json files in separate folders and not in the code
+- All vehicles must use one consistent physical state for driving, collisions, and recovery; never snap, slide, or spring them back to a route independently of their velocity and steering.
+- Vehicle behavior must be natural: smooth acceleration, braking, and steering; visible front-wheel steering and rolling; realistic tire grip, momentum, and wheel contact with the ground.
+- Traffic must keep the correct road side, anticipate other vehicles and obstacles, pass safely, and recover from impacts by slowing down and steering or stopping and reversing when necessary; verify behavior visually and with meaningful physics tests.

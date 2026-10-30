@@ -41,13 +41,19 @@ export function trafficRoutes(course: Course): TrafficRoute[] {
   const candidates=joined.map(road=>{
     const distances=[0];
     for(let i=1;i<road.points.length;i++)distances.push(distances[i-1]+road.points[i].clone().sub(road.points[i-1]).setY(0).length());
+    const tangents=road.points.map((point,i)=>{
+      const incoming=point.clone().sub(road.points[Math.max(0,i-1)]).setY(0).normalize();
+      const outgoing=road.points[Math.min(road.points.length-1,i+1)].clone().sub(point).setY(0).normalize();
+      return incoming.add(outgoing).normalize();
+    });
     const length=distances.at(-1)!;
     const route:TrafficRoute={id:road.id,length,width:road.width,closed:false,sample(distance) {
       const d=THREE.MathUtils.clamp(distance,0,length);
       let low=0,high=distances.length-1;
       while(high-low>1){const mid=(low+high)>>1;if(distances[mid]<=d)low=mid;else high=mid;}
       const a=road.points[low],b=road.points[high];
-      return {point:a.clone().lerp(b,(d-distances[low])/(distances[high]-distances[low])),tangent:b.clone().sub(a).setY(0).normalize()};
+      const t=(d-distances[low])/(distances[high]-distances[low]);
+      return {point:a.clone().lerp(b,t),tangent:tangents[low].clone().lerp(tangents[high],t).normalize()};
     }};
     return {route,preferred:placement.network.preferredRoadNames.includes(road.name)};
   }).filter(({route})=>route.length>=placement.network.minLength)

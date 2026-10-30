@@ -8,7 +8,7 @@
   "startDistance": 38,
   "finishClearance": 90,
   "laneOffset": 0.22,
-  "groundOffset": 0.13,
+  "groundOffset": 0.01,
   "directions": [
     1,
     -1

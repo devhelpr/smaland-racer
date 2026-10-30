@@ -1,5 +1,21 @@
 {
-  "points": [[0, 0], [0, 600]],
-  "widths": [2.8, 8.2],
-  "meetingDistances": [180, 220]
+  "points": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      600
+    ]
+  ],
+  "widths": [
+    2.8,
+    8.2
+  ],
+  "meetingDistances": [
+    180,
+    220
+  ],
+  "sharpBendRoadId": "osm-82138175-0"
 }

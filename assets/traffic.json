@@ -11,6 +11,11 @@
     "halfZ": 2.15
   },
   "wheelRadius": 0.43,
+  "wheelHalfWidth": 0.14,
+  "suspensionTravel": 0.18,
+  "underbodyClearance": 0.57,
+  "wheelSteering": { "gain": 1.6, "maxAngle": 0.58 },
+  "wheelTread": { "count": 48, "radius": 0.432, "size": [0.25, 0.004, 0.012] },
   "omitParts": [
     "trunk",
     "c-pillar",

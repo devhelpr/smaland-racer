@@ -57,7 +57,10 @@ test('reverse traffic brakes for the player ahead and exits at the beginning of 
 });
 
 test('reverse traffic wraps at the closed circuit seam',()=>{
-  const {root,traffic,outbound,inbound}=setup(8.2,true);outbound.active=false;
+  const course=new Course(courses.find(definition=>definition.closed)!);
+  const root=new THREE.Group(),traffic=new Traffic(course,new CollisionWorld(),root);
+  const inbound=traffic.vehicles.find(vehicle=>vehicle.direction===-1)!;
+  for(const other of traffic.vehicles)if(other!==inbound){other.active=false;other.collider.active=false;}
   inbound.distance=.01;traffic.update(.1);
   assert.ok(inbound.active);assert.ok(inbound.distance>inbound.route.length-1);
   disposeGroup(root);

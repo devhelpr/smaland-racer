@@ -43,11 +43,20 @@ interface ATractor {
   obstacleTime: number;
 }
 
+interface MeetingRetry {
+  vehicles: [ATractor, ATractor];
+  waiting: number;
+  reversing: boolean;
+  origins: THREE.Vector3[];
+  elapsed: number;
+}
+
 /** Two-way slow traffic keeps right and makes room for oncoming vehicles. */
 export class Traffic {
   readonly vehicles: ATractor[] = [];
   readonly course: Course;
   private readonly world: CollisionWorld;
+  private readonly meetingRetries: MeetingRetry[] = [];
 
   constructor(course: Course, world: CollisionWorld, group: THREE.Group) {
     this.course = course;
@@ -131,7 +140,7 @@ export class Traffic {
     } else vehicle.stableTime=0;
   }
 
-  private drive(vehicle:ATractor,targetLane:number,targetSpeed:number,dt:number):void {
+  private drive(vehicle:ATractor,targetLane:number,targetSpeed:number,dt:number,meetingReverse?:boolean):void {
     const config=physics.recovery;
     const intendingToMove=targetSpeed>config.shiftSpeed;
     vehicle.reactionTime=Math.max(0,vehicle.reactionTime-dt);
@@ -143,7 +152,7 @@ export class Traffic {
     const preview=vehicle.recovering
       ?Math.max(config.lookAheadMin,Math.abs(vehicle.speed)*physics.driving.lookAheadTime,Math.abs(laneError)*config.crossTrackPreview)
       :Math.max(physics.driving.lookAheadMin,Math.abs(vehicle.speed)*physics.driving.lookAheadTime);
-    const aim=this.routeSample(vehicle,vehicle.distance+vehicle.direction*preview);
+    const aim=this.routeSample(vehicle,vehicle.distance+vehicle.direction*(meetingReverse?-physics.meeting.retry.lookAhead:preview));
     const right=new THREE.Vector3(aim.tangent.z,0,-aim.tangent.x).multiplyScalar(vehicle.direction);
     aim.point.addScaledVector(right,targetLane);
     if(vehicle.recovering) {
@@ -156,7 +165,7 @@ export class Traffic {
     const hit=this.world.sweep(vehicle.drive.position,sight.point,true,vehicle.collider,['snowPole']);
     vehicle.obstacleTime=Math.max(0,vehicle.obstacleTime-dt);
     if(vehicle.obstacleTime===0)vehicle.obstacleLane=null;
-    if(hit&&hit.collider.kind!=='aTractor'&&(hit.time>0||aim.point.clone().sub(vehicle.drive.position).dot(hit.normal)<0)) {
+    if(!meetingReverse&&hit&&hit.collider.kind!=='aTractor'&&(hit.time>0||aim.point.clone().sub(vehicle.drive.position).dot(hit.normal)<0)) {
       let clear=false;
       for(const side of [1,-1]) {
         const lane=THREE.MathUtils.clamp(targetLane+side*config.obstacleOffset,-vehicle.route.width/2+vehicle.collider.halfX,vehicle.route.width/2+physics.meeting.shoulderAllowance-vehicle.collider.halfX);
@@ -168,21 +177,22 @@ export class Traffic {
       }
       if(!clear)targetSpeed=Math.min(targetSpeed,Math.max(0,(vehicle.drive.position.clone().sub(sight.point).setY(0).length()*hit.time-config.obstacleClearance)*physics.avoidance.speedResponse));
     }
-    if(vehicle.obstacleLane!==null) {
+    if(!meetingReverse&&vehicle.obstacleLane!==null) {
       aim.point.addScaledVector(right,vehicle.obstacleLane-targetLane);
       targetSpeed=Math.min(targetSpeed,config.speed);
     }
     let requestedGear=vehicle.gear;
-    if(vehicle.recovering&&vehicle.reactionTime===0&&vehicle.gearTime>config.gearHoldTime&&intendingToMove) {
+    if(meetingReverse!==undefined)requestedGear=meetingReverse?-1:1;
+    else if(vehicle.recovering&&vehicle.reactionTime===0&&vehicle.gearTime>config.gearHoldTime&&intendingToMove) {
       if(vehicle.gear===1&&(Math.abs(headingError)>config.reverseAngle||vehicle.blockedTime>config.blockedTime))requestedGear=-1;
       else if(vehicle.gear===-1&&(Math.abs(headingError)<config.forwardAngle||vehicle.gearTime>config.reverseTime))requestedGear=1;
     } else if(!vehicle.recovering)requestedGear=1;
     if(requestedGear!==vehicle.gear) {
       targetSpeed=0;
       if(Math.abs(vehicle.speed)<config.shiftSpeed) {vehicle.gear=requestedGear;vehicle.gearTime=0;vehicle.blockedTime=0;}
-    } else if(vehicle.gear===-1)targetSpeed=-config.reverseSpeed;
+    } else if(vehicle.gear===-1)targetSpeed=-Math.min(config.reverseSpeed,meetingReverse!==undefined?targetSpeed:config.reverseSpeed);
     if(vehicle.reactionTime===0) {
-      const reverseSteering=vehicle.gear===-1?headingError:undefined;
+      const reverseSteering=vehicle.gear===-1&&meetingReverse===undefined?headingError:undefined;
       steerTraffic(vehicle.drive,aim.point,vehicle.wheelbase,dt,reverseSteering);
     }
     if(vehicle.recovering&&intendingToMove&&targetSpeed===0&&Math.abs(vehicle.speed)<config.shiftSpeed)vehicle.blockedTime+=dt;
@@ -329,6 +339,68 @@ export class Traffic {
     this.place(vehicle);
   }
 
+  /** A shared encounter prevents the two drivers from endlessly yielding to each other. */
+  private retryMeetings(dt:number,plans:{targetSpeed:number;targetLane:number}[],playerPosition?:THREE.Vector3):Map<ATractor,boolean> {
+    const config=physics.meeting.retry;
+    const controls=new Map<ATractor,boolean>();
+    for(let i=0;i<this.vehicles.length;i++)for(let j=i+1;j<this.vehicles.length;j++) {
+      const a=this.vehicles[i],b=this.vehicles[j];
+      if(!a.active||!b.active||a.baseSpeed<=0||b.baseSpeed<=0)continue;
+      const forward=this.sample(a).tangent,otherForward=this.sample(b).tangent;
+      const relative=b.drive.position.clone().sub(a.drive.position).setY(0);
+      const ahead=relative.dot(forward);
+      if(forward.dot(otherForward)>-.5||ahead<=0||ahead>physics.avoidance.lookAhead||relative.length()>physics.avoidance.lookAhead)continue;
+      if(Math.abs(relative.dot(new THREE.Vector3(forward.z,0,-forward.x)))>a.collider.halfX+b.collider.halfX+physics.meeting.clearance)continue;
+      if(!this.meetingRetries.some(retry=>retry.vehicles.includes(a)&&retry.vehicles.includes(b))) {
+        this.meetingRetries.push({vehicles:[a,b],waiting:0,reversing:false,origins:[],elapsed:0});
+      }
+    }
+    for(let i=this.meetingRetries.length-1;i>=0;i--) {
+      const retry=this.meetingRetries[i], [a,b]=retry.vehicles;
+      const ahead=b.drive.position.clone().sub(a.drive.position).dot(this.sample(a).tangent);
+      if(!a.active||!b.active||ahead < -physics.meeting.rearClearance||(!retry.reversing&&ahead>physics.avoidance.lookAhead)||a.baseSpeed<=0||b.baseSpeed<=0) {
+        this.meetingRetries.splice(i,1);continue;
+      }
+      if(retry.vehicles.some(vehicle=>controls.has(vehicle)))continue;
+      if(!retry.reversing) {
+        const stopped=retry.vehicles.every(vehicle=>Math.abs(vehicle.speed)<config.stoppedSpeed&&plans[this.vehicles.indexOf(vehicle)].targetSpeed<config.stoppedSpeed);
+        retry.waiting=stopped?retry.waiting+dt:0;
+        if(retry.waiting<config.waitTime)continue;
+        retry.reversing=true;retry.elapsed=0;retry.origins=retry.vehicles.map(vehicle=>vehicle.drive.position.clone());
+      }
+      retry.elapsed+=dt;
+      let finished=true;
+      for(const [index,vehicle] of retry.vehicles.entries()) {
+        const plan=plans[this.vehicles.indexOf(vehicle)];
+        plan.targetLane=Math.max(plan.targetLane,Math.min(vehicle.collider.halfX+physics.meeting.clearance/2,vehicle.route.width/2-vehicle.collider.halfX+physics.meeting.shoulderAllowance));
+        const backed=retry.origins[index].clone().sub(vehicle.drive.position).dot(this.sample(vehicle).tangent);
+        const done=backed>=config.distance||retry.elapsed>=config.timeout;
+        controls.set(vehicle,!done);
+        plan.targetSpeed=done?0:config.speed;
+        if(!done) {
+          finished=false;
+          // Sweep the full body behind it. Rocks and flexible snow markers remain driveable.
+          const backwards=new THREE.Vector3(Math.sin(vehicle.drive.heading),0,Math.cos(vehicle.drive.heading)).negate();
+          const right=new THREE.Vector3(backwards.z,0,-backwards.x);
+          for(const side of [-1,0,1]) {
+            const from=vehicle.drive.position.clone().addScaledVector(right,side*Math.max(0,vehicle.collider.halfX-CAR_RADIUS)).addScaledVector(backwards,vehicle.collider.halfZ-CAR_RADIUS);
+            const to=from.clone().addScaledVector(backwards,config.rearGap);
+            const hit=this.world.sweep(from,to,true,vehicle.collider,['snowPole']);
+            if(hit)plan.targetSpeed=Math.min(plan.targetSpeed,Math.max(0,(config.rearGap*hit.time-physics.contact.separation)*physics.avoidance.speedResponse));
+          }
+          if(playerPosition) {
+            const relative=playerPosition.clone().sub(vehicle.drive.position).setY(0);
+            if(relative.dot(backwards)>0&&Math.abs(relative.dot(right))<physics.avoidance.halfWidth)plan.targetSpeed=Math.min(plan.targetSpeed,Math.max(0,(relative.dot(backwards)-physics.avoidance.stoppingGap)*physics.avoidance.speedResponse));
+          }
+        }
+      }
+      if(finished&&retry.vehicles.every(vehicle=>Math.abs(vehicle.speed)<physics.recovery.shiftSpeed)) {
+        retry.reversing=false;retry.waiting=0;
+      }
+    }
+    return controls;
+  }
+
   update(dt: number, playerPosition?: THREE.Vector3, playerVelocity?:THREE.Vector3): void {
     if (dt<=0) return;
     // Bound integration steps so steering behaves consistently during a slow frame.
@@ -379,6 +451,7 @@ export class Traffic {
       }
       return {targetSpeed,targetLane};
     });
+    const meetingControls=this.retryMeetings(dt,plans,playerPosition);
     for (const [index,vehicle] of this.vehicles.entries()) {
       if (!vehicle.active) continue;
       this.recovery(vehicle,plans[index].targetLane,dt);
@@ -395,7 +468,7 @@ export class Traffic {
       }
       const previousPosition=vehicle.mesh.position.clone(),previousHeading=vehicle.collider.angle;
       vehicle.previousVelocity.copy(vehicle.velocity);
-      this.drive(vehicle,plans[index].targetLane,targetSpeed,dt);
+      this.drive(vehicle,plans[index].targetLane,targetSpeed,dt,meetingControls.get(vehicle));
       this.place(vehicle,dt);
       this.collide(vehicle,previousPosition,previousHeading,dt);
       this.trackPosition(vehicle,dt);

@@ -17,5 +17,9 @@
     180,
     220
   ],
-  "sharpBendRoadId": "osm-82138175-0"
+  "sharpBendRoadId": "osm-82138175-0",
+  "blockedMeetingDistances": [
+    180,
+    185
+  ]
 }

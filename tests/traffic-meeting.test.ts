@@ -80,3 +80,25 @@ test('open-world traffic uses the actual Road 120 centerline and both right-hand
   }
   disposeGroup(root);
 });
+
+for(const rate of [30,120])test(`blocked oncoming drivers reverse, steer aside and pass at ${rate}Hz`,()=>{
+  const {root,traffic,outbound,inbound}=setup(2.8);
+  for(const [index,vehicle] of [outbound,inbound].entries()) {
+    vehicle.distance=fixture.blockedMeetingDistances[index];vehicle.speed=0;
+  }
+  traffic.update(1/rate);
+  const start=outbound.distance;
+  let reversed=false,passed=false,previousGear=outbound.gear;
+  for(let i=0;i<rate*45;i++) {
+    traffic.update(1/rate);
+    if(outbound.speed<-.3)reversed=true;
+    if(outbound.gear!==previousGear)assert.ok(Math.abs(outbound.speed)<physics.recovery.shiftSpeed+.1,'driver stops before shifting');
+    previousGear=outbound.gear;
+    if(outbound.distance>inbound.distance+physics.meeting.rearClearance)passed=true;
+    assert.ok(Number.isFinite(outbound.drive.heading));
+  }
+  assert.ok(reversed,'a stopped encounter triggers a reverse maneuver');
+  assert.ok(passed,'drivers retry and get past each other');
+  assert.ok(outbound.distance>start&&outbound.speed>0&&inbound.speed>0,'both resume forward travel');
+  disposeGroup(root);
+});

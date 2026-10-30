@@ -26,7 +26,16 @@
     "narrowSpeed": 3,
     "followingDistance": 20,
     "followingGap": 7,
-    "followingResponse": 0.65
+    "followingResponse": 0.65,
+    "retry": {
+      "stoppedSpeed": 0.35,
+      "waitTime": 1.2,
+      "distance": 9,
+      "lookAhead": 4,
+      "speed": 1.7,
+      "timeout": 10,
+      "rearGap": 3
+    }
   },
   "driving": {
     "lookAheadMin": 4,

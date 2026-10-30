@@ -111,6 +111,36 @@ export class CollisionWorld {
         const key=`${x}:${z}`; const cell=this.cells.get(key)??[]; cell.push(collider); this.cells.set(key,cell);
       }
   }
+  /** Full oriented footprint check, including dynamic traffic, for safe vehicle placement. */
+  overlapsBox(box:PlanarBox,ignore?:Collider,margin=0,ignoreKinds:readonly ObstacleKind[]=[]):boolean {
+    const radius=Math.hypot(box.halfX+margin,box.halfZ+margin);
+    const candidates=new Set(this.dynamic);
+    for(let x=Math.floor((box.x-radius)/this.cellSize);x<=Math.floor((box.x+radius)/this.cellSize);x++)
+      for(let z=Math.floor((box.z-radius)/this.cellSize);z<=Math.floor((box.z+radius)/this.cellSize);z++)
+        for(const collider of this.cells.get(`${x}:${z}`)??[])candidates.add(collider);
+    const axes=(angle:number)=>[new THREE.Vector2(Math.cos(angle),-Math.sin(angle)),new THREE.Vector2(Math.sin(angle),Math.cos(angle))];
+    const ownAxes=axes(box.angle);
+    for(const collider of candidates) {
+      if(collider===ignore||collider.active===false||ignoreKinds.includes(collider.kind))continue;
+      if('halfX' in collider) {
+        const other=collider as BoxCollider,otherAxes=axes(other.angle);
+        const delta=new THREE.Vector2(other.x-box.x,other.z-box.z);
+        const separated=[...ownAxes,...otherAxes].some(axis=>{
+          const extent=(box.halfX+margin)*Math.abs(axis.dot(ownAxes[0]))+(box.halfZ+margin)*Math.abs(axis.dot(ownAxes[1]))
+            +other.halfX*Math.abs(axis.dot(otherAxes[0]))+other.halfZ*Math.abs(axis.dot(otherAxes[1]));
+          return Math.abs(delta.dot(axis))>extent;
+        });
+        if(!separated)return true;
+      } else {
+        const delta=new THREE.Vector2(collider.x-box.x,collider.z-box.z);
+        const x=Math.max(0,Math.abs(delta.dot(ownAxes[0]))-box.halfX-margin);
+        const z=Math.max(0,Math.abs(delta.dot(ownAxes[1]))-box.halfZ-margin);
+        if(x*x+z*z<=collider.radius**2)return true;
+      }
+    }
+    return false;
+  }
+
   sweep(from: THREE.Vector3,to: THREE.Vector3,driveOverRocks=false,ignore?:Collider,ignoreKinds:readonly ObstacleKind[]=[]): Hit|null {
     const candidates=new Set(this.dynamic.filter(c=>c.active!==false));
     for(let x=Math.floor((Math.min(from.x,to.x)-CAR_RADIUS)/this.cellSize);x<=Math.floor((Math.max(from.x,to.x)+CAR_RADIUS)/this.cellSize);x++)

@@ -13,5 +13,17 @@
   "accelerationAdvantage": 1.15,
   "brakingAdvantage": 1.1,
   "gearHoldTime": 3.5,
-  "spawnBehindDistance": 45
+  "spawnBehindDistance": 45,
+  "stuckRecovery": {
+    "delay": 5,
+    "movementRadius": 1.5,
+    "obstacleMemory": 1,
+    "behindPlayerDistance": 45,
+    "searchSpacing": 10,
+    "searchSteps": 24,
+    "clearance": 2,
+    "playerClearance": 12,
+    "visibilityMargin": 0.75,
+    "retryInterval": 0.5
+  }
 }

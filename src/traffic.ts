@@ -18,6 +18,11 @@ import { CAR_RADIUS, type BoxCollider, type CollisionWorld, type ContactBody } f
 
 interface TrafficVehicle {
   aggressive: boolean;
+  obstructed:boolean;
+  stuckTime:number;
+  stuckOrigin:THREE.Vector3;
+  stuckObjectTime:number;
+  recoveryRetryTime:number;
   powertrain?:{acceleration:number;braking:number};
   beacons: THREE.Mesh<THREE.CylinderGeometry,THREE.MeshStandardMaterial>[];
   mesh: THREE.Group;
@@ -68,6 +73,8 @@ export class Traffic {
   private readonly world: CollisionWorld;
   private readonly player?:Pick<Vehicle,'profiles'|'drivingStyle'>;
   private elapsed=0;
+  private recoveryFrustum:THREE.Frustum|null=null;
+  private readonly farmerLocalBounds=new THREE.Box3();
   private timeOfDay: TimeOfDay = 'day';
   private readonly meetingRetries: MeetingRetry[] = [];
 
@@ -84,10 +91,11 @@ export class Traffic {
         if(course.definition.setting==='sandsjon'&&!aggressive)continue;
         const model=aggressive?createFarmer():createATractor(materialAsset.paintColors[i%materialAsset.paintColors.length],i);
         const {mesh,wheels,lighting}=model;
+        if(aggressive)this.farmerLocalBounds.setFromObject(mesh);
         const baseSpeed=aggressive?this.playerProfile.road.speed*farmerPlacement.speedAdvantage:placement.baseSpeed+random()*placement.speedRange;
         const collider: BoxCollider={id:aggressive?`farmer-${course.definition.id}`:`a-tractor-${route.id}-${i}`,x:0,z:0,...asset.collider,kind:'aTractor',angle:0,active:true,velocity:new THREE.Vector3()};
         const vehicle: TrafficVehicle={
-          aggressive,beacons:model.beacons,mesh,wheels,lighting,dippedTime:0,wheelMounts:wheels.map(wheel=>wheel.position.clone()),collider,route,direction:aggressive?1:placement.directions[i%placement.directions.length],
+          aggressive,obstructed:false,stuckTime:0,stuckOrigin:new THREE.Vector3(),stuckObjectTime:0,recoveryRetryTime:0,beacons:model.beacons,mesh,wheels,lighting,dippedTime:0,wheelMounts:wheels.map(wheel=>wheel.position.clone()),collider,route,direction:aggressive?1:placement.directions[i%placement.directions.length],
           distance:aggressive?(route.closed?route.length:0)-farmerPlacement.spawnBehindDistance:placement.startDistance+i*(route.length-placement.finishClearance)/count,
           laneOffset:this.normalLaneOffset(route),laneVelocity:0,
           drive:{position:new THREE.Vector3(),heading:0,steering:0},driveDistance:NaN,
@@ -97,7 +105,7 @@ export class Traffic {
           recovering:false,stableTime:0,gear:1,gearTime:0,blockedTime:0,previousVelocity:new THREE.Vector3(),obstacleLane:null,obstacleTime:0
         };
         collider.onPush=(relative,normal,dt,position,body)=>this.push(vehicle,relative,normal,dt,position,body);
-        this.vehicles.push(vehicle);world.dynamic.push(collider);group.add(mesh);this.resetDrive(vehicle);this.place(vehicle,0,true);
+        this.vehicles.push(vehicle);world.dynamic.push(collider);group.add(mesh);this.resetDrive(vehicle);this.place(vehicle,0,true);vehicle.stuckOrigin.copy(vehicle.drive.position);
       }
     }
   }
@@ -188,6 +196,7 @@ export class Traffic {
     sight.point.addScaledVector(new THREE.Vector3(sight.tangent.z,0,-sight.tangent.x),vehicle.direction*targetLane);
     if(pursuit)sight.point.copy(vehicle.drive.position).add(pursuit.clone().sub(vehicle.drive.position).setY(0).clampLength(0,config.obstacleLookAhead));
     const hit=this.world.sweep(vehicle.drive.position,sight.point,true,vehicle.collider,['snowPole']);
+    if(hit)vehicle.obstructed=true;
     vehicle.obstacleTime=Math.max(0,vehicle.obstacleTime-dt);
     if(vehicle.obstacleTime===0)vehicle.obstacleLane=null;
     if(!meetingReverse&&hit&&hit.collider.kind!=='aTractor'&&(hit.time>0||aim.point.clone().sub(vehicle.drive.position).dot(hit.normal)<0)) {
@@ -339,6 +348,7 @@ export class Traffic {
       if(hit&&(hit.time>0||to.clone().sub(from).dot(hit.normal)<0)&&(!nearest||hit.time<nearest.time)) {nearest=hit;contactReach=reach;}
     }
     if(!nearest) {vehicle.blockedTime=Math.max(0,vehicle.blockedTime-dt*physics.recovery.blockedDecay);return;}
+    vehicle.obstructed=true;
     const config=physics.contact,normal=nearest.normal;
     const fraction=Math.max(0,nearest.time-.001);
     vehicle.drive.position.copy(previous).lerp(destination,fraction).addScaledVector(normal,config.separation);
@@ -471,8 +481,13 @@ export class Traffic {
     }
   }
 
-  update(dt: number, playerPosition?: THREE.Vector3, playerVelocity?:THREE.Vector3,playerHeading?:number): void {
+  update(dt: number, playerPosition?: THREE.Vector3, playerVelocity?:THREE.Vector3,playerHeading?:number,camera?:THREE.Camera): void {
     if (dt<=0) {this.updateLighting(0,playerPosition,playerVelocity,playerHeading);return;}
+    this.recoveryFrustum=null;
+    if(camera) {
+      camera.updateMatrixWorld(true);
+      this.recoveryFrustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
+    }
     // Bound integration steps so steering behaves consistently during a slow frame.
     const steps=Math.ceil(dt/physics.driving.maxStep),step=dt/steps;
     for(let i=0;i<steps;i++)this.step(step,playerPosition,playerVelocity);
@@ -568,6 +583,7 @@ export class Traffic {
         const crossing=Math.min(lateral,predicted)<physics.avoidance.halfWidth&&Math.max(lateral,predicted)>-physics.avoidance.halfWidth;
         if(forward>0&&forward<physics.avoidance.lookAhead&&crossing)targetSpeed=Math.min(targetSpeed,Math.max(0,(forward-physics.avoidance.stoppingGap)*physics.avoidance.speedResponse));
       }
+      vehicle.obstructed=false;
       const previousPosition=vehicle.mesh.position.clone(),previousHeading=vehicle.collider.angle;
       vehicle.previousVelocity.copy(vehicle.velocity);
       this.drive(vehicle,plans[index].targetLane,targetSpeed,dt,meetingControls.get(vehicle),pursuit);
@@ -579,7 +595,48 @@ export class Traffic {
         else if(!vehicle.recovering&&!vehicle.aggressive) {vehicle.active=false;vehicle.collider.active=false;vehicle.mesh.visible=false;continue;}
       }
       vehicle.driveDistance=vehicle.distance;
+      if(vehicle.aggressive)this.recoverStuckFarmer(vehicle,dt,playerPosition);
       for(const wheel of vehicle.wheels)for(const child of wheel.children)child.rotation.x+=vehicle.speed*dt/asset.wheelRadius;
+    }
+  }
+
+  /** The explicit off-camera reset replaces the complete motion state, never a route-following spring. */
+  private recoverStuckFarmer(vehicle:TrafficVehicle,dt:number,playerPosition?:THREE.Vector3):void {
+    const config=farmerPlacement.stuckRecovery;
+    vehicle.stuckObjectTime=vehicle.obstructed?config.obstacleMemory:Math.max(0,vehicle.stuckObjectTime-dt);
+    vehicle.recoveryRetryTime=Math.max(0,vehicle.recoveryRetryTime-dt);
+    const moved=vehicle.drive.position.clone().sub(vehicle.stuckOrigin).setY(0).lengthSq()>config.movementRadius**2;
+    if(moved||!this.recoveryFrustum||vehicle.stuckObjectTime===0) {
+      vehicle.stuckTime=0;vehicle.stuckOrigin.copy(vehicle.drive.position);return;
+    }
+    if(this.recoveryFrustum.intersectsBox(new THREE.Box3().setFromObject(vehicle.mesh).expandByScalar(config.visibilityMargin))) {
+      vehicle.stuckTime=0;vehicle.stuckOrigin.copy(vehicle.drive.position);return;
+    }
+    vehicle.stuckTime+=dt;
+    if(vehicle.stuckTime+1e-9<config.delay||vehicle.recoveryRetryTime>0)return;
+    vehicle.recoveryRetryTime=config.retryInterval;
+    const base=playerPosition?this.course.nearest(playerPosition.x,playerPosition.z).progress*this.course.length-config.behindPlayerDistance:vehicle.distance;
+    for(let i=0;i<config.searchSteps;i++) {
+      const distance=base+(i===0?0:(i%2?-1:1)*Math.ceil(i/2)*config.searchSpacing);
+      if(!vehicle.route.closed&&(distance<vehicle.collider.halfZ+config.clearance||distance>vehicle.route.length-vehicle.collider.halfZ-config.clearance))continue;
+      const sample=this.routeSample(vehicle,distance);
+      const tangent=sample.tangent.multiplyScalar(vehicle.direction);
+      const lane=this.normalLaneOffset(vehicle.route);
+      const position=sample.point.addScaledVector(new THREE.Vector3(tangent.z,0,-tangent.x),lane);
+      if(this.course.inWater(position.x,position.z)||playerPosition&&position.clone().sub(playerPosition).setY(0).length()<config.playerClearance)continue;
+      const heading=Math.atan2(tangent.x,tangent.z);
+      if(this.world.overlapsBox({x:position.x,z:position.z,halfX:vehicle.collider.halfX,halfZ:vehicle.collider.halfZ,angle:heading},vehicle.collider,config.clearance,['snowPole']))continue;
+      position.y=this.supportHeight(position.x,position.z)+placement.groundOffset;
+      const transform=new THREE.Matrix4().makeRotationY(heading).setPosition(position);
+      const bounds=this.farmerLocalBounds.clone().applyMatrix4(transform).expandByScalar(config.visibilityMargin);
+      if(this.recoveryFrustum.intersectsBox(bounds))continue;
+      vehicle.distance=vehicle.route.closed?THREE.MathUtils.euclideanModulo(distance,vehicle.route.length):distance;
+      vehicle.laneOffset=lane;vehicle.laneVelocity=0;vehicle.speed=0;vehicle.acceleration=0;
+      vehicle.angularVelocity=0;vehicle.reactionTime=0;vehicle.recovering=false;vehicle.stableTime=0;
+      vehicle.gear=1;vehicle.gearTime=0;vehicle.blockedTime=0;vehicle.obstacleLane=null;vehicle.obstacleTime=0;
+      vehicle.obstructed=false;vehicle.stuckTime=0;vehicle.stuckObjectTime=0;vehicle.recoveryRetryTime=0;
+      this.resetDrive(vehicle);this.place(vehicle,0,true);vehicle.stuckOrigin.copy(vehicle.drive.position);
+      return;
     }
   }
 

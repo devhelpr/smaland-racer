@@ -122,3 +122,14 @@ body.title-screen #app{position:relative;inset:auto;min-height:100dvh}
 #lights-hint{font-size:9px;color:var(--gold)}
 .touch-input #lights-hint{display:none}
 @media(max-width:850px){.lighting-hud{gap:5px;margin-bottom:6px;font-size:9px}.lighting-hud label{gap:4px}.lighting-hud label>span,#lights-hint{display:none}.lighting-hud select{width:150px;font-size:10px;padding:5px}.lighting-hud button{font-size:10px;padding:5px}.lighting-hud select,.lighting-hud button{min-height:44px}}
+
+.vehicle-picker{border:0;padding:0;margin:18px 0;max-width:560px;min-width:0}
+.vehicle-picker legend{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:9px}
+.vehicle-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.vehicle-options button{display:flex;align-items:center;gap:12px;text-align:left;min-height:62px;padding:12px;border:1px solid #eee3be44;border-radius:3px;background:#203c3280;color:var(--cream)}
+.vehicle-options button:hover{background:#3c5a49}
+.vehicle-options button[aria-pressed=true]{border-color:var(--gold);background:#edbf7513}
+.vehicle-options i{display:block;width:24px;height:24px;border-radius:50%;background:var(--car-color);box-shadow:inset 0 2px 4px #ffffff40,inset 0 -3px 5px #00000030;flex-shrink:0}
+.vehicle-options strong{display:block;font-size:12px;font-weight:500}
+.vehicle-options small{display:block;margin-top:5px;font-size:9px;opacity:.65;letter-spacing:.4px}
+@media(max-width:560px){.vehicle-options button{gap:8px;padding:10px}.vehicle-options strong{font-size:11px}}

@@ -3,16 +3,9 @@ import data from '../assets/stunts.json' with { type: 'json' };
 import vehicle from '../assets/vehicle.json' with { type: 'json' };
 import type { DrivingWorld } from './driving-world.ts';
 import type { CollisionWorld } from './collision.ts';
+import type { VehicleAsset } from './vehicle-model.ts';
 
 interface Probe { point:THREE.Vector3; wheel:boolean }
-const probes:Probe[]=[];
-for(const x of vehicle.wheelX)for(const z of vehicle.wheelZ)
-  probes.push({point:new THREE.Vector3(x,-data.centerOfMassHeight,z),wheel:true});
-const bounds=data.bodyContactBounds;
-for(const y of [bounds.min[1],bounds.max[1]])
-  for(let x=0;x<bounds.samplesX;x++)for(let z=0;z<bounds.samplesZ;z++)
-    probes.push({point:new THREE.Vector3(THREE.MathUtils.lerp(bounds.min[0],bounds.max[0],x/(bounds.samplesX-1)),y-data.centerOfMassHeight,THREE.MathUtils.lerp(bounds.min[2],bounds.max[2],z/(bounds.samplesZ-1))),wheel:false});
-const reach=Math.hypot(Math.max(...vehicle.wheelX.map(Math.abs)),Math.max(...vehicle.wheelZ.map(Math.abs)));
 const up=new THREE.Vector3(0,1,0);
 
 /** A contact-driven rigid body: wheel and hull impulses create lift and rotation. */
@@ -26,6 +19,18 @@ export class StuntDynamics {
   private damageAfter=0;
   private age=0;
   private overturnedStillTime=0;
+  private readonly probes:Probe[]=[];
+  private readonly reach:number;
+
+  constructor(geometry:VehicleAsset=vehicle) {
+    for(const x of geometry.wheelX)for(const z of geometry.wheelZ)
+      this.probes.push({point:new THREE.Vector3(x,geometry.wheelHeight-geometry.tire[0]-data.centerOfMassHeight,z),wheel:true});
+    const bounds=geometry.bodyContactBounds??data.bodyContactBounds;
+    for(const y of [bounds.min[1],bounds.max[1]])
+      for(let x=0;x<bounds.samplesX;x++)for(let z=0;z<bounds.samplesZ;z++)
+        this.probes.push({point:new THREE.Vector3(THREE.MathUtils.lerp(bounds.min[0],bounds.max[0],x/(bounds.samplesX-1)),y-data.centerOfMassHeight,THREE.MathUtils.lerp(bounds.min[2],bounds.max[2],z/(bounds.samplesZ-1))),wheel:false});
+    this.reach=Math.hypot(Math.max(...geometry.wheelX.map(Math.abs)),Math.max(...geometry.wheelZ.map(Math.abs)));
+  }
 
   get autoRightReady():boolean {return this.overturnedStillTime+1e-9>=data.autoRight.delay;}
 
@@ -64,7 +69,7 @@ export class StuntDynamics {
 
   update(dt:number,position:THREE.Vector3,velocity:THREE.Vector3,heading:number,course:DrivingWorld,world?:CollisionWorld):number {
     this.age+=dt;
-    const nearRock=world?.hasRockNear(position.x,position.z,reach)??false;
+    const nearRock=world?.hasRockNear(position.x,position.z,this.reach)??false;
     if(!this.active) {
       if(!nearRock)return 0;
       const dx=Math.sin(heading),dz=Math.cos(heading);
@@ -81,7 +86,7 @@ export class StuntDynamics {
     if(spin>0)this.rotation.premultiply(new THREE.Quaternion().setFromAxisAngle(this.angularVelocity.clone().divideScalar(spin),spin*dt)).normalize();
     const wheels=new Set<number>();let bodyContact=false,anyContact=false,maxLandingSpeed=0,maxBodySpeed=0,maxRockImpactSpeed=0;
     for(let iteration=0;iteration<data.solverIterations;iteration++) {
-      for(const [index,probe] of probes.entries()) {
+      for(const [index,probe] of this.probes.entries()) {
         const offset=probe.point.clone().applyQuaternion(this.rotation);
         const point=position.clone().add(offset);point.y+=data.centerOfMassHeight;
         const ground=course.heightAt(point.x,point.z);

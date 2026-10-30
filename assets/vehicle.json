@@ -6,7 +6,7 @@
   "licensePlate": [0.56,0.15,0.025,0,0.79,-1.975],
   "wheelX": [-0.95,0.95],
   "wheelZ": [-1.22,1.22],
-  "tire": [0.43,0.43,0.28,24],
+  "tire": [0.43,0.43,0.28,48],
   "hub": [0.235,0.235,0.3,32],
   "smokeGeometry": [0.3,0],
   "wheelHeight": 0.43,
@@ -14,6 +14,8 @@
   "colliderRadius": 1.05,
   "name": "Volvo 240 GL — 1980s sedan",
   "bodyWidth": 1.8,
+  "roundedBoxes": {"segments":2,"radius":0.022},
+  "bodyBevel": {"bevelEnabled":true,"bevelThickness":0.012,"bevelSize":0.012,"bevelSegments":2,"steps":1},
   "bodyProfile": [
     [1.95,0.57],
     [1.95,1.04],
@@ -54,7 +56,7 @@
     ],
     "indices": [0,1,5,0,5,4,1,2,6,1,6,5,2,3,7,2,7,6,3,0,4,3,4,7,4,5,6,4,6,7]
   },
-  "hubRing": [0.255,0.014,8,32],
+  "hubRing": [0.255,0.014,8,48],
   "hubCenter": [0.09,0.09,0.32,16],
   "wheelFaceX": 0.158,
   "wheelVent": {

@@ -1,5 +1,6 @@
 import type { Language } from './storage.ts';
 const en={
+  chooseCar:'Your car',
   timeOfDay:'Time of day',day:'Golden hour',night:'Night',nightInfo:'No streetlights. Just you, the forest and your headlights.',headlights:'Car lights',off:'Off',dipped:'Dipped headlights',beam:'Full beam',led:'Full beam + LED bar',lightsHint:'L · switch lights',
   airborne:'Airborne',twoWheels:'Two wheels',overturned:'Overturned · R to right the car',
   drivingStyle:'Driving style',cruising:'Cruising',rally:'Rally',cruisingInfo:'The original handling. Easy pace, grass slows you down.',rallyInfo:'More speed, quicker acceleration, less drag on grass.',ice:'Ice',iceLake:'Winter lake · Road 120 underpass',
@@ -34,6 +35,7 @@ const en={
 };
 export type TextKey=keyof typeof en;
 const nl: Record<TextKey,string>={
+  chooseCar:'Jouw auto',
   timeOfDay:'Tijdstip',day:'Gouden uurtje',night:'Nacht',nightInfo:'Geen straatverlichting. Alleen jij, het bos en je koplampen.',headlights:'Autoverlichting',off:'Uit',dipped:'Dimlicht',beam:'Grootlicht',led:'Grootlicht + ledbar',lightsHint:'L · wissel verlichting',
   airborne:'In de lucht',twoWheels:'Twee wielen',overturned:'Omgeslagen · R om recht te zetten',
   drivingStyle:'Rijstijl',cruising:'Cruising',rally:'Rally',cruisingInfo:'Het originele rijgedrag. Rustig rijden; gras remt je af.',rallyInfo:'Meer snelheid, sneller optrekken, minder weerstand op gras.',ice:'IJs',iceLake:'Wintermeer · Onder de brug van weg 120',
@@ -67,6 +69,7 @@ const nl: Record<TextKey,string>={
   exitPractice:'Stop vrij rijden',distance:'km',selectLabel:'Kies een parcours',countdownLabel:'Aftellen voor de start',
 };
 const sv: Record<TextKey,string>={
+  chooseCar:'Din bil',
   timeOfDay:'Tid på dygnet',day:'Gyllene timmen',night:'Natt',nightInfo:'Ingen gatubelysning. Bara du, skogen och bilens strålkastare.',headlights:'Bilbelysning',off:'Av',dipped:'Halvljus',beam:'Helljus',led:'Helljus + LED-ramp',lightsHint:'L · byt belysning',
   airborne:'I luften',twoWheels:'Två hjul',overturned:'Vält · R för att räta upp',
   drivingStyle:'Körstil',cruising:'Cruising',rally:'Rally',cruisingInfo:'Den ursprungliga körkänslan. Lugn fart, gräset bromsar.',rallyInfo:'Högre fart, snabbare acceleration, mindre motstånd på gräs.',ice:'Is',iceLake:'Vintersjö · Under bron på väg 120',

@@ -15,6 +15,8 @@ Open Vite's local URL in a browser with WebGL 2 and hardware acceleration enable
 
 ## Play
 
+Choose the original **Volvo 240 GL** or a grey **2022 VW Tiguan** on the title or route screen. Your car choice is saved locally. Both have rounded body edges and smoother wheels; the Tiguan adds SUV proportions, split-spoke alloys, LED lamps, VW badges and roof rails. Model geometry and catalog data live in `assets/vehicles/` (the original Volvo remains in `assets/vehicle.json`), with paint and material definitions in `assets/materials/`. Both cars use the selected Cruising or Rally handling profile.
+
 The title screen leads to six courses across three landscapes. Each landscape has a distinct one-lap circuit and a start-to-finish rally stage. All six courses are available immediately in both rally and free drive, without earning medals first. You can replay any course to improve your personal best, or choose **Free drive** to practice without saving results.
 
 | Key | Action |

@@ -7,7 +7,7 @@ import { Course, courses } from '../src/track.ts';
 import { createScenery } from '../src/scenery.ts';
 import { CollisionWorld } from '../src/collision.ts';
 import { disposeGroup } from '../src/dispose.ts';
-import vehicleAsset from '../assets/vehicle.json' with {type:'json'};
+import { vehicles } from '../src/vehicles.ts';
 import type { DrivingWorld } from '../src/driving-world.ts';
 
 const neutral={throttle:0,steer:0,handbrake:false};
@@ -16,7 +16,7 @@ function tireBottoms(car:Vehicle):number[] {
   car.mesh.updateMatrixWorld(true);
   const result:number[]=[];
   car.mesh.traverse(object=>{
-    if(!(object instanceof THREE.Mesh)||!(object.geometry instanceof THREE.CylinderGeometry)||object.geometry.parameters.radiusTop!==vehicleAsset.tire[0])return;
+    if(!(object instanceof THREE.Mesh)||!(object.geometry instanceof THREE.CylinderGeometry)||object.geometry.parameters.radiusTop!==car.asset.tire[0])return;
     const points=object.geometry.getAttribute('position');let minimum=Infinity;
     for(let i=0;i<points.count;i++)minimum=Math.min(minimum,new THREE.Vector3().fromBufferAttribute(points,i).applyMatrix4(object.matrixWorld).y);
     result.push(minimum);
@@ -24,12 +24,12 @@ function tireBottoms(car:Vehicle):number[] {
   assert.equal(result.length,4);return result;
 }
 
-test('stationary, spinning and recovered tires touch a flat driving surface with no visual lift',()=>{
+for(const {id} of vehicles)test(`${id}: stationary, spinning and recovered tires touch a flat driving surface with no visual lift`,()=>{
   const height=2;
   const world:DrivingWorld={heightAt:()=>height,surfaceAt:()=> 'asphalt',isWater:()=>false,
     spawn:{point:new THREE.Vector3(0,height,0),tangent:new THREE.Vector3(0,0,1)},
     nearestRoad:()=>({point:new THREE.Vector3(0,height,0),tangent:new THREE.Vector3(0,0,1),distance:0,progress:0,width:8,surface:'asphalt'})};
-  const car=new Vehicle(world);
+  const car=new Vehicle(world,'cruising',undefined,id);
   for(const bottom of tireBottoms(car))assert.ok(Math.abs(bottom-height)<1e-6,'stationary tire floats');
   car.velocity.set(0,0,10);
   for(let i=0;i<100;i++) {

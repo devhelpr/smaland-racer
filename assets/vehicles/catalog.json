@@ -1,0 +1,14 @@
+[
+  {
+    "id": "volvo-240",
+    "name": "Volvo 240 GL",
+    "detail": "1980s \u00b7 Sedan",
+    "color": "#bd6a35"
+  },
+  {
+    "id": "tiguan-2022",
+    "name": "VW Tiguan",
+    "detail": "2022 \u00b7 SUV",
+    "color": "#838990"
+  }
+]

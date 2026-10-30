@@ -1,10 +1,24 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import defaultAsset from '../assets/vehicle.json' with { type: 'json' };
 import materialAsset from '../assets/materials/vehicle.json' with { type: 'json' };
 
 type Box = [number,number,number,number,number,number];
 type Point = [number,number,number];
+interface ModelPart {
+  name:string; material:string; box?:number[];
+  beam?:{size:number[];from:number[];to:number[]};
+  torus?:number[]; position?:number[]; rotation?:number[];
+}
+export type VehicleAsset = Omit<typeof defaultAsset,'staticParts'|'bodyBevel'|'roundedBoxes'> & {
+  staticParts:ModelPart[];
+  roundedBoxes?:{segments:number;radius:number};
+  bodyBevel?:THREE.ExtrudeGeometryOptions;
+  wheelParts?:ModelPart[];
+  bodyContactBounds?:{min:number[];max:number[];samplesX:number;samplesZ:number};
+  lighting?:{beamPosition:number[];ledHousingPosition:number[];ledLensPosition:number[]};
+};
 
 /** Bake decorative parts per material; damage panels and turning wheels stay separate. */
 function batch(group:THREE.Group):void {
@@ -26,19 +40,21 @@ function batch(group:THREE.Group):void {
   }
 }
 
-export function createVehicleModel(root:THREE.Group,variant:Partial<typeof defaultAsset>={},color?:string) {
-  const asset={...defaultAsset,...variant};
-  const {smokeMaterial:_,...definitions}=materialAsset;
+export function createVehicleModel(root:THREE.Group,variant:Partial<VehicleAsset>={},color?:string,palette=materialAsset) {
+  const asset:VehicleAsset={...defaultAsset,...variant};
+  const {smokeMaterial:_,...definitions}=palette;
   const materials=Object.fromEntries(Object.entries(definitions).map(([id,settings])=>[id,new THREE.MeshStandardMaterial(settings)]));
   if(color)materials.paint.color.set(color);
-  const decoration=new THREE.Group();decoration.name='volvo-details';root.add(decoration);
+  const decoration=new THREE.Group();decoration.name='vehicle-details';root.add(decoration);
   root.name=asset.name;root.userData.model=asset.name;
   const mesh=(group:THREE.Group,name:string,geometry:THREE.BufferGeometry,material:THREE.Material)=>{
     const part=new THREE.Mesh(geometry,material);part.name=name;part.castShadow=true;part.receiveShadow=true;group.add(part);return part;
   };
   const box=(group:THREE.Group,name:string,values:number[],material:THREE.Material)=>{
     const [w,h,d,x,y,z]=values as Box;
-    const part=mesh(group,name,new THREE.BoxGeometry(w,h,d),material);part.position.set(x,y,z);return part;
+    const rounded=asset.roundedBoxes;
+    const geometry=rounded?new RoundedBoxGeometry(w,h,d,rounded.segments,Math.min(rounded.radius,w/2,h/2,d/2)):new THREE.BoxGeometry(w,h,d);
+    const part=mesh(group,name,geometry,material);part.position.set(x,y,z);return part;
   };
   const beam=(group:THREE.Group,name:string,size:number[],from:number[],to:number[],material:THREE.Material)=>{
     const a=new THREE.Vector3(...from as Point),b=new THREE.Vector3(...to as Point),direction=b.clone().sub(a);
@@ -47,19 +63,25 @@ export function createVehicleModel(root:THREE.Group,variant:Partial<typeof defau
   };
   // The lower silhouette cuts away the wheel arches instead of hiding tires in a box.
   const shape=new THREE.Shape();asset.bodyProfile.forEach(([z,y],i)=>i?shape.lineTo(-z,y):shape.moveTo(-z,y));shape.closePath();
-  const geometry=new THREE.ExtrudeGeometry(shape,{depth:asset.bodyWidth,bevelEnabled:false});
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:asset.bodyWidth,bevelEnabled:false,...asset.bodyBevel});
   geometry.translate(0,0,-asset.bodyWidth/2);geometry.rotateY(Math.PI/2);
-  const body=mesh(root,'volvo-body',geometry,materials.paint);
-  const hood=box(root,'volvo-hood',asset.hood,materials.paint);
+  const body=mesh(root,'vehicle-body',geometry,materials.paint);
+  const hood=box(root,'vehicle-hood',asset.hood,materials.paint);
   box(decoration,'roof',asset.roof,materials.paint);
   const cabin=new THREE.BufferGeometry();cabin.setAttribute('position',new THREE.Float32BufferAttribute(asset.cabinMesh.vertices.flat(),3));cabin.setIndex(asset.cabinMesh.indices);
   const glass=cabin.toNonIndexed();cabin.dispose();glass.computeVertexNormals();mesh(decoration,'sloped-glazing',glass,materials.glass);
   box(decoration,'front-bumper',asset.frontBumper,materials.trim);box(decoration,'rear-bumper',asset.rearBumper,materials.trim);
   box(decoration,'rear-license-plate',asset.licensePlate,materials.white);
-  for(const part of asset.staticParts) {
-    if(part.box)box(decoration,part.name,part.box,materials[part.material]);
-    else if(part.beam)beam(decoration,part.name,part.beam.size,part.beam.from,part.beam.to,materials[part.material]);
-  }
+  const addPart=(group:THREE.Group,part:ModelPart)=>{
+    if(part.box)box(group,part.name,part.box,materials[part.material]);
+    else if(part.beam)beam(group,part.name,part.beam.size,part.beam.from,part.beam.to,materials[part.material]);
+    else if(part.torus) {
+      const ring=mesh(group,part.name,new THREE.TorusGeometry(...part.torus as [number,number,number,number]),materials[part.material]);
+      if(part.position)ring.position.fromArray(part.position);
+      if(part.rotation)ring.rotation.set(...part.rotation as Point);
+    }
+  };
+  for(const part of asset.staticParts)addPart(decoration,part);
   const glyphs=asset.lettering.glyphs as Record<string,number[][][]>;
   for(const label of asset.lettering.labels) {
     const width=label.text.length*(label.width+label.spacing)-label.spacing;
@@ -77,6 +99,7 @@ export function createVehicleModel(root:THREE.Group,variant:Partial<typeof defau
     const hub=mesh(pivot,'steel-hub',new THREE.CylinderGeometry(...asset.hub as [number,number,number,number]),materials.chrome);hub.rotation.z=Math.PI/2;
     const center=mesh(pivot,'hub-cap',new THREE.CylinderGeometry(...asset.hubCenter as [number,number,number,number]),materials.trim);center.rotation.z=Math.PI/2;
     const detail=new THREE.Group();pivot.add(detail);
+    for(const part of asset.wheelParts??[])addPart(detail,part);
     for(const side of [-1,1]) {
       const rim=mesh(detail,'chrome-rim',new THREE.TorusGeometry(...asset.hubRing as [number,number,number,number]),materials.chrome);rim.rotation.y=Math.PI/2;rim.position.x=side*asset.wheelFaceX;
       for(let i=0;i<asset.wheelVent.count;i++) {

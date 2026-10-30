@@ -1,0 +1,61 @@
+{
+  "paint": {
+    "color": "#838990",
+    "roughness": 0.38,
+    "metalness": 0.28
+  },
+  "trim": {
+    "color": "#202326",
+    "roughness": 0.86
+  },
+  "glass": {
+    "color": "#263d49",
+    "roughness": 0.13,
+    "metalness": 0.45
+  },
+  "white": {
+    "color": "#eee8d7"
+  },
+  "lamp": {
+    "color": "#f1f6ff",
+    "emissive": "#e0edff",
+    "emissiveIntensity": 0.35
+  },
+  "red": {
+    "color": "#b64032"
+  },
+  "smokeMaterial": {
+    "color": "#555c56",
+    "transparent": true,
+    "opacity": 0.35,
+    "depthWrite": false
+  },
+  "chrome": {
+    "color": "#bcc5c6",
+    "roughness": 0.25,
+    "metalness": 0.8
+  },
+  "grille": {
+    "color": "#51565a",
+    "roughness": 0.6,
+    "metalness": 0.3
+  },
+  "panelGap": {
+    "color": "#41474b",
+    "roughness": 0.8
+  },
+  "badge": {
+    "color": "#25425a",
+    "roughness": 0.4,
+    "metalness": 0.25
+  },
+  "amber": {
+    "color": "#e99424",
+    "roughness": 0.3
+  },
+  "lens": {
+    "color": "#dbd6b8",
+    "roughness": 0.3,
+    "metalness": 0.1
+  }
+}

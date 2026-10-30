@@ -1,10 +1,10 @@
-import materialAsset from '../assets/materials/vehicle.json' with { type: 'json' };
+import { vehicleDefinition, type VehicleId } from './vehicles.ts';
+import type { VehicleAsset } from './vehicle-model.ts';
 import { VehicleLighting } from './lighting.ts';
 import { createVehicleModel } from './vehicle-model.ts';
 import { StuntDynamics } from './stunts.ts';
 import stuntAsset from '../assets/stunts.json' with { type: 'json' };
 import { drivingProfiles, type DrivingStyle, type DrivingProfiles } from './driving.ts';
-import asset from '../assets/vehicle.json' with { type: 'json' };
 import * as THREE from 'three';
 import type { DrivingWorld } from './driving-world.ts';
 import { CAR_RADIUS, CollisionWorld, impactDamage } from './collision.ts';
@@ -16,7 +16,7 @@ export class Vehicle {
   readonly lighting: VehicleLighting;
   readonly position = new THREE.Vector3();
   readonly velocity = new THREE.Vector3();
-  readonly stunts = new StuntDynamics();
+  readonly stunts: StuntDynamics;
   heading = 0;
   forwardSpeed = 0;
   onRoad = true;
@@ -29,20 +29,26 @@ export class Vehicle {
   private steering = 0;
   private wheels: THREE.Group[] = [];
 
+  readonly asset: VehicleAsset;
+  readonly vehicleId: VehicleId;
   readonly course: DrivingWorld;
   readonly drivingStyle: DrivingStyle;
   readonly profiles: DrivingProfiles;
-  constructor(course: DrivingWorld, drivingStyle: DrivingStyle = 'cruising', profiles: DrivingProfiles = drivingProfiles) {
+  constructor(course: DrivingWorld, drivingStyle: DrivingStyle = 'cruising', profiles: DrivingProfiles = drivingProfiles, vehicleId:VehicleId='volvo-240') {
     this.profiles=profiles;
     this.drivingStyle=drivingStyle;
     this.course=course;
-    const model=createVehicleModel(this.mesh);
+    this.vehicleId=vehicleId;
+    const definition=vehicleDefinition(vehicleId);
+    this.asset=definition.asset;
+    this.stunts=new StuntDynamics(this.asset);
+    const model=createVehicleModel(this.mesh,this.asset,undefined,definition.materials);
     this.panels=model.panels;this.wheels=model.wheels;
-    this.lighting=new VehicleLighting(model.lamp,model.red);
+    this.lighting=new VehicleLighting(model.lamp,model.red,this.asset.lighting);
     this.mesh.add(this.lighting.root);
-    const smokeMaterial = new THREE.MeshBasicMaterial(materialAsset.smokeMaterial);
-    const smokeGeometry = new THREE.IcosahedronGeometry(...asset.smokeGeometry as [number, number]);
-    for(let i=0;i<asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
+    const smokeMaterial = new THREE.MeshBasicMaterial(definition.materials.smokeMaterial);
+    const smokeGeometry = new THREE.IcosahedronGeometry(...this.asset.smokeGeometry as [number, number]);
+    for(let i=0;i<this.asset.smokeCount;i++) this.smoke.add(new THREE.Mesh(smokeGeometry,smokeMaterial));
     this.mesh.add(this.smoke);
     // Rotate the model around its center of mass, including during a full rollover.
     const body=new THREE.Group();body.add(...this.mesh.children);
@@ -68,7 +74,7 @@ export class Vehicle {
     const sin=Math.sin(this.heading),cos=Math.cos(this.heading);
     let support=this.course.heightAt(this.position.x,this.position.z);
     // Clear stones under either axle or the chassis without shifting sideways.
-    const points=[[0,0],...asset.wheelX.flatMap(x=>asset.wheelZ.map(z=>[x,z]))];
+    const points=[[0,0],...this.asset.wheelX.flatMap(x=>this.asset.wheelZ.map(z=>[x,z]))];
     for(const [x,z] of points) {
       const worldX=this.position.x+x*cos+z*sin,worldZ=this.position.z-x*sin+z*cos;
       const terrain=this.course.heightAt(worldX,worldZ);
@@ -118,7 +124,7 @@ export class Vehicle {
     let remaining=dt;
     const pushed=new Set<string>();
     const bodyAxis=new THREE.Vector3(Math.sin(this.heading),0,Math.cos(this.heading));
-    const probes=[0,asset.frontBumper[5]+asset.frontBumper[2]/2-CAR_RADIUS,asset.rearBumper[5]-asset.rearBumper[2]/2+CAR_RADIUS];
+    const probes=[0,this.asset.frontBumper[5]+this.asset.frontBumper[2]/2-CAR_RADIUS,this.asset.rearBumper[5]-this.asset.rearBumper[2]/2+CAR_RADIUS];
     for(let iteration=0;iteration<3&&remaining>0;iteration++) {
       const destination=this.position.clone().addScaledVector(this.velocity,remaining);
       destination.y=this.position.y;
@@ -174,14 +180,14 @@ export class Vehicle {
     this.syncMesh();
     for(const wheel of this.wheels) {
       wheel.rotation.y=wheel.position.z>0?this.steering*.35:0;
-      for(const child of wheel.children) child.rotation.x+=this.forwardSpeed*dt/asset.tire[0];
+      for(const child of wheel.children) child.rotation.x+=this.forwardSpeed*dt/this.asset.tire[0];
     }
     this.panels[0].scale.x=1-this.damage*.0012;
     this.panels[1].rotation.x=-this.damage*.002;
-    this.panels[1].position.y=asset.hood[4]+this.damage*.0015;
+    this.panels[1].position.y=this.asset.hood[4]+this.damage*.0015;
     this.smoke.visible=this.damage>50;
     this.smoke.children.forEach((puff,i)=> {
-      const phase=(this.age*.6+i/asset.smokeCount)%1;
+      const phase=(this.age*.6+i/this.asset.smokeCount)%1;
       puff.position.set(Math.sin(i*2+this.age)*phase*.5,1.2+phase*3,1.2+phase*.5);
       puff.scale.setScalar(.4+phase*1.9);
     });

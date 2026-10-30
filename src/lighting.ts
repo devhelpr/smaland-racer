@@ -17,11 +17,11 @@ export class VehicleLighting {
   private lens: THREE.MeshStandardMaterial;
   private headlights: THREE.MeshStandardMaterial;
   private tailLights: THREE.MeshStandardMaterial;
-  constructor(headlights: THREE.MeshStandardMaterial, tailLights: THREE.MeshStandardMaterial) {
+  constructor(headlights: THREE.MeshStandardMaterial, tailLights: THREE.MeshStandardMaterial, mounts?:{beamPosition:number[];ledHousingPosition:number[];ledLensPosition:number[]}) {
     this.headlights = headlights;
     this.tailLights = tailLights;
     this.root.name = 'vehicle-lighting';
-    this.beam.position.fromArray(asset.beamPosition);
+    this.beam.position.fromArray(mounts?.beamPosition??asset.beamPosition);
     this.beam.castShadow = true;
     this.beam.shadow.mapSize.set(asset.shadow.mapSize, asset.shadow.mapSize);
     this.beam.shadow.camera.near = asset.shadow.near;
@@ -30,10 +30,10 @@ export class VehicleLighting {
     this.root.add(this.beam, this.beam.target);
     const housing = asset.ledHousing, lens = asset.ledLens;
     const body = new THREE.Mesh(new THREE.BoxGeometry(...housing.size as [number, number, number]), new THREE.MeshStandardMaterial(materialAsset.ledHousing));
-    body.position.fromArray(housing.position);
+    body.position.fromArray(mounts?.ledHousingPosition??housing.position);
     this.lens = new THREE.MeshStandardMaterial(materialAsset.ledLens);
     const glass = new THREE.Mesh(new THREE.BoxGeometry(...lens.size as [number, number, number]), this.lens);
-    glass.position.fromArray(lens.position);
+    glass.position.fromArray(mounts?.ledLensPosition??lens.position);
     this.root.add(body, glass);
     this.setMode('dipped');
   }

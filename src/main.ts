@@ -13,6 +13,7 @@ import { createScenery } from './scenery.ts';
 import type { SnowPoles } from './snow-poles.ts';
 import { Input } from './input.ts';
 import { Vehicle } from './vehicle.ts';
+import { vehicles, isVehicleId } from './vehicles.ts';
 import { Course, courses, lakeContains } from './track.ts';
 import { Race } from './race.ts';
 import { CollisionWorld } from './collision.ts';
@@ -68,7 +69,7 @@ function start(): void {
     disposeGroup(group);
     selected=index;course=new Course(courses[index]);world=new CollisionWorld();group=new THREE.Group();scene.add(group);
     snowPoles=createScenery(group,course,world);
-    car=new Vehicle(course,progress.drivingStyle,tuner.profiles);group.add(car.mesh);
+    car=new Vehicle(course,progress.drivingStyle,tuner.profiles,progress.vehicle);group.add(car.mesh);
     car.lighting.setMode(progress.headlights??'dipped');
     setTimeOfDay(progress.timeOfDay??'day');
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
@@ -108,7 +109,7 @@ function start(): void {
   }
 
   function begin(practice=false): void {
-    if(!course.definition.openWorld||car.drivingStyle!==progress.drivingStyle)loadCourse(selected);
+    if(!course.definition.openWorld||car.drivingStyle!==progress.drivingStyle||car.vehicleId!==(progress.vehicle??'volvo-240'))loadCourse(selected);
     else car.restart();
     race.start(practice||!!course.definition.openWorld);follow(car,0,true);lastTime=performance.now();input.clear();lastState='';renderMenus();updateLabels();
   }
@@ -156,6 +157,7 @@ function start(): void {
   const button=(action:string,key:TextKey,primary=false)=>`<button data-action="${action}" class="${primary?'primary':'secondary'}">${t(key)}${primary?icon('arrowUpRight'):''}</button>`;
   const targets=()=>course.definition.openWorld?`<p>${t('openWorldInfo')}</p>`:`<div class="targets">${(['gold','silver','bronze'] as const).map(m=>`<span class="medal-target ${m}"><i></i>${t(m)}<b>${time(course.definition.medals[m])}</b></span>`).join('')}</div>`;
 
+  const vehicleOptions=()=>`<fieldset class="vehicle-picker"><legend>${t('chooseCar')}</legend><div class="vehicle-options">${vehicles.map(vehicle=>`<button type="button" data-vehicle="${vehicle.id}" aria-pressed="${(progress.vehicle??'volvo-240')===vehicle.id}"><i style="--car-color:${vehicle.color}" aria-hidden="true"></i><span><strong>${vehicle.name}</strong><small>${vehicle.detail}</small></span></button>`).join('')}</div></fieldset>`;
   const drivingOptions=()=>`<fieldset class="driving-picker"><legend>${t('drivingStyle')}</legend><div class="driving-options">${drivingStyles.map(style=>`<button type="button" data-driving-style="${style}" aria-pressed="${(progress.drivingStyle??'cruising')===style}"><strong>${t(style)}</strong><span>${t(style==='cruising'?'cruisingInfo':'rallyInfo')}</span></button>`).join('')}</div></fieldset>`;
   const lightingOptions=()=>`<fieldset class="lighting-picker"><legend>${t('timeOfDay')}</legend><div class="season-options time-options">${timesOfDay.map(mode=>`<button type="button" data-time="${mode}" aria-pressed="${(progress.timeOfDay??'day')===mode}">${t(mode)}</button>`).join('')}</div><p>${t('nightInfo')}</p><label class="lighting-select">${t('headlights')}<select data-headlights>${headlightModes.map(mode=>`<option value="${mode}" ${mode===(progress.headlights??'dipped')?'selected':''}>${t(mode)}</option>`).join('')}</select></label></fieldset>`;
   const languageOptions=()=>`<label class="language pause-language"><span>${t('language')}</span><select data-language aria-label="${t('language')}">${(['en','nl','sv'] as const).map(code=>`<option value="${code}" ${code===language?'selected':''}>${{en:'English',nl:'Nederlands',sv:'Svenska'}[code]}</option>`).join('')}</select></label>`;
@@ -169,9 +171,9 @@ function start(): void {
     el('countdown').hidden=state!=='countdown';
     menus.className=state==='title'?'title-menu':state==='select'?'selection-menu':state==='paused'||state==='finished'||state==='crashed'?'center-menu':'';
     if(state==='title') {
-      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div></fieldset>${lightingOptions()}<div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${icon('chevronRight')}${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
+      menus.innerHTML=`<section class="title-copy"><span class="eyebrow">${t('eyebrow')}</span><h1>${t('escape')}</h1><p class="subtitle">${t('subtitle')}</p>${vehicleOptions()}${drivingOptions()}<fieldset class="season-picker"><legend>${t('season')}</legend><div class="season-options">${seasons.map(season=>`<button type="button" data-season="${season}" aria-pressed="${progress.season===season}" style="--season-color:${seasonPalettes[season].grass}"><i aria-hidden="true"></i>${t(season)}</button>`).join('')}</div></fieldset>${lightingOptions()}<div class="title-actions">${button('select','choose',true)}<span class="volume">01 — ${String(courses.length).padStart(2,'0')} / SMÅLAND, ${t('country').toUpperCase()}</span></div><div class="title-details"><p>${t('rules')}</p><p>${t('caution')}</p><details><summary>${icon('chevronRight')}${t('controls')}</summary><p>${t(input.usingTouch?'touchInfo':'controlInfo')}</p></details></div></section><div class="title-stamp" aria-hidden="true"><span>SMÅLAND</span><b>GRAVEL<br>CLUB</b><span>EST. 2026</span></div>`;
     } else if(state==='select') {
-      menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">${icon('arrowLeft')}${t('back')}</button></div><div class="selection-controls">${drivingOptions()}${button('start',course.definition.openWorld?'practice':'play',true)}</div><div class="course-grid">${courses.map((def,i)=> {
+      menus.innerHTML=`<section class="selection-panel" aria-label="${t('selectLabel')}"><div class="selection-header"><div><span class="eyebrow">SMÅLAND / 01—${String(courses.length).padStart(2,'0')}</span><h1>${t('routes')}</h1><p>${t('routeIntro')}</p></div><button data-action="title" class="text-button">${icon('arrowLeft')}${t('back')}</button></div>${vehicleOptions()}<div class="selection-controls">${drivingOptions()}${button('start',course.definition.openWorld?'practice':'play',true)}</div><div class="course-grid">${courses.map((def,i)=> {
         const record=progress.records[courseRecordKey(def.id,progress.drivingStyle)];
         const preview=new Course(def);const outline=preview.lakes.flatMap(l=>l.outline??[]);const xs=[...mapPoints(preview).map(p=>p.x),...outline.map(p=>p[0])],zs=[...mapPoints(preview).map(p=>p.z),...outline.map(p=>p[1])];const x=Math.min(...xs)-20,z=Math.min(...zs)-20,size=Math.max(Math.max(...xs)-x,Math.max(...zs)-z)+20;
         const path=preview.points.filter((_,j)=>j%5===0).map((p,j)=>`${j?'L':'M'}${p.x},${p.z}`).join(' ')+(def.closed?'Z':'');
@@ -191,6 +193,11 @@ function start(): void {
 
   menus.addEventListener('click',event=> {
     const target=(event.target as HTMLElement).closest<HTMLButtonElement>('button');if(!target)return;
+    if(isVehicleId(target.dataset.vehicle)) {
+      const state=race.state;
+      progress.vehicle=target.dataset.vehicle;persist();
+      loadCourse(selected);race.state=state;renderMenus();return;
+    }
     if(isTimeOfDay(target.dataset.time)) {changeTime(target.dataset.time);return;}
     if(isDrivingStyle(target.dataset.drivingStyle)) {
       progress.drivingStyle=target.dataset.drivingStyle;persist();renderMenus();return;

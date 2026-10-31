@@ -24,6 +24,7 @@ interface TrafficVehicle {
   stuckObjectTime:number;
   recoveryRetryTime:number;
   powertrain?:{acceleration:number;braking:number};
+  corneringAcceleration?:number;
   beacons: THREE.Mesh<THREE.CylinderGeometry,THREE.MeshStandardMaterial>[];
   mesh: THREE.Group;
   lighting: VehicleLighting;
@@ -180,9 +181,11 @@ export class Traffic {
     const laneError=vehicle.laneOffset-targetLane;
     const roadFraction=THREE.MathUtils.clamp((vehicle.route.width/2-Math.abs(vehicle.laneOffset)+vehicle.collider.halfX)/(2*vehicle.collider.halfX),0,1);
     const onRoad=roadFraction>0.5;
+    const lookAheadTime=vehicle.aggressive?farmerPlacement.handling.lookAheadTime:physics.driving.lookAheadTime;
+    if(vehicle.aggressive)vehicle.corneringAcceleration=Math.min(farmerPlacement.maxLateralAcceleration,THREE.MathUtils.lerp(physics.dynamics.shoulderGripAcceleration,physics.dynamics.roadGripAcceleration,roadFraction)*farmerPlacement.handling.gripUsage);
     const preview=vehicle.recovering
-      ?Math.max(config.lookAheadMin,Math.abs(vehicle.speed)*physics.driving.lookAheadTime,Math.abs(laneError)*config.crossTrackPreview)
-      :Math.max(physics.driving.lookAheadMin,Math.abs(vehicle.speed)*physics.driving.lookAheadTime);
+      ?Math.max(config.lookAheadMin,Math.abs(vehicle.speed)*lookAheadTime,Math.abs(laneError)*config.crossTrackPreview)
+      :Math.max(physics.driving.lookAheadMin,Math.abs(vehicle.speed)*lookAheadTime);
     const aim=this.routeSample(vehicle,vehicle.distance+vehicle.direction*(meetingReverse?-physics.meeting.retry.lookAhead:preview));
     const right=new THREE.Vector3(aim.tangent.z,0,-aim.tangent.x).multiplyScalar(vehicle.direction);
     aim.point.addScaledVector(right,targetLane);
@@ -229,7 +232,18 @@ export class Traffic {
     if(vehicle.reactionTime===0) {
       const steeringOverride=vehicle.gear===-1&&meetingReverse===undefined?headingError
         :pursuit&&Math.abs(headingError)>config.forwardAngle?-headingError:undefined;
-      steerTraffic(vehicle.drive,aim.point,vehicle.wheelbase,dt,steeringOverride);
+      if(vehicle.aggressive) {
+        const offset=aim.point.clone().sub(vehicle.drive.position).setY(0);
+        const lateral=offset.x*Math.cos(vehicle.drive.heading)-offset.z*Math.sin(vehicle.drive.heading);
+        const curvature=steeringOverride!==undefined?Math.abs(Math.tan(THREE.MathUtils.clamp(steeringOverride,-physics.driving.maxSteeringAngle,physics.driving.maxSteeringAngle))/vehicle.wheelbase):2*Math.abs(lateral)/Math.max(offset.lengthSq(),1);
+        const rackCurvature=Math.abs(Math.tan(vehicle.drive.steering)/vehicle.wheelbase);
+        const turnDemand=Math.max(curvature,rackCurvature);
+        if(turnDemand>0)targetSpeed=Math.min(targetSpeed,Math.sqrt(vehicle.corneringAcceleration!/turnDemand));
+        const slip=Math.abs(vehicle.velocity.x*Math.cos(vehicle.drive.heading)-vehicle.velocity.z*Math.sin(vehicle.drive.heading));
+        if(slip>farmerPlacement.handling.stabilizeSlipSpeed)targetSpeed=Math.min(targetSpeed,config.speed);
+        const maxAngle=Math.min(physics.driving.maxSteeringAngle,Math.atan(vehicle.wheelbase*vehicle.corneringAcceleration!/Math.max(vehicle.velocity.lengthSq(),1)));
+        steerTraffic(vehicle.drive,aim.point,vehicle.wheelbase,dt,steeringOverride,maxAngle);
+      } else steerTraffic(vehicle.drive,aim.point,vehicle.wheelbase,dt,steeringOverride);
     }
     if((vehicle.recovering||vehicle.aggressive)&&intendingToMove&&targetSpeed===0&&Math.abs(vehicle.speed)<config.shiftSpeed)vehicle.blockedTime+=dt;
     moveTraffic(vehicle,targetSpeed,roadFraction,dt);
@@ -512,7 +526,8 @@ export class Traffic {
       if(!vehicle.active)return {targetSpeed,targetLane};
       const {tangent}=samples[index],right=new THREE.Vector3(tangent.z,0,-tangent.x);
       let previousTangent=tangent;
-      for(let ahead=physics.driving.bendSampleSpacing;ahead<=physics.driving.bendLookAhead;ahead+=physics.driving.bendSampleSpacing) {
+      const bendLookAhead=vehicle.aggressive?Math.min(farmerPlacement.handling.maxBendLookAhead,Math.max(physics.driving.bendLookAhead,vehicle.speed**2/(2*(vehicle.powertrain?.braking??physics.driving.braking))+Math.abs(vehicle.speed)*farmerPlacement.handling.bendReactionTime)):physics.driving.bendLookAhead;
+      for(let ahead=physics.driving.bendSampleSpacing;ahead<=bendLookAhead;ahead+=physics.driving.bendSampleSpacing) {
         const bend=this.routeSample(vehicle,vehicle.distance+vehicle.direction*ahead).tangent.multiplyScalar(vehicle.direction);
         const bendAngle=Math.acos(THREE.MathUtils.clamp(previousTangent.dot(bend),-1,1));
         if(bendAngle>0)targetSpeed=Math.min(targetSpeed,Math.sqrt((vehicle.aggressive?farmerPlacement.maxLateralAcceleration:physics.driving.maxLateralAcceleration)*physics.driving.bendSampleSpacing/bendAngle));
@@ -560,7 +575,8 @@ export class Traffic {
           // Hit the inward rear quarter, pushing the player toward its nearest road edge.
           const lane=playerPosition.clone().sub(playerRoad.point).dot(side);
           pursuit=playerPosition.clone().add(lead).addScaledVector(side,-(Math.sign(lane)||1)*farmerPlacement.ramOffset);
-          const desired=Math.atan2(pursuit.x-vehicle.drive.position.x,pursuit.z-vehicle.drive.position.z);
+          if(relative.length()>farmerPlacement.handling.attackDistance)pursuit=undefined;
+          const desired=pursuit?Math.atan2(pursuit.x-vehicle.drive.position.x,pursuit.z-vehicle.drive.position.z):Math.atan2(this.sample(vehicle).tangent.x,this.sample(vehicle).tangent.z);
           const error=Math.abs(Math.atan2(Math.sin(desired-vehicle.drive.heading),Math.cos(desired-vehicle.drive.heading)));
           plans[index].targetSpeed=Math.min(plans[index].targetSpeed,Math.max(farmerPlacement.minimumSpeed,(playerVelocity?.length()??0)*farmerPlacement.speedAdvantage+farmerPlacement.closingSpeed));
           vehicle.recovering=vehicle.reactionTime>0||error>farmerPlacement.reverseAngle||vehicle.blockedTime>physics.recovery.blockedTime;

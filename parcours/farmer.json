@@ -7,7 +7,7 @@
   "turnSpeed": 4.5,
   "minimumSpeed": 8,
   "closingSpeed": 7,
-  "maxLateralAcceleration": 6,
+  "maxLateralAcceleration": 4.2,
   "spawnSpeed": 10,
   "speedAdvantage": 1.08,
   "accelerationAdvantage": 1.15,
@@ -25,5 +25,13 @@
     "playerClearance": 12,
     "visibilityMargin": 0.75,
     "retryInterval": 0.5
+  },
+  "handling": {
+    "gripUsage": 0.7,
+    "lookAheadTime": 1.1,
+    "bendReactionTime": 0.8,
+    "maxBendLookAhead": 100,
+    "attackDistance": 32,
+    "stabilizeSlipSpeed": 1.5
   }
 }

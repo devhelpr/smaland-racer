@@ -8,17 +8,18 @@ export interface TrafficDriveState {
 }
 
 /** The driver operates the steering rack; only tire dynamics can move the body. */
-export function steerTraffic(state:TrafficDriveState,target:THREE.Vector3,wheelbase:number,dt:number,override?:number):void {
+export function steerTraffic(state:TrafficDriveState,target:THREE.Vector3,wheelbase:number,dt:number,override?:number,maxAngle=physics.driving.maxSteeringAngle):void {
   const config=physics.driving;
   const dx=target.x-state.position.x,dz=target.z-state.position.z;
   const right=dx*Math.cos(state.heading)-dz*Math.sin(state.heading);
   const curvature=2*right/Math.max(dx*dx+dz*dz,1);
-  const desired=THREE.MathUtils.clamp(override??Math.atan(wheelbase*curvature),-config.maxSteeringAngle,config.maxSteeringAngle);
+  const desired=THREE.MathUtils.clamp(override??Math.atan(wheelbase*curvature),-maxAngle,maxAngle);
   const smoothed=THREE.MathUtils.damp(state.steering,desired,config.steeringResponse,dt);
   state.steering+=THREE.MathUtils.clamp(smoothed-state.steering,-config.maxSteeringRate*dt,config.maxSteeringRate*dt);
 }
 
 export interface TrafficMotion {
+  corneringAcceleration?:number;
   powertrain?:{acceleration:number;braking:number};
   drive: TrafficDriveState;
   velocity: THREE.Vector3;
@@ -47,7 +48,10 @@ export function moveTraffic(car:TrafficMotion,targetSpeed:number,roadFraction:nu
   if(targetSpeed===0&&Math.abs(longitudinal)<config.stoppedSpeed) {longitudinal=0;car.acceleration=0;}
   const grip=THREE.MathUtils.lerp(config.shoulderGrip,config.roadGrip,roadFraction);
   lateral*=Math.exp(-grip*dt);
-  const desiredYaw=longitudinal*Math.tan(car.drive.steering)/car.wheelbase;
+  const rackYaw=longitudinal*Math.tan(car.drive.steering)/car.wheelbase;
+  // When the rack asks for more turn than grip supports, the tires understeer instead of spinning the body.
+  const maxYaw=car.corneringAcceleration===undefined?Infinity:car.corneringAcceleration/Math.max(Math.abs(longitudinal),1);
+  const desiredYaw=THREE.MathUtils.clamp(rackYaw,-maxYaw,maxYaw);
   const response=car.reactionTime>0?config.impactYawDamping:THREE.MathUtils.lerp(config.shoulderYawResponse,config.yawResponse,roadFraction);
   const yaw=THREE.MathUtils.damp(car.angularVelocity,desiredYaw,response,dt);
   const yawChange=THREE.MathUtils.clamp(yaw-car.angularVelocity,-config.maxYawAcceleration*dt,config.maxYawAcceleration*dt);

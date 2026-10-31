@@ -33,5 +33,52 @@
     "maxBendLookAhead": 100,
     "attackDistance": 32,
     "stabilizeSlipSpeed": 1.5
+  },
+  "navigation": {
+    "enterMargin": 0.4,
+    "impactHeading": 0.6,
+    "impactSlip": 2,
+    "exitLaneError": 0.35,
+    "exitHeadingError": 0.25,
+    "exitSlip": 0.8,
+    "stableTime": 0.5,
+    "replanInterval": 0.35,
+    "previews": [
+      7,
+      12,
+      18,
+      26
+    ],
+    "speed": 2.8,
+    "steeringAngles": [
+      -0.5,
+      -0.3,
+      -0.15,
+      0,
+      0.15,
+      0.3,
+      0.5
+    ],
+    "horizon": 2.4,
+    "step": 0.1,
+    "minimumTravel": 0.2,
+    "goalClearance": 0.15,
+    "progressWeight": 2,
+    "headingWeight": 6,
+    "steeringWeight": 0.4,
+    "reversePenalty": 0.5,
+    "shiftPenalty": 1.2,
+    "reverseDistance": 4,
+    "reverseLimitPenalty": 15,
+    "previewWeight": 0.02,
+    "playerClearance": 3,
+    "laneWeight": 3,
+    "directionSpeed": 3,
+    "directionGap": 4,
+    "enterHeading": 0.8,
+    "turnHeadingWeight": 16,
+    "turnLaneWeight": 0.5,
+    "wrongWayHeading": 2.2,
+    "detourClearance": 0.8
   }
 }

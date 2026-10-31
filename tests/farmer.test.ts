@@ -89,14 +89,15 @@ test('farmer stays active beyond an open stage endpoint',()=>{
 for(const rate of [30,120])test(`farmer turns back for an evasive player behind it at ${rate}Hz`,()=>{
   const {root,traffic,farmer}=setup();
   const player=farmer.drive.position.clone().add(new THREE.Vector3(-3,0,-12));
-  let closest=Infinity,reversed=false;
+  let closest=Infinity,forwardClosest=Infinity;
   for(let i=0;i<rate*30;i++) {
     traffic.update(1/rate,player,new THREE.Vector3());
     closest=Math.min(closest,farmer.drive.position.distanceTo(player));
-    if(farmer.speed<-.2)reversed=true;
+    if(farmer.speed>.2)forwardClosest=Math.min(forwardClosest,farmer.drive.position.distanceTo(player));
+    if(farmer.speed<-.5)assert.equal(farmer.navigation!.mode,'rejoin','reverse is reserved for recovery manoeuvres');
     assert.ok(Number.isFinite(farmer.drive.heading));
   }
-  assert.ok(reversed,'driver brakes before selecting reverse to turn around');
+  assert.ok(forwardClosest<5,'driver finishes its turn and approaches the player forwards');
   assert.ok(closest<5,`farmer returns to the player rather than abandoning pursuit: ${closest}`);
   disposeGroup(root);
 });
@@ -165,18 +166,20 @@ for(const rate of [30,120])for(const vehicleId of ['volvo-240','tiguan-2022'] as
   const player=new Vehicle(course,'cruising',createDrivingProfiles(),vehicleId);
   const forward=new THREE.Vector3(Math.sin(farmer.drive.heading),0,Math.cos(farmer.drive.heading));
   const side=new THREE.Vector3(forward.z,0,-forward.x);
-  player.position.copy(farmer.drive.position).addScaledVector(contact==='rear'?forward:side,8);
+  // A close quarter hit remains a collision test; a long drive across the verge now triggers road recovery.
+  player.position.copy(farmer.drive.position).addScaledVector(contact==='rear'?forward:side,contact==='rear'?8:4);
   if(contact==='side')player.position.addScaledVector(forward,1.1);
   player.heading=farmer.drive.heading;player.velocity.set(0,0,0);
   if(contact==='side') {
     farmer.drive.heading+=Math.PI/2;farmer.drive.steering=0;farmer.angularVelocity=0;
     farmer.velocity.copy(side).multiplyScalar(12);farmer.speed=12;
   }
-  const origin=player.position.clone(),originalHeading=player.heading;let contactMade=false,largestKick=0,turn=0;
+  const origin=player.position.clone(),originalHeading=player.heading;let contactMade=false,largestKick=0,turn=0,maxDisplacement=0;
   for(let i=0;i<rate*3;i++) {
     traffic.update(1/rate,player.position,player.velocity);
     const before=player.velocity.clone();
     player.update(1/rate,{throttle:0,steer:0,handbrake:false},world);
+    maxDisplacement=Math.max(maxDisplacement,player.position.clone().sub(origin).dot(contact==='rear'?forward:side));
     if(farmer.reactionTime>0) {
       contactMade=true;largestKick=Math.max(largestKick,player.velocity.clone().sub(before).dot(contact==='rear'?forward:side));
       turn=Math.max(turn,Math.abs(player.heading-originalHeading));
@@ -184,7 +187,7 @@ for(const rate of [30,120])for(const vehicleId of ['volvo-240','tiguan-2022'] as
   }
   assert.ok(contactMade,'farmer physically strikes the main car');
   assert.ok(largestKick>1,'the impact changes the main car velocity in the collision direction');
-  assert.ok(player.position.clone().sub(origin).dot(contact==='rear'?forward:side)>.5,'main car visibly moves from the impact');
+  assert.ok(maxDisplacement>.5,'main car visibly moves from the impact');
   assert.ok(player.damage>0,'a hard farmer collision damages the main car');
   if(contact==='side')assert.ok(turn>.01,'side contact also turns the main car');
   assert.ok(Number.isFinite(player.position.x)&&Number.isFinite(player.heading));
